@@ -1064,8 +1064,8 @@ body {
 .results-tabs {
   display: flex;
   gap: 8px;
-  background: var(--bg-card);
-  padding: 5px;
+  background: var(--bg-subtle);
+  padding: 6px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   overflow-x: auto;
@@ -1076,34 +1076,44 @@ body {
   align-items: center;
   gap: 8px;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   color: var(--text-secondary);
   font-family: var(--font-main);
   font-size: 0.88rem;
   font-weight: 600;
-  padding: 9px 16px;
+  padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .res-tab-btn:hover {
-  color: #fff;
+  color: var(--text-primary);
+  background: rgba(128, 128, 128, 0.12);
 }
 
 .res-tab-btn.active {
-  background: var(--bg-subtle);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: var(--accent-red) !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  border-color: var(--accent-red) !important;
+  box-shadow: 0 2px 10px rgba(204, 0, 0, 0.35);
 }
 
 .tab-pill {
   font-size: 0.72rem;
   font-weight: 700;
-  padding: 1px 7px;
+  padding: 2px 8px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(128, 128, 128, 0.18);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.res-tab-btn.active .tab-pill {
+  background: rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
 }
 
 .export-group {
@@ -1906,3 +1916,134 @@ body {
   background: var(--bg-card-hover);
 }
 
+
+
+/* ── LIGHT MODE HIGH-CONTRAST ACCESSIBILITY FIXES ── */
+[data-theme="light"] .results-tabs {
+  background: #ebebeb;
+  border: 1px solid #d4d4d4;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .res-tab-btn {
+  color: #333333 !important;
+  background: transparent;
+}
+
+[data-theme="light"] .res-tab-btn:hover {
+  color: #000000 !important;
+  background: #dedede;
+}
+
+[data-theme="light"] .res-tab-btn.active {
+  background: #cc0000 !important;
+  color: #ffffff !important;
+  border-color: #b30000 !important;
+  box-shadow: 0 2px 8px rgba(204, 0, 0, 0.32);
+}
+
+[data-theme="light"] .tab-pill {
+  background: #d4d4d4 !important;
+  color: #1a1a1a !important;
+  font-weight: 800;
+}
+
+[data-theme="light"] .res-tab-btn.active .tab-pill {
+  background: rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+}
+
+/* Light Mode Input Mode Tabs (Option A, B, C) */
+[data-theme="light"] .mode-tabs {
+  background: #ebebeb;
+  border: 1px solid #d4d4d4;
+}
+
+[data-theme="light"] .tab-btn {
+  color: #444444 !important;
+}
+
+[data-theme="light"] .tab-btn:hover {
+  color: #000000 !important;
+  background: #dfdfdf;
+}
+
+[data-theme="light"] .tab-btn.active {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #c8c8c8 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-weight: 700;
+}
+
+/* Light Mode Currency Switcher Buttons */
+[data-theme="light"] .currency-switch {
+  background: #ebebeb;
+  border: 1px solid #d4d4d4;
+}
+
+[data-theme="light"] .curr-btn {
+  color: #444444 !important;
+}
+
+[data-theme="light"] .curr-btn:hover {
+  color: #000000 !important;
+}
+
+[data-theme="light"] .curr-btn.active {
+  background: #cc0000 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .curr-select {
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid #d0d0d0;
+}
+
+[data-theme="light"] .theme-toggle-btn {
+  background: #ebebeb;
+  border-color: #d0d0d0;
+  color: #111111;
+}
+
+[data-theme="light"] .theme-toggle-btn:hover {
+  background: #dfdfdf;
+}
+
+/* Light Mode Currency Summary Bar & Chips in Overview */
+[data-theme="light"] .currency-summary-bar {
+  background: #f5f5f5;
+  border-color: #e0e0e0;
+}
+
+[data-theme="light"] .csb-chip {
+  background: #ffffff;
+  border-color: #d8d8d8;
+  color: #111111;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .csb-amt {
+  color: #cc0000;
+}
+
+/* Light Mode View 5 Currency Cards */
+[data-theme="light"] .currency-card {
+  background: #ffffff;
+  border-color: #e0e0e0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .cc-orig-val {
+  color: #111111;
+}
+
+[data-theme="light"] .cc-base-val {
+  color: #cc0000;
+}
+
+[data-theme="light"] .cc-rate-tag {
+  background: #f0f0f0;
+  color: #333333;
+}
