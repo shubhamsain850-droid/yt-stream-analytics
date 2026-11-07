@@ -90,9 +90,10 @@ def analyze_stream_endpoint(req: AnalyzeStreamRequest):
     if not vid:
         raise HTTPException(status_code=400, detail="Invalid YouTube URL or Video ID.")
 
-    # 1. Fetch real video title with cookies
+    # 1. Fetch real video title with cookies & ignore-no-formats-error
     stream_title = f"Live Stream [{vid}]"
     title_cmd = ["yt-dlp"] + get_cookie_arg() + [
+        "--ignore-no-formats-error",
         "--skip-download",
         "--print", "%(title)s",
         f"https://www.youtube.com/watch?v={vid}"
@@ -108,6 +109,7 @@ def analyze_stream_endpoint(req: AnalyzeStreamRequest):
     with tempfile.TemporaryDirectory() as tmp_dir:
         chat_output_template = os.path.join(tmp_dir, f"{vid}.%(ext)s")
         cmd = ["yt-dlp"] + get_cookie_arg() + [
+            "--ignore-no-formats-error",
             "--skip-download",
             "--write-sub",
             "--sub-langs", "live_chat",
