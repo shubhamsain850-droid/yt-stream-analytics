@@ -434,6 +434,41 @@ body {
   border-color: rgba(255, 0, 51, 0.4);
 }
 
+.upload-dropzone {
+  border: 2px dashed rgba(255, 0, 51, 0.35);
+  border-radius: var(--radius-md);
+  padding: 45px 20px;
+  text-align: center;
+  background: var(--bg-input);
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.upload-dropzone:hover {
+  border-color: var(--accent-red);
+  background: rgba(255, 0, 51, 0.05);
+}
+
+.tier-chip {
+  background: rgba(139, 92, 246, 0.15);
+  color: #c4b5fd;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.tier-chip:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: #8b5cf6;
+}
+
+
 .quick-examples {
   margin-top: 14px;
   display: flex;
@@ -1242,3 +1277,4 @@ body {
     flex: 1;
   }
 }
+
