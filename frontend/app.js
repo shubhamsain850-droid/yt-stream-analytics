@@ -157,10 +157,6 @@ const elements = {
   urlQueueList: document.getElementById('urlQueueList'),
   startMultiBtn: document.getElementById('startMultiBtn'),
 
-  // Upload Mode
-  fileUploadInput: document.getElementById('fileUploadInput'),
-  dropZone: document.getElementById('dropZone'),
-
   // Processing Card
   processingCard: document.getElementById('processingCard'),
   statusTitle: document.getElementById('statusTitle'),
@@ -220,7 +216,6 @@ const elements = {
   exportExcelBtn: document.getElementById('exportExcelBtn'),
   exportNotepadBtn: document.getElementById('exportNotepadBtn'),
   exportAllCsvBtn: document.getElementById('exportAllCsvBtn'),
-  exportJsonBtn: document.getElementById('exportJsonBtn'),
 
   // Theme Switcher
   themeToggleBtn: document.getElementById('themeToggleBtn'),
@@ -248,7 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSingleMode();
   setupChannelMode();
   setupMultiMode();
-  setupUploadMode();
   setupResultsTabs();
   setupSearchAndSort();
   setupExports();
@@ -872,109 +866,7 @@ function setupMultiMode() {
   });
 }
 
-// ── Option D: Direct JSON File Upload & Instant Parser ──
-function setupUploadMode() {
-  elements.fileUploadInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) handleJsonFile(file);
-  });
 
-  elements.dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    elements.dropZone.style.borderColor = '#ff3355';
-  });
-
-  elements.dropZone.addEventListener('dragleave', () => {
-    elements.dropZone.style.borderColor = 'rgba(255, 0, 51, 0.35)';
-  });
-
-  elements.dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    elements.dropZone.style.borderColor = 'rgba(255, 0, 51, 0.35)';
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleJsonFile(e.dataTransfer.files[0]);
-    }
-  });
-}
-
-function handleJsonFile(file) {
-  // ── Session Isolation Reset (Zero cross-file pollution) ──
-  state.discoveredTiers.clear();
-  state.results = null;
-  if (elements.streamsTableBody) elements.streamsTableBody.innerHTML = '';
-  if (elements.superchatTableBody) elements.superchatTableBody.innerHTML = '';
-  if (elements.membershipsTableBody) elements.membershipsTableBody.innerHTML = '';
-  if (elements.jewelsTableBody) elements.jewelsTableBody.innerHTML = '';
-  if (elements.tiersBar) elements.tiersBar.style.display = 'none';
-
-  elements.processingCard.style.display = 'block';
-  elements.resultsSection.style.display = 'none';
-  elements.statusTitle.textContent = `Parsing ${file.name}...`;
-  elements.statusTicker.textContent = 'Reading JSON file into memory buffer...';
-  elements.progressBarFill.style.width = '20%';
-  elements.progressPercent.textContent = '20%';
-
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    elements.progressBarFill.style.width = '55%';
-    elements.progressPercent.textContent = '55%';
-    elements.statusTicker.textContent = 'Extracting Superchats, Memberships & Custom Tiers...';
-
-    setTimeout(() => {
-      const text = evt.target.result;
-      const lines = text.split(/\r?\n/);
-      const vid = extractVideoId(file.name) || file.name.replace('.live_chat.json', '').replace('.json', '');
-      const cleanTitle = file.name.replace('.live_chat.json', '').replace('.json', '');
-
-      const parsed = parseClientSideJson(lines, vid);
-
-      elements.progressBarFill.style.width = '85%';
-      elements.progressPercent.textContent = '85%';
-      elements.statusTicker.textContent = 'Calculating gross/net revenue & donor deduplication...';
-
-      setTimeout(() => {
-        elements.progressBarFill.style.width = '100%';
-        elements.progressPercent.textContent = '100%';
-        elements.statusTitle.textContent = `Completed: ${file.name}`;
-        elements.statusTicker.textContent = `Done! Found ${parsed.superchats.length} Superchats and ${parsed.memberships.length} Memberships.`;
-
-        state.metrics = {
-          total: 1,
-          success: 1,
-          failed: 0,
-          noChat: 0
-        };
-        updateMetricsDisplay();
-
-        const accumulator = {
-          streams: [{
-            vid: vid,
-            title: cleanTitle,
-            date: new Date().toISOString().split('T')[0],
-            superchatsInr: parsed.totals.superchat_inr,
-            jewelsInr: parsed.totals.jewels_inr,
-            jewelsCount: parsed.totals.jewels_count,
-            membershipsInr: parsed.totals.memberships_inr,
-            grossInr: parsed.totals.gross_inr,
-            scCount: parsed.totals.superchat_count
-          }],
-          superchats: parsed.superchats,
-          memberships: parsed.memberships,
-          jewels: parsed.jewels,
-          uniqueDonors: new Set(parsed.unique_donors),
-          uniqueChatters: new Set(parsed.unique_donors)
-        };
-
-        state.results = accumulator;
-        renderAllResults(accumulator);
-        renderTiersBar();
-        elements.resultsSection.style.display = 'block';
-        elements.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 120);
-    }, 80);
-  };
-  reader.readAsText(file);
-}
 
 // ── Safe Text Extractor Helper ──
 function extractText(field) {
@@ -1468,7 +1360,7 @@ async function startProcessing(urls, label = null) {
     elements.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } else {
     elements.statusTitle.textContent = 'Audit Result: No Live Chat Available';
-    elements.statusTicker.innerHTML = `⚠️ YouTube live chat could not be retrieved from the URL directly because chat replay was disabled or restricted by YouTube. <br><br>💡 <strong>Tip:</strong> If you have the <code>.live_chat.json</code> file, switch to <strong>Option D: Upload JSON</strong> above for instant 100% audit!`;
+    elements.statusTicker.innerHTML = `⚠️ YouTube live chat could not be retrieved from this stream URL because chat replay was disabled or restricted by YouTube. Please verify that the stream was live and chat replay is enabled on YouTube.`;
   }
 }
 
@@ -1732,9 +1624,6 @@ function setupExports() {
   }
   if (elements.exportAllCsvBtn) {
     elements.exportAllCsvBtn.addEventListener('click', exportToCsv);
-  }
-  if (elements.exportJsonBtn) {
-    elements.exportJsonBtn.addEventListener('click', exportToJson);
   }
 }
 
@@ -2070,16 +1959,6 @@ function exportToCsv() {
   });
 
   downloadFile(csv, `YouTube_Stream_Earnings_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
-}
-
-// JSON Export
-function exportToJson() {
-  if (!state.results) {
-    alert("Please run an audit first to generate report data.");
-    return;
-  }
-  const jsonStr = JSON.stringify(state.results, null, 2);
-  downloadFile(jsonStr, `YouTube_Stream_Earnings_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
 }
 
 function downloadFile(content, fileName, contentType) {

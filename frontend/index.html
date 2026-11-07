@@ -92,10 +92,6 @@
           <span>Option C: Multi-URL Batch</span>
           <span class="tab-counter-badge" id="multiTabBadge">0 Added</span>
         </button>
-        <button class="tab-btn" data-mode="upload">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          <span>Option D: Upload JSON</span>
-        </button>
       </div>
 
       <!-- Mode A: Single Stream Input -->
@@ -192,17 +188,6 @@
             <span>Start Batch Processing</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </button>
-        </div>
-      </div>
-
-      <!-- Mode D: Direct .live_chat.json File Upload (Instant 0.2s Audit) -->
-      <div class="mode-panel" id="panel-upload">
-        <label class="input-label">Upload or Drop Any `.live_chat.json` File for Instant Real Audit</label>
-        <div class="upload-dropzone" id="dropZone" onclick="document.getElementById('fileUploadInput').click()">
-          <input type="file" id="fileUploadInput" accept=".json" style="display: none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width: 44px; height: 44px; color: #ff3355; margin-bottom: 12px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          <h4 style="font-size: 1.05rem; margin-bottom: 6px; color: #fff;">Click to Browse or Drag &amp; Drop JSON file here</h4>
-          <p style="font-size: 0.85rem; color: var(--text-muted);">Supports chat_downloader &amp; yt-dlp .live_chat.json format. Parses 100,000+ messages in seconds.</p>
         </div>
       </div>
     </div>
@@ -359,9 +344,6 @@
           <button class="btn-export" id="exportAllCsvBtn" title="Export Raw CSV Data">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             <span>CSV</span>
-          </button>
-          <button class="btn-export secondary" id="exportJsonBtn" title="Export Full JSON Schema">
-            <span>JSON</span>
           </button>
         </div>
       </div>
