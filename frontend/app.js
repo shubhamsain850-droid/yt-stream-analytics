@@ -1,6 +1,5 @@
 /**
- * StreamVault — YouTube Live Stream Earning & Chat Analytics
- * Frontend Controller & Engine
+ * StreamVault — YouTube Live Stream Earning, Super Chat, Memberships & Jewels Analytics
  * Connected to live FastAPI backend on Hugging Face: https://shubhamsain858-kickcuttr-api.hf.space
  */
 
@@ -26,6 +25,7 @@ const state = {
     "Duggu's World 🐥": 59,
     "Special Fam 🩵": 799,
     "Special Fam ♜": 799,
+    "Sweet Army 🩵": 59,
     "Wink Army 🙂": 299,
     "Shinning Fam ✨": 479,
     "Super Sponsors 🔥": 3999,
@@ -36,35 +36,13 @@ const state = {
     "Level 5": 3999
   },
   discoveredTiers: new Set(),
-  results: null // Stored parsed data
+  results: null
 };
 
-// ── YouTube Jewels Reference Table ──
+// ── YouTube Jewels Economics ──
 // Creator Revenue Rate: 1 Ruby = $0.01 USD (~Rs. 0.84 INR).
 // Viewers spend ~2 Jewels per Ruby => Net Creator Earnings = ~Rs. 0.42 per Jewel (NOT Rs. 1.20!).
 const INR_PER_JEWEL = 0.42;
-
-const JEWEL_MAP = {
-  "Hamsasya mudra": 2, "Panipuri": 2, "Mango lassi": 2, "Samosa": 2,
-  "Star": 2, "Namaste": 2, "Sparkles": 2, "100": 2,
-  "Treat": 5, "Kem cho?": 5, "Macha": 5, "Arre yaar!": 5, "Chili": 6,
-  "Cricket": 10, "All izz well": 10, "Gold coin": 10, "Press F": 10, "Bas kar": 10, "W": 10,
-  "Red card": 20, "Party hat": 20, "GGEZ": 20, "Six seven": 67, "Clock it": 80, "Argentina": 98,
-  "Chai toast": 100, "Vada pav": 100, "Vibe hai": 100, "Sunshine": 200,
-  "Clapping seal": 250, "Laughing disco": 250, "MVP": 250, "Girl power": 300,
-  "Aiyyo!": 350, "Bindaas": 350, "Finger heart": 350, "Fortune cookie": 380, "Badhai ho": 400,
-  "Butterfly": 450, "Blowfish": 450, "Watermelon": 500, "Tulips": 500, "Power potion": 500,
-  "Soccer trophy": 500, "Controller": 500, "Shopping cart": 550, "Picnic basket": 600, "Mic drop": 600,
-  "Mystery gift": 650, "Nap": 680, "Island": 700, "Let em cook": 750, "Husky": 800, "GG keys": 800,
-  "Duckling": 900, "Ramen bowl": 900, "Guitar": 1000, "Trophy cake": 1000, "Goat trophy": 1000,
-  "Corgi": 1000, "Park the bus": 1000, "Loot box": 1000, "Air travel": 1000, "W pinata": 1000,
-  "Sand castle": 1200, "Bumblebee": 1250, "Tube dancer": 1500, "Bubble heart": 1500,
-  "Beach dog": 3000, "Headphones": 3600, "Hound": 3800, "Biscuit tin": 5000,
-  "Sushi": 5500, "Hot pot": 6800, "Hooray": 7000, "Rock star": 7800, "Sports car": 9500,
-  "Trifle smash": 10000, "Limo": 10000, "Seal splash": 12000, "Ball party": 12000,
-  "Gamer corgi": 15000, "Night market": 15500, "Victory spin": 17000, "Castle": 18000,
-  "Racing game": 20000, "Seaside": 22500
-};
 
 const CURRENCY_RATES = {
   "INR": 1.0, "₹": 1.0, "Rs": 1.0,
@@ -415,7 +393,8 @@ function handleJsonFile(file) {
 
     const text = evt.target.result;
     const lines = text.split(/\r?\n/);
-    const vid = extractVideoId(file.name) || file.name.replace('.json', '');
+    const vid = extractVideoId(file.name) || file.name.replace('.live_chat.json', '').replace('.json', '');
+    const cleanTitle = file.name.replace('.live_chat.json', '').replace('.json', '');
 
     const parsed = parseClientSideJson(lines, vid);
 
@@ -435,7 +414,7 @@ function handleJsonFile(file) {
     const accumulator = {
       streams: [{
         vid: vid,
-        title: file.name.replace('.live_chat.json', '').replace('.json', ''),
+        title: cleanTitle,
         date: new Date().toISOString().split('T')[0],
         superchatsInr: parsed.totals.superchat_inr,
         jewelsInr: parsed.totals.jewels_inr,
@@ -453,10 +432,25 @@ function handleJsonFile(file) {
 
     state.results = accumulator;
     renderAllResults(accumulator);
+    renderTiersBar();
     elements.resultsSection.style.display = 'block';
     elements.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   reader.readAsText(file);
+}
+
+// ── Safe Text Extractor Helper ──
+function extractText(field) {
+  if (!field) return "";
+  if (typeof field === "string") return field.trim();
+  if (typeof field === "object") {
+    if (field.simpleText) return String(field.simpleText).trim();
+    if (field.content) return String(field.content).trim();
+    if (Array.isArray(field.runs)) {
+      return field.runs.map(r => r.text || "").join("").trim();
+    }
+  }
+  return "";
 }
 
 // ── High Performance Client-Side Parser ──
@@ -476,7 +470,7 @@ function parseClientSideJson(lines, vid) {
     const line = lines[i].trim();
     if (!line) continue;
 
-    // Fast check for Superchats
+    // Fast check for Superchats & Super Stickers
     if (line.includes('purchaseAmountText')) {
       try {
         const obj = JSON.parse(line);
@@ -486,15 +480,17 @@ function parseClientSideJson(lines, vid) {
             if (scId && seenIds.has(scId)) return;
             if (scId) seenIds.add(scId);
 
-            const author = item.authorName ? item.authorName.simpleText : "Unknown";
-            const amtStr = item.purchaseAmountText.simpleText || "0";
+            const author = extractText(item.authorName) || "Unknown";
+            const amtStr = extractText(item.purchaseAmountText) || "0";
             const parsedAmt = parseAmountStr(amtStr);
             const rate = CURRENCY_RATES[parsedAmt.currency] || 1.0;
             const amtInr = parsedAmt.amount * rate;
 
             let msg = "";
-            if (item.message && item.message.runs) {
-              msg = item.message.runs.map(r => r.text || '').join('');
+            if (item.message) {
+              msg = extractText(item.message);
+            } else {
+              msg = "[Super Sticker]";
             }
 
             superchats.push({
@@ -504,7 +500,7 @@ function parseClientSideJson(lines, vid) {
               amount_inr: amtInr,
               message: msg,
               streamId: vid,
-              timestamp: item.timestampText ? item.timestampText.simpleText : ""
+              timestamp: extractText(item.timestampText)
             });
             totalScInr += amtInr;
             uniqueDonors.add(author);
@@ -513,7 +509,7 @@ function parseClientSideJson(lines, vid) {
       } catch (e) {}
     }
 
-    // Fast check for Memberships
+    // Fast check for Memberships (New Joins & Milestones)
     if (line.includes('liveChatMembershipItemRenderer')) {
       try {
         const obj = JSON.parse(line);
@@ -523,26 +519,42 @@ function parseClientSideJson(lines, vid) {
             if (mId && seenIds.has(mId)) return;
             if (mId) seenIds.add(mId);
 
-            const author = item.authorName ? item.authorName.simpleText : "Unknown";
-            const subRuns = item.headerSubtext && item.headerSubtext.runs ? item.headerSubtext.runs.map(r => r.text || '').join('') : '';
-            const priRuns = item.headerPrimaryText && item.headerPrimaryText.runs ? item.headerPrimaryText.runs.map(r => r.text || '').join('') : '';
+            const author = extractText(item.authorName) || "Unknown";
+            const subText = extractText(item.headerSubtext);
+            const priText = extractText(item.headerPrimaryText);
 
             let tier = "General Member";
             let type = "Member";
-            if (subRuns.toLowerCase().includes('welcome to')) {
-              tier = subRuns.replace(/welcome to/i, '').replace(/!/g, '').trim();
+            let tenure = "";
+            let price = 59;
+
+            if (subText.toLowerCase().includes('welcome to')) {
+              tier = subText.replace(/welcome to/i, '').replace(/!/g, '').trim();
               type = "New Join";
               state.discoveredTiers.add(tier);
-            } else if (priRuns) {
-              tier = priRuns.trim();
+            } else if (subText.toLowerCase().includes('upgraded')) {
+              tier = subText.replace(/upgraded.*?to/i, '').replace(/!/g, '').trim();
+              type = "Upgrade";
+              state.discoveredTiers.add(tier);
+              price = 299;
+            } else if (subText) {
+              // Milestone: subText contains the clean custom tier e.g. "Duggu’s world 🐥"
+              tier = subText.trim();
+              tenure = priText;
               type = "Milestone / Renewal";
+              state.discoveredTiers.add(tier);
+            } else if (priText) {
+              tier = "General Member";
+              tenure = priText;
+              type = `Milestone (${priText})`;
             }
 
-            const price = state.tierPrices[tier] || 59;
+            price = state.tierPrices[tier] || price;
             memberships.push({
               author,
               type,
               tier,
+              tenure,
               price,
               streamId: vid
             });
@@ -553,19 +565,52 @@ function parseClientSideJson(lines, vid) {
       } catch (e) {}
     }
 
-    // Fast check for Jewels
+    // Fast check for Gifted Memberships Purchase
+    if (line.includes('liveChatSponsorshipsGiftPurchaseAnnouncementRenderer')) {
+      try {
+        const obj = JSON.parse(line);
+        walkJson(obj, (item) => {
+          if (item.header && item.header.liveChatSponsorshipsHeaderRenderer) {
+            const gId = item.id;
+            if (gId && seenIds.has(gId)) return;
+            if (gId) seenIds.add(gId);
+
+            const h = item.header.liveChatSponsorshipsHeaderRenderer;
+            const author = extractText(h.authorName) || "Unknown";
+            const pri = extractText(h.primaryText);
+            let count = 1;
+            const m = pri.match(/\b(\d+)\b/);
+            if (m) count = parseInt(m[1]);
+            const estVal = count * 59;
+
+            memberships.push({
+              author,
+              type: `Gifted (${count})`,
+              tier: `${count} Memberships Gifted`,
+              tenure: pri,
+              price: estVal,
+              streamId: vid
+            });
+            totalMemInr += estVal;
+            uniqueDonors.add(author);
+          }
+        });
+      } catch (e) {}
+    }
+
+    // Fast check for YouTube Jewels
     if (line.includes('giftMessageViewModel')) {
       try {
         const obj = JSON.parse(line);
         walkJson(obj, (item) => {
-          if (item.text && item.text.content) {
-            const content = item.text.content;
+          const content = extractText(item.text);
+          if (content) {
             const match = content.match(/comboed x(\d+) (.+?) for (\d+) Jewels/);
             if (match) {
               const qty = parseInt(match[1]);
               const gname = match[2].trim();
               const jAmt = parseInt(match[3]);
-              const author = item.authorName && item.authorName.content ? item.authorName.content.trim() : "Unknown";
+              const author = extractText(item.authorName) || "Unknown";
               const inrVal = jAmt * INR_PER_JEWEL;
 
               jewels.push({
@@ -681,7 +726,6 @@ async function startProcessing(urls, label = null) {
         state.metrics.success++;
         const p = resData.data;
 
-        // Collect custom tiers
         if (p.custom_tiers) {
           p.custom_tiers.forEach(t => state.discoveredTiers.add(t));
         }
@@ -702,6 +746,7 @@ async function startProcessing(urls, label = null) {
           author: s.author,
           amount: s.amount,
           currency: s.currency,
+          amount_inr: s.amount_inr,
           message: s.message,
           streamId: s.stream_id,
           timestamp: s.time
@@ -711,6 +756,7 @@ async function startProcessing(urls, label = null) {
           author: m.author,
           type: m.type,
           tier: m.tier,
+          tenure: m.tenure || '',
           price: state.tierPrices[m.tier] || m.price_inr,
           streamId: m.stream_id
         })));
@@ -727,7 +773,7 @@ async function startProcessing(urls, label = null) {
         p.unique_donors.forEach(d => resultsAccumulator.uniqueDonors.add(d));
       } else if (resData.error === "NO_CHAT_AVAILABLE") {
         state.metrics.noChat++;
-        elements.statusTicker.textContent = `[NO CHAT] Live chat replay was disabled or not available for: ${vid}`;
+        elements.statusTicker.textContent = `[NO CHAT] Live chat replay was disabled or not available for: ${resData.title || vid}`;
       } else {
         state.metrics.failed++;
         elements.statusTicker.textContent = `[FAILED] ${resData.message || 'Stream unavailable'}`;
@@ -743,19 +789,20 @@ async function startProcessing(urls, label = null) {
   // 100% Complete
   elements.progressBarFill.style.width = '100%';
   elements.progressPercent.textContent = '100%';
-  elements.statusTicker.textContent = `Audit Complete! Successfully parsed ${state.metrics.success} stream(s).`;
-  elements.statusTitle.textContent = 'Audit Finished';
 
   state.processing = false;
   state.results = resultsAccumulator;
 
   if (state.metrics.success > 0) {
+    elements.statusTicker.textContent = `Audit Complete! Successfully parsed ${state.metrics.success} stream(s).`;
+    elements.statusTitle.textContent = 'Audit Finished';
     renderAllResults(resultsAccumulator);
     renderTiersBar();
     elements.resultsSection.style.display = 'block';
     elements.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } else {
-    alert("Could not extract live chat for the provided URL(s). Make sure the stream has Chat Replay enabled on YouTube!");
+    elements.statusTitle.textContent = 'Audit Result: No Live Chat Available';
+    elements.statusTicker.innerHTML = `⚠️ YouTube live chat could not be retrieved from the URL directly because chat replay was disabled or restricted by YouTube. <br><br>💡 <strong>Tip:</strong> If you have the <code>.live_chat.json</code> file, switch to <strong>Option D: Upload JSON</strong> above for instant 100% audit!`;
   }
 }
 
@@ -767,11 +814,11 @@ function updateMetricsDisplay() {
 }
 
 function extractVideoId(url) {
-  const m = url.match(/(?:v=|\/|be\/|shorts\/)([0-9A-Za-z_-]{11})/);
+  const m = url.match(/(?:v=|\/|be\/|shorts\/|live\/)([0-9A-Za-z_-]{11})/);
   return m ? m[1] : null;
 }
 
-// ── Render Tiers Bar & Price Editor ──
+// ── Render Tiers Bar & Interactive Price Editor ──
 function renderTiersBar() {
   if (state.discoveredTiers.size === 0) {
     elements.tiersBar.style.display = 'none';
@@ -800,7 +847,6 @@ function renderTiersBar() {
         if (!isNaN(newPrice) && newPrice > 0) {
           state.tierPrices[tier] = newPrice;
           
-          // Recalculate memberships in results
           if (state.results) {
             state.results.memberships.forEach(m => {
               if (m.tier === tier) m.price = newPrice;
@@ -830,7 +876,7 @@ function renderAllResults(data) {
   });
 
   totalGrossInr = totalScInr + totalJewelsInr + totalMemInr;
-  const netTakeInr = totalGrossInr * 0.70; // 70% creator share
+  const netTakeInr = totalGrossInr * 0.70;
 
   // Update KPI Cards
   elements.kpiGrossTotal.textContent = formatCurrency(totalGrossInr);
@@ -904,7 +950,10 @@ function renderMembershipsTable(mems) {
     <tr>
       <td><strong>${m.author}</strong></td>
       <td><span class="pill-badge pill-purple">${m.type}</span></td>
-      <td><strong>${m.tier}</strong></td>
+      <td>
+        <strong>${m.tier}</strong>
+        ${m.tenure ? `<div style="font-size:0.75rem; color:#9ca3af; margin-top:2px;">${m.tenure}</div>` : ''}
+      </td>
       <td class="amount-badge">${formatCurrency(m.price)}</td>
       <td><span class="stream-vid-badge">${m.streamId}</span></td>
     </tr>
@@ -987,7 +1036,7 @@ function setupExports() {
       csv += `Jewel Gift,"${j.author.replace(/"/g, '""')}",${j.inrValue},"${j.giftName} (x${j.quantity})",${j.streamId}\n`;
     });
     state.results.memberships.forEach(m => {
-      csv += `Membership,"${m.author.replace(/"/g, '""')}",${m.price},"${m.tier}",${m.streamId}\n`;
+      csv += `Membership,"${m.author.replace(/"/g, '""')}",${m.price},"${m.tier} (${m.tenure || ''})",${m.streamId}\n`;
     });
 
     downloadFile(csv, `YouTube_Stream_Earnings_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
