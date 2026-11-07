@@ -31,10 +31,32 @@
           <span class="theme-icon moon-icon" style="display:none;">🌙</span>
           <span class="theme-text" id="themeText">Light</span>
         </button>
+
+        <!-- Live Forex Rate Pill & Settings Button -->
+        <button class="fx-rate-pill" id="openFxModalBtn" type="button" title="Click to view & customize Live Daily Exchange Rates">
+          <span class="fx-dot"></span>
+          <span class="fx-label" id="fxRateSummary">USD ₹86.85</span>
+          <span class="fx-icon">⚙️</span>
+        </button>
+
+        <!-- Dynamic Base Currency Selector -->
         <div class="currency-switch">
-          <span class="currency-label">Currency:</span>
+          <span class="currency-label">View In:</span>
           <button class="curr-btn active" data-curr="INR">₹ INR</button>
           <button class="curr-btn" data-curr="USD">$ USD</button>
+          <button class="curr-btn" data-curr="EUR">€ EUR</button>
+          <select class="curr-select" id="moreCurrencySelect" title="Select more currencies">
+            <option value="" disabled selected>More...</option>
+            <option value="GBP">🇬🇧 GBP (£)</option>
+            <option value="CAD">🇨🇦 CAD (C$)</option>
+            <option value="AUD">🇦🇺 AUD (A$)</option>
+            <option value="SGD">🇸🇬 SGD (S$)</option>
+            <option value="AED">🇦🇪 AED (د.إ)</option>
+            <option value="JPY">🇯🇵 JPY (¥)</option>
+            <option value="BRL">🇧🇷 BRL (R$)</option>
+            <option value="PKR">🇵🇰 PKR (Rs)</option>
+            <option value="BDT">🇧🇩 BDT (৳)</option>
+          </select>
         </div>
       </div>
     </div>
@@ -311,6 +333,10 @@
             <span>Superchat Only</span>
             <span class="tab-pill" id="badgeScTab">0</span>
           </button>
+          <button class="res-tab-btn" data-view="currencies">
+            <span>Currencies Breakdown</span>
+            <span class="tab-pill" id="badgeCurrencyTab">0</span>
+          </button>
           <button class="res-tab-btn" data-view="memberships">
             <span>Memberships Only</span>
             <span class="tab-pill" id="badgeMemTab">0</span>
@@ -359,6 +385,18 @@
 
       <!-- View 1: Total Earning Overview (Streams Breakdown) -->
       <div class="view-panel active" id="view-overview">
+        <!-- Compact Multi-Currency Received Bar -->
+        <div class="currency-summary-bar" id="currencySummaryBar" style="display: none;">
+          <div class="csb-left">
+            <span class="csb-icon">🌐</span>
+            <span class="csb-title">Incoming Currencies:</span>
+            <div class="csb-chips" id="currencySummaryChips"></div>
+          </div>
+          <div class="csb-right">
+            <span class="csb-base-tag" id="currencySummaryTotal">Combined Grand Total: ₹0</span>
+          </div>
+        </div>
+
         <div class="table-card">
           <div class="table-responsive">
             <table class="data-table" id="streamsTable">
@@ -449,6 +487,50 @@
           </div>
         </div>
       </div>
+
+      <!-- View 5: Multi-Currency Breakdown & Forex Table -->
+      <div class="view-panel" id="view-currencies">
+        <div class="currency-panel-header">
+          <div>
+            <h3 class="currency-panel-title">Multi-Currency Itemization &amp; Forex Value</h3>
+            <p class="currency-panel-sub">
+              Every Superchat &amp; Sticker grouped by original currency with daily Forex conversion to your chosen base currency.
+            </p>
+          </div>
+          <button class="btn-refresh-rates" id="refreshRatesInViewBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            <span>Update Live Rates</span>
+          </button>
+        </div>
+
+        <!-- Currency Cards Grid -->
+        <div class="currency-cards-grid" id="currencyCardsGrid">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Detailed Currency Table -->
+        <div class="table-card" style="margin-top: 20px;">
+          <div class="table-responsive">
+            <table class="data-table" id="currenciesTable">
+              <thead>
+                <tr>
+                  <th>Currency</th>
+                  <th>Country &amp; Symbol</th>
+                  <th>Superchats Count</th>
+                  <th>Original Total</th>
+                  <th>Daily Forex Rate (to INR)</th>
+                  <th>Value in INR</th>
+                  <th id="thConvertedBase">Value in Base Currency</th>
+                  <th>Share of Revenue</th>
+                </tr>
+              </thead>
+              <tbody id="currenciesTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Creator SEO & Feature Highlights Section -->
@@ -472,6 +554,43 @@
       </div>
     </section>
   </main>
+
+  <!-- Live Forex & Exchange Rates Modal -->
+  <div class="modal-backdrop" id="fxModalBackdrop" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-badge-live">LIVE FOREX</div>
+          <h3 class="modal-title">Currency Exchange Rates (Against INR)</h3>
+        </div>
+        <button class="modal-close-btn" id="closeFxModalBtn" type="button">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-desc">
+          Daily market conversion rates against <strong>Indian Rupee (INR)</strong>. Rates update daily from public currency feeds. You can customize any rate to match your bank wire conversion fees or AdSense payout records.
+        </p>
+
+        <div class="fx-rates-status-row">
+          <span class="fx-status-indicator" id="fxStatusIndicator">🟢 Live Rates Active</span>
+          <span class="fx-last-updated" id="fxLastUpdated">Last sync: Today</span>
+        </div>
+
+        <div class="fx-rates-grid" id="fxRatesInputsGrid">
+          <!-- Dynamically generated rate inputs -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-modal-secondary" id="resetFxRatesBtn" type="button">Reset to Official Defaults</button>
+        <button class="btn-modal-secondary" id="syncLiveFxBtn" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          Fetch Latest Rates
+        </button>
+        <button class="btn-modal-primary" id="saveFxRatesBtn" type="button">Save &amp; Recalculate</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Footer -->
   <footer class="footer">

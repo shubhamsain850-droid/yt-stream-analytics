@@ -6,10 +6,94 @@
 // ── Configuration ──
 const API_BASE = "https://shubhamsain858-kickcuttr-api.hf.space/api/youtube";
 
+// ── Currency Metadata & Live Forex Engine ──
+const DEFAULT_CURRENCY_RATES = {
+  "INR": 1.0,
+  "USD": 86.85,
+  "EUR": 94.20,
+  "GBP": 110.50,
+  "CAD": 63.80,
+  "AUD": 56.50,
+  "SGD": 64.80,
+  "AED": 23.65,
+  "SAR": 23.15,
+  "BRL": 15.20,
+  "JPY": 0.58,
+  "KRW": 0.063,
+  "NZD": 51.50,
+  "HKD": 11.15,
+  "TWD": 2.70,
+  "PHP": 1.50,
+  "PKR": 0.31,
+  "BDT": 0.72,
+  "RUB": 0.90,
+  "TRY": 2.50,
+  "PLN": 21.80,
+  "MXN": 4.30,
+  "IDR": 0.0055,
+  "THB": 2.45,
+  "VND": 0.0034
+};
+
+const CURRENCY_METADATA = {
+  "INR": { name: "Indian Rupee", symbol: "₹", flag: "🇮🇳", decimals: 2 },
+  "USD": { name: "US Dollar", symbol: "$", flag: "🇺🇸", decimals: 2 },
+  "EUR": { name: "Euro", symbol: "€", flag: "🇪🇺", decimals: 2 },
+  "GBP": { name: "British Pound", symbol: "£", flag: "🇬🇧", decimals: 2 },
+  "CAD": { name: "Canadian Dollar", symbol: "C$", flag: "🇨🇦", decimals: 2 },
+  "AUD": { name: "Australian Dollar", symbol: "A$", flag: "🇦🇺", decimals: 2 },
+  "SGD": { name: "Singapore Dollar", symbol: "S$", flag: "🇸🇬", decimals: 2 },
+  "AED": { name: "UAE Dirham", symbol: "د.إ", flag: "🇦🇪", decimals: 2 },
+  "SAR": { name: "Saudi Riyal", symbol: "SR", flag: "🇸🇦", decimals: 2 },
+  "BRL": { name: "Brazilian Real", symbol: "R$", flag: "🇧🇷", decimals: 2 },
+  "JPY": { name: "Japanese Yen", symbol: "¥", flag: "🇯🇵", decimals: 0 },
+  "KRW": { name: "South Korean Won", symbol: "₩", flag: "🇰🇷", decimals: 0 },
+  "NZD": { name: "New Zealand Dollar", symbol: "NZ$", flag: "🇳🇿", decimals: 2 },
+  "HKD": { name: "Hong Kong Dollar", symbol: "HK$", flag: "🇭🇰", decimals: 2 },
+  "TWD": { name: "New Taiwan Dollar", symbol: "NT$", flag: "🇹🇼", decimals: 0 },
+  "PHP": { name: "Philippine Peso", symbol: "₱", flag: "🇵🇭", decimals: 2 },
+  "PKR": { name: "Pakistani Rupee", symbol: "Rs", flag: "🇵🇰", decimals: 2 },
+  "BDT": { name: "Bangladeshi Taka", symbol: "৳", flag: "🇧🇩", decimals: 2 },
+  "RUB": { name: "Russian Ruble", symbol: "₽", flag: "🇷🇺", decimals: 2 },
+  "TRY": { name: "Turkish Lira", symbol: "₺", flag: "🇹🇷", decimals: 2 },
+  "PLN": { name: "Polish Zloty", symbol: "zł", flag: "🇵🇱", decimals: 2 },
+  "MXN": { name: "Mexican Peso", symbol: "Mex$", flag: "🇲🇽", decimals: 2 },
+  "IDR": { name: "Indonesian Rupiah", symbol: "Rp", flag: "🇮🇩", decimals: 0 },
+  "THB": { name: "Thai Baht", symbol: "฿", flag: "🇹🇭", decimals: 2 },
+  "VND": { name: "Vietnamese Dong", symbol: "₫", flag: "🇻🇳", decimals: 0 }
+};
+
+// Sorted by length descending to match compound prefixes (CA$, US$, A$) before generic ($)
+const SYMBOL_MAP = [
+  { s: 'Mex$', c: 'MXN' },
+  { s: 'US$', c: 'USD' }, { s: 'CA$', c: 'CAD' }, { s: 'C$', c: 'CAD' },
+  { s: 'AU$', c: 'AUD' }, { s: 'A$', c: 'AUD' },
+  { s: 'NZ$', c: 'NZD' }, { s: 'HK$', c: 'HKD' }, { s: 'NT$', c: 'TWD' },
+  { s: 'SG$', c: 'SGD' }, { s: 'S$', c: 'SGD' },
+  { s: 'R$', c: 'BRL' },
+  { s: 'Rs.', c: 'PKR' }, { s: 'PKR', c: 'PKR' },
+  { s: 'BDT', c: 'BDT' }, { s: '৳', c: 'BDT' },
+  { s: 'AED', c: 'AED' }, { s: 'SAR', c: 'SAR' },
+  { s: 'PHP', c: 'PHP' }, { s: '₱', c: 'PHP' },
+  { s: 'JP¥', c: 'JPY' }, { s: 'JPY', c: 'JPY' }, { s: '¥', c: 'JPY' },
+  { s: 'KRW', c: 'KRW' }, { s: '₩', c: 'KRW' },
+  { s: 'EUR', c: 'EUR' }, { s: '€', c: 'EUR' },
+  { s: 'GBP', c: 'GBP' }, { s: '£', c: 'GBP' },
+  { s: 'INR', c: 'INR' }, { s: '₹', c: 'INR' },  { s: 'Rs', c: 'INR' },
+  { s: '$', c: 'USD' },   { s: 'USD', c: 'USD' },
+  { s: 'zł', c: 'PLN' },  { s: 'PLN', c: 'PLN' },
+  { s: '₺', c: 'TRY' },   { s: 'TRY', c: 'TRY' },
+  { s: '₽', c: 'RUB' },   { s: 'RUB', c: 'RUB' },
+  { s: 'IDR', c: 'IDR' }, { s: 'Rp', c: 'IDR' },
+  { s: 'THB', c: 'THB' }, { s: '฿', c: 'THB' },
+  { s: 'VND', c: 'VND' }, { s: '₫', c: 'VND' }
+].sort((a, b) => b.s.length - a.s.length);
+
 // ── Application State ──
 const state = {
   currentCurrency: 'INR',
-  currencyRate: 86.5, // 1 USD ~ 86.5 INR
+  exchangeRates: { ...DEFAULT_CURRENCY_RATES },
+  ratesLastUpdated: null,
   activeMode: 'single',
   activeView: 'overview',
   multiUrlQueue: [],
@@ -41,19 +125,13 @@ const state = {
 
 // ── YouTube Jewels Economics ──
 // Creator Revenue Rate: 1 Ruby = $0.01 USD (~Rs. 0.84 INR).
-// Viewers spend ~2 Jewels per Ruby => Net Creator Earnings = ~Rs. 0.42 per Jewel (NOT Rs. 1.20!).
+// Viewers spend ~2 Jewels per Ruby => Net Creator Earnings = ~Rs. 0.42 per Jewel.
 const INR_PER_JEWEL = 0.42;
-
-const CURRENCY_RATES = {
-  "INR": 1.0, "₹": 1.0, "Rs": 1.0,
-  "USD": 86.5, "$": 86.5, "US$": 86.5,
-  "EUR": 93.0, "€": 93.0, "GBP": 110.0, "£": 110.0,
-  "CAD": 63.5, "AUD": 56.0, "AED": 23.5, "SGD": 64.5
-};
 
 // ── DOM Elements ──
 const elements = {
   currBtns: document.querySelectorAll('.curr-btn'),
+  moreCurrencySelect: document.getElementById('moreCurrencySelect'),
   tabBtns: document.querySelectorAll('.mode-tabs .tab-btn'),
   modePanels: document.querySelectorAll('.mode-panel'),
   multiTabBadge: document.getElementById('multiTabBadge'),
@@ -115,8 +193,20 @@ const elements = {
   resTabBtns: document.querySelectorAll('.res-tab-btn'),
   viewPanels: document.querySelectorAll('.view-panel'),
   badgeScTab: document.getElementById('badgeScTab'),
+  badgeCurrencyTab: document.getElementById('badgeCurrencyTab'),
   badgeMemTab: document.getElementById('badgeMemTab'),
   badgeJewelTab: document.getElementById('badgeJewelTab'),
+
+  // Overview Currency Summary Bar
+  currencySummaryBar: document.getElementById('currencySummaryBar'),
+  currencySummaryChips: document.getElementById('currencySummaryChips'),
+  currencySummaryTotal: document.getElementById('currencySummaryTotal'),
+
+  // View 5: Currencies Breakdown
+  currencyCardsGrid: document.getElementById('currencyCardsGrid'),
+  currenciesTableBody: document.getElementById('currenciesTableBody'),
+  thConvertedBase: document.getElementById('thConvertedBase'),
+  refreshRatesInViewBtn: document.getElementById('refreshRatesInViewBtn'),
 
   // Tables
   streamsTableBody: document.getElementById('streamsTableBody'),
@@ -134,12 +224,25 @@ const elements = {
 
   // Theme Switcher
   themeToggleBtn: document.getElementById('themeToggleBtn'),
-  themeText: document.getElementById('themeText')
+  themeText: document.getElementById('themeText'),
+
+  // Forex Modal
+  openFxModalBtn: document.getElementById('openFxModalBtn'),
+  closeFxModalBtn: document.getElementById('closeFxModalBtn'),
+  fxModalBackdrop: document.getElementById('fxModalBackdrop'),
+  fxRateSummary: document.getElementById('fxRateSummary'),
+  fxStatusIndicator: document.getElementById('fxStatusIndicator'),
+  fxLastUpdated: document.getElementById('fxLastUpdated'),
+  fxRatesInputsGrid: document.getElementById('fxRatesInputsGrid'),
+  syncLiveFxBtn: document.getElementById('syncLiveFxBtn'),
+  saveFxRatesBtn: document.getElementById('saveFxRatesBtn'),
+  resetFxRatesBtn: document.getElementById('resetFxRatesBtn')
 };
 
 // ── Initialization ──
 document.addEventListener('DOMContentLoaded', () => {
   setupTheme();
+  setupForexEngine();
   setupCurrencySwitcher();
   setupModeTabs();
   setupSingleMode();
@@ -184,26 +287,403 @@ function applyTheme(theme) {
   }
 }
 
+// ── Live Daily Forex Engine & Custom Rate Overrides ──
+function setupForexEngine() {
+  try {
+    const savedRates = localStorage.getItem('streamvault_fx_rates');
+    if (savedRates) {
+      const parsed = JSON.parse(savedRates);
+      state.exchangeRates = { ...DEFAULT_CURRENCY_RATES, ...parsed };
+    }
+    const savedUpdated = localStorage.getItem('streamvault_fx_updated');
+    if (savedUpdated) {
+      state.ratesLastUpdated = savedUpdated;
+    }
+  } catch (e) {
+    console.warn("Could not load saved forex rates:", e);
+  }
+
+  updateForexSummaryPill();
+  renderForexInputsGrid();
+
+  // Modal Open / Close
+  if (elements.openFxModalBtn) {
+    elements.openFxModalBtn.addEventListener('click', () => {
+      renderForexInputsGrid();
+      if (elements.fxModalBackdrop) elements.fxModalBackdrop.classList.add('active');
+    });
+  }
+
+  if (elements.closeFxModalBtn) {
+    elements.closeFxModalBtn.addEventListener('click', () => {
+      if (elements.fxModalBackdrop) elements.fxModalBackdrop.classList.remove('active');
+    });
+  }
+
+  if (elements.fxModalBackdrop) {
+    elements.fxModalBackdrop.addEventListener('click', (e) => {
+      if (e.target === elements.fxModalBackdrop) {
+        elements.fxModalBackdrop.classList.remove('active');
+      }
+    });
+  }
+
+  // Live Sync Buttons
+  if (elements.syncLiveFxBtn) {
+    elements.syncLiveFxBtn.addEventListener('click', async () => {
+      await fetchLiveForexRates(true);
+    });
+  }
+  if (elements.refreshRatesInViewBtn) {
+    elements.refreshRatesInViewBtn.addEventListener('click', async () => {
+      await fetchLiveForexRates(true);
+    });
+  }
+
+  // Save Custom Overrides
+  if (elements.saveFxRatesBtn) {
+    elements.saveFxRatesBtn.addEventListener('click', () => {
+      if (!elements.fxRatesInputsGrid) return;
+      const inputs = elements.fxRatesInputsGrid.querySelectorAll('.fx-rate-input');
+      inputs.forEach(input => {
+        const curr = input.dataset.curr;
+        const val = parseFloat(input.value);
+        if (curr && !isNaN(val) && val > 0) {
+          state.exchangeRates[curr] = val;
+        }
+      });
+      state.ratesLastUpdated = new Date().toISOString();
+      localStorage.setItem('streamvault_fx_rates', JSON.stringify(state.exchangeRates));
+      localStorage.setItem('streamvault_fx_updated', state.ratesLastUpdated);
+      updateForexSummaryPill();
+      if (elements.fxModalBackdrop) elements.fxModalBackdrop.classList.remove('active');
+      if (state.results) renderAllResults(state.results);
+    });
+  }
+
+  // Reset to Baseline
+  if (elements.resetFxRatesBtn) {
+    elements.resetFxRatesBtn.addEventListener('click', () => {
+      state.exchangeRates = { ...DEFAULT_CURRENCY_RATES };
+      state.ratesLastUpdated = null;
+      localStorage.removeItem('streamvault_fx_rates');
+      localStorage.removeItem('streamvault_fx_updated');
+      renderForexInputsGrid();
+      updateForexSummaryPill();
+      if (state.results) renderAllResults(state.results);
+    });
+  }
+
+  // Background auto-refresh if older than 12 hours
+  const twelveHours = 12 * 60 * 60 * 1000;
+  const isStale = !state.ratesLastUpdated || (Date.now() - new Date(state.ratesLastUpdated).getTime() > twelveHours);
+  if (isStale) {
+    fetchLiveForexRates(false);
+  }
+}
+
+async function fetchLiveForexRates(showStatus = false) {
+  if (elements.syncLiveFxBtn) {
+    elements.syncLiveFxBtn.disabled = true;
+    elements.syncLiveFxBtn.textContent = 'Syncing...';
+  }
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (!res.ok) throw new Error('Forex API response error');
+    const data = await res.json();
+    if (data && data.rates && data.rates.INR) {
+      const usdInr = data.rates.INR;
+      for (const curr in DEFAULT_CURRENCY_RATES) {
+        if (curr === 'INR') {
+          state.exchangeRates['INR'] = 1.0;
+        } else if (data.rates[curr]) {
+          const rateToInr = usdInr / data.rates[curr];
+          state.exchangeRates[curr] = Math.round(rateToInr * 100) / 100;
+        }
+      }
+      state.ratesLastUpdated = new Date().toISOString();
+      localStorage.setItem('streamvault_fx_rates', JSON.stringify(state.exchangeRates));
+      localStorage.setItem('streamvault_fx_updated', state.ratesLastUpdated);
+      updateForexSummaryPill();
+      renderForexInputsGrid();
+      if (state.results) renderAllResults(state.results);
+      if (elements.fxStatusIndicator) {
+        elements.fxStatusIndicator.textContent = '● Live Daily Rates Active';
+        elements.fxStatusIndicator.style.color = 'var(--yt-green)';
+      }
+    }
+  } catch (err) {
+    console.warn("Could not fetch live forex rates, using cached or default rates", err);
+    if (elements.fxStatusIndicator) {
+      elements.fxStatusIndicator.textContent = '● Baseline Default Rates';
+      elements.fxStatusIndicator.style.color = 'var(--yt-gold)';
+    }
+  } finally {
+    if (elements.syncLiveFxBtn) {
+      elements.syncLiveFxBtn.disabled = false;
+      elements.syncLiveFxBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;margin-right:6px;"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+        Sync Live Today's Rates
+      `;
+    }
+  }
+}
+
+function updateForexSummaryPill() {
+  if (elements.fxRateSummary) {
+    const usd = state.exchangeRates['USD'] || DEFAULT_CURRENCY_RATES['USD'];
+    const eur = state.exchangeRates['EUR'] || DEFAULT_CURRENCY_RATES['EUR'];
+    const cad = state.exchangeRates['CAD'] || DEFAULT_CURRENCY_RATES['CAD'];
+    elements.fxRateSummary.textContent = `$1 = ₹${usd} • €1 = ₹${eur} • C$1 = ₹${cad}`;
+  }
+  if (elements.fxLastUpdated) {
+    if (state.ratesLastUpdated) {
+      const d = new Date(state.ratesLastUpdated);
+      elements.fxLastUpdated.textContent = `Last synced: ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}, ${d.toLocaleDateString()}`;
+    } else {
+      elements.fxLastUpdated.textContent = 'Using calibrated default baseline rates';
+    }
+  }
+}
+
+function renderForexInputsGrid() {
+  if (!elements.fxRatesInputsGrid) return;
+  const currencies = Object.keys(CURRENCY_METADATA).filter(c => c !== 'INR');
+  elements.fxRatesInputsGrid.innerHTML = currencies.map(curr => {
+    const meta = CURRENCY_METADATA[curr] || { name: curr, symbol: curr, flag: '🌐' };
+    const rate = state.exchangeRates[curr] || DEFAULT_CURRENCY_RATES[curr] || 1;
+    return `
+      <div class="fx-rate-item">
+        <div class="fx-rate-label">
+          <span class="fx-flag">${meta.flag}</span>
+          <div class="fx-curr-info">
+            <span class="fx-curr-name">${meta.name}</span>
+            <span class="fx-curr-code">${curr} (${meta.symbol})</span>
+          </div>
+        </div>
+        <div class="fx-input-wrap">
+          <span class="fx-prefix">₹</span>
+          <input type="number" step="0.01" class="fx-rate-input" data-curr="${curr}" value="${rate}">
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
 // ── Currency Switching ──
 function setupCurrencySwitcher() {
   elements.currBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       elements.currBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+      const moreSelect = document.getElementById('moreCurrencySelect');
+      if (moreSelect) moreSelect.value = '';
       state.currentCurrency = btn.dataset.curr;
       if (state.results) {
         renderAllResults(state.results);
       }
     });
   });
+
+  const moreSelect = document.getElementById('moreCurrencySelect');
+  if (moreSelect) {
+    moreSelect.addEventListener('change', () => {
+      if (moreSelect.value) {
+        elements.currBtns.forEach(b => b.classList.remove('active'));
+        state.currentCurrency = moreSelect.value;
+        if (state.results) {
+          renderAllResults(state.results);
+        }
+      }
+    });
+  }
 }
 
-function formatCurrency(amountINR) {
-  if (state.currentCurrency === 'USD') {
-    const usd = amountINR / state.currencyRate;
-    return `$${usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function formatCurrency(amountINR, targetCurr = state.currentCurrency) {
+  if (amountINR === undefined || amountINR === null || isNaN(amountINR)) {
+    amountINR = 0;
   }
-  return `₹${Math.round(amountINR).toLocaleString('en-IN')}`;
+  if (targetCurr === 'INR') {
+    return `₹${Math.round(amountINR).toLocaleString('en-IN')}`;
+  }
+  const rateToInr = state.exchangeRates[targetCurr] || DEFAULT_CURRENCY_RATES[targetCurr] || 1;
+  const val = amountINR / rateToInr;
+  const meta = CURRENCY_METADATA[targetCurr] || { symbol: targetCurr + ' ', decimals: 2 };
+  const dec = meta.decimals !== undefined ? meta.decimals : 2;
+  const formatted = val.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  return `${meta.symbol} ${formatted}`.trim();
+}
+
+// ── Multi-Currency Aggregator & Breakdown ──
+function computeCurrencyBreakdown(superchats) {
+  const groups = {};
+  let grandTotalInr = 0;
+
+  superchats.forEach(sc => {
+    const curr = sc.currency || 'INR';
+    const originalAmt = Number(sc.amount) || 0;
+    const rateToInr = state.exchangeRates[curr] || DEFAULT_CURRENCY_RATES[curr] || 1;
+    const inrAmt = (sc.amount_inr !== undefined && sc.amount_inr !== null) ? Number(sc.amount_inr) : (originalAmt * rateToInr);
+
+    if (!groups[curr]) {
+      groups[curr] = {
+        currency: curr,
+        count: 0,
+        originalSum: 0,
+        inrSum: 0,
+        rateToInr: rateToInr
+      };
+    }
+    groups[curr].count += 1;
+    groups[curr].originalSum += originalAmt;
+    groups[curr].inrSum += inrAmt;
+    grandTotalInr += inrAmt;
+  });
+
+  const items = Object.values(groups).map(g => {
+    const meta = CURRENCY_METADATA[g.currency] || { name: g.currency, symbol: g.currency, flag: '🌐', decimals: 2 };
+    const sharePct = grandTotalInr > 0 ? (g.inrSum / grandTotalInr) * 100 : 0;
+    const baseRate = state.exchangeRates[state.currentCurrency] || DEFAULT_CURRENCY_RATES[state.currentCurrency] || 1;
+    const baseSum = g.inrSum / baseRate;
+    return {
+      currency: g.currency,
+      name: meta.name,
+      symbol: meta.symbol,
+      flag: meta.flag,
+      decimals: meta.decimals !== undefined ? meta.decimals : 2,
+      count: g.count,
+      originalSum: g.originalSum,
+      inrSum: g.inrSum,
+      rateToInr: g.rateToInr,
+      baseSum: baseSum,
+      sharePct: sharePct
+    };
+  });
+
+  items.sort((a, b) => b.inrSum - a.inrSum);
+  const baseRate = state.exchangeRates[state.currentCurrency] || DEFAULT_CURRENCY_RATES[state.currentCurrency] || 1;
+  const grandTotalBase = grandTotalInr / baseRate;
+
+  return {
+    items,
+    grandTotalInr,
+    grandTotalBase,
+    uniqueCurrenciesCount: items.length
+  };
+}
+
+function renderCurrencyBreakdown() {
+  if (!state.results || !state.results.superchats) return;
+  const breakdown = computeCurrencyBreakdown(state.results.superchats);
+
+  // 1. Update Badge on View Tab
+  if (elements.badgeCurrencyTab) {
+    elements.badgeCurrencyTab.textContent = breakdown.uniqueCurrenciesCount;
+  }
+
+  // 2. Render Overview Compact Bar
+  if (elements.currencySummaryBar && elements.currencySummaryChips) {
+    if (breakdown.items.length > 0) {
+      elements.currencySummaryBar.style.display = 'block';
+      elements.currencySummaryChips.innerHTML = breakdown.items.map(b => {
+        const origFormatted = b.originalSum.toLocaleString('en-US', { minimumFractionDigits: b.decimals, maximumFractionDigits: b.decimals });
+        return `
+          <div class="csb-chip" title="${escapeHtml(b.name)}: ${b.count} donations, ~${b.sharePct.toFixed(1)}% of superchats">
+            <span class="csb-flag">${b.flag}</span>
+            <span class="csb-curr">${b.currency}</span>
+            <span class="csb-amt">${b.symbol}${origFormatted}</span>
+            <span class="csb-count">(${b.count})</span>
+          </div>
+        `;
+      }).join('');
+      if (elements.currencySummaryTotal) {
+        elements.currencySummaryTotal.innerHTML = `Combined Total: <strong>${formatCurrency(breakdown.grandTotalInr)}</strong>`;
+      }
+    } else {
+      elements.currencySummaryBar.style.display = 'none';
+    }
+  }
+
+  // 3. Render View 5 Currency Cards Grid
+  if (elements.currencyCardsGrid) {
+    elements.currencyCardsGrid.innerHTML = breakdown.items.map(b => {
+      const origFormatted = b.originalSum.toLocaleString('en-US', { minimumFractionDigits: b.decimals, maximumFractionDigits: b.decimals });
+      return `
+        <div class="currency-card">
+          <div class="cc-header">
+            <div class="cc-identity">
+              <span class="cc-flag">${b.flag}</span>
+              <div>
+                <h4 class="cc-name">${escapeHtml(b.name)}</h4>
+                <span class="cc-code">${b.currency}</span>
+              </div>
+            </div>
+            <span class="cc-share-badge">${b.sharePct.toFixed(1)}% Share</span>
+          </div>
+          <div class="cc-body">
+            <div class="cc-metric">
+              <span class="cc-label">Original Collected</span>
+              <span class="cc-orig-val">${b.symbol}${origFormatted} ${b.currency}</span>
+            </div>
+            <div class="cc-metric cc-highlight">
+              <span class="cc-label">Equivalent in ${state.currentCurrency}</span>
+              <span class="cc-base-val">${formatCurrency(b.inrSum)}</span>
+            </div>
+          </div>
+          <div class="cc-footer">
+            <span>${b.count} Superchat${b.count === 1 ? '' : 's'}</span>
+            <span class="cc-rate-tag">1 ${b.currency} = ₹${b.rateToInr}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 4. Render View 5 Currencies Table Body
+  if (elements.currenciesTableBody) {
+    if (elements.thConvertedBase) {
+      elements.thConvertedBase.textContent = `Converted (${state.currentCurrency})`;
+    }
+    const rowsHtml = breakdown.items.map((b, idx) => {
+      const origFormatted = b.originalSum.toLocaleString('en-US', { minimumFractionDigits: b.decimals, maximumFractionDigits: b.decimals });
+      return `
+        <tr>
+          <td><strong>#${idx + 1}</strong></td>
+          <td>
+            <div class="curr-td-flex">
+              <span class="fx-flag">${b.flag}</span>
+              <div>
+                <strong>${escapeHtml(b.name)}</strong>
+                <span class="curr-subcode">${b.currency}</span>
+              </div>
+            </div>
+          </td>
+          <td><span class="pill-badge pill-red">${b.count} donations</span></td>
+          <td><strong style="color:var(--yt-white); font-size:14px;">${b.symbol}${origFormatted} ${b.currency}</strong></td>
+          <td><span class="rate-badge">1 ${b.currency} = ₹${b.rateToInr}</span></td>
+          <td><strong class="converted-val-text">${formatCurrency(b.inrSum)}</strong></td>
+          <td>
+            <div class="share-cell">
+              <div class="share-mini-bar"><div class="share-mini-fill" style="width:${Math.min(100, b.sharePct)}%;"></div></div>
+              <span>${b.sharePct.toFixed(1)}%</span>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    const grandTotalRow = `
+      <tr class="currency-grand-total-row">
+        <td colspan="2"><strong>GRAND TOTAL (${breakdown.uniqueCurrenciesCount} Currencies)</strong></td>
+        <td><strong>${state.results.superchats.length} donations</strong></td>
+        <td>—</td>
+        <td>—</td>
+        <td><strong style="color:var(--yt-red); font-size:15px;">${formatCurrency(breakdown.grandTotalInr)}</strong></td>
+        <td><strong>100%</strong></td>
+      </tr>
+    `;
+    elements.currenciesTableBody.innerHTML = rowsHtml + grandTotalRow;
+  }
 }
 
 // ── Mode Switching ──
@@ -540,7 +1020,7 @@ function parseClientSideJson(lines, vid) {
             const author = extractText(item.authorName) || "Unknown";
             const amtStr = extractText(item.purchaseAmountText) || "0";
             const parsedAmt = parseAmountStr(amtStr);
-            const rate = CURRENCY_RATES[parsedAmt.currency] || 1.0;
+            const rate = state.exchangeRates[parsedAmt.currency] || DEFAULT_CURRENCY_RATES[parsedAmt.currency] || 1.0;
             const amtInr = parsedAmt.amount * rate;
 
             let msg = "";
@@ -719,16 +1199,38 @@ function walkJson(obj, callback) {
 }
 
 function parseAmountStr(text) {
-  let curr = "INR";
-  for (const s in CURRENCY_RATES) {
-    if (text.includes(s)) {
-      curr = s === '₹' || s === 'Rs' ? 'INR' : s;
+  if (!text) return { amount: 0, currency: "INR" };
+
+  const cleanText = text.replace(/\u00a0/g, ' ').trim();
+  let detectedCurrency = "INR";
+
+  for (let i = 0; i < SYMBOL_MAP.length; i++) {
+    const item = SYMBOL_MAP[i];
+    if (cleanText.includes(item.s)) {
+      detectedCurrency = item.c;
       break;
     }
   }
-  const clean = text.replace(/[^\d.]/g, '');
+
+  // Handle comma as decimal or thousand separator safely
+  let clean = cleanText.replace(/[^0-9.,]/g, '').trim();
+  if (clean.includes(',') && clean.includes('.')) {
+    if (clean.lastIndexOf(',') > clean.lastIndexOf('.')) {
+      clean = clean.replace(/\./g, '').replace(/,/g, '.');
+    } else {
+      clean = clean.replace(/,/g, '');
+    }
+  } else if (clean.includes(',') && !clean.includes('.')) {
+    const parts = clean.split(',');
+    if (parts.length === 2 && parts[1].length <= 2) {
+      clean = parts[0] + '.' + parts[1];
+    } else {
+      clean = clean.replace(/,/g, '');
+    }
+  }
+
   const val = parseFloat(clean) || 0;
-  return { amount: val, currency: curr };
+  return { amount: val, currency: detectedCurrency };
 }
 
 // ── Safe Helpers & Timestamp Utilities ──
@@ -1059,6 +1561,9 @@ function renderAllResults(data) {
   elements.badgeMemTab.textContent = data.memberships.length;
   elements.badgeJewelTab.textContent = data.jewels.length;
 
+  // Render Currency Breakdown
+  renderCurrencyBreakdown();
+
   // Render 4 Tables
   renderStreamsTable(data.streams);
   renderSuperchatTable(data.superchats);
@@ -1115,7 +1620,11 @@ function renderSuperchatTable(superchats) {
         <td>${timeCell}</td>
         <td><strong>${escapeHtml(sc.author)}</strong></td>
         <td><span class="sc-tier-badge ${tierClass}">${formatCurrency(amountInr)}</span></td>
-        <td><span class="pill-badge pill-red">${sc.currency}</span></td>
+        <td>
+          <span class="pill-badge pill-red" title="Original: ${CURRENCY_METADATA[sc.currency]?.symbol || ''}${sc.amount} ${sc.currency}">
+            ${CURRENCY_METADATA[sc.currency]?.symbol || ''}${sc.amount} ${sc.currency}
+          </span>
+        </td>
         <td><em>"${escapeHtml(sc.message || '-')}"</em></td>
         <td>
           <a href="https://www.youtube.com/watch?v=${sc.streamId}" target="_blank" class="stream-vid-badge" title="Open Stream">
@@ -1244,6 +1753,31 @@ function exportToExcel() {
     totalJewels += s.jewelsInr;
   });
   const netTake = totalGross * 0.70;
+
+  const fxBreakdown = computeCurrencyBreakdown(r.superchats);
+  let fxExcelRows = fxBreakdown.items.map(b => `
+    <tr>
+      <td style="font-weight:bold;">${b.currency}</td>
+      <td>${b.name}</td>
+      <td style="text-align:center;">${b.count}</td>
+      <td style="text-align:right;">${b.symbol} ${b.originalSum.toFixed(b.decimals)}</td>
+      <td style="text-align:center;">1 ${b.currency} = ₹${b.rateToInr}</td>
+      <td style="text-align:right; font-weight:bold;">${formatCurrency(b.inrSum)}</td>
+      <td style="text-align:right;">${b.sharePct.toFixed(1)}%</td>
+    </tr>
+  `).join('');
+  fxExcelRows += `
+    <tr style="background:#EEEEEE; font-weight:bold;">
+      <td colspan="2">TOTAL CURRENCY EQUIVALENT</td>
+      <td style="text-align:center;">${r.superchats.length}</td>
+      <td>—</td>
+      <td>—</td>
+      <td style="text-align:right; color:#CC0000;">${formatCurrency(fxBreakdown.grandTotalInr)}</td>
+      <td style="text-align:right;">100%</td>
+    </tr>
+    <tr><td colspan="7" style="height:15px;"></td></tr>
+  `;
+
   const dateStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
   let html = `
@@ -1369,6 +1903,31 @@ function exportToNotepad() {
     totalJewels += s.jewelsInr;
   });
   const netTake = totalGross * 0.70;
+
+  const fxBreakdown = computeCurrencyBreakdown(r.superchats);
+  let fxExcelRows = fxBreakdown.items.map(b => `
+    <tr>
+      <td style="font-weight:bold;">${b.currency}</td>
+      <td>${b.name}</td>
+      <td style="text-align:center;">${b.count}</td>
+      <td style="text-align:right;">${b.symbol} ${b.originalSum.toFixed(b.decimals)}</td>
+      <td style="text-align:center;">1 ${b.currency} = ₹${b.rateToInr}</td>
+      <td style="text-align:right; font-weight:bold;">${formatCurrency(b.inrSum)}</td>
+      <td style="text-align:right;">${b.sharePct.toFixed(1)}%</td>
+    </tr>
+  `).join('');
+  fxExcelRows += `
+    <tr style="background:#EEEEEE; font-weight:bold;">
+      <td colspan="2">TOTAL CURRENCY EQUIVALENT</td>
+      <td style="text-align:center;">${r.superchats.length}</td>
+      <td>—</td>
+      <td>—</td>
+      <td style="text-align:right; color:#CC0000;">${formatCurrency(fxBreakdown.grandTotalInr)}</td>
+      <td style="text-align:right;">100%</td>
+    </tr>
+    <tr><td colspan="7" style="height:15px;"></td></tr>
+  `;
+
   const dateStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
   const W = 84;
@@ -1394,6 +1953,35 @@ function exportToNotepad() {
   lines.push(`YouTube Jewels     : Rs. ${totalJewels.toFixed(2)} INR (${r.jewels.length} gifts)`);
   lines.push(`Unique Donors      : ${r.uniqueDonors.size} Supporters`);
   lines.push(sep);
+  lines.push("");
+
+  // Multi-Currency Breakdown
+  const fxBreakdownNp = computeCurrencyBreakdown(r.superchats);
+  lines.push(subSep);
+  lines.push(center("ITEMIZED MULTI-CURRENCY BREAKDOWN & FOREX CONVERSIONS"));
+  lines.push(subSep);
+  lines.push(
+    "CURRENCY".padEnd(14) +
+    "COUNT".padEnd(8) +
+    "ORIGINAL SUM".padEnd(18) +
+    "EXCHANGE RATE".padEnd(20) +
+    `EQUIVALENT (${state.currentCurrency})`.padEnd(16) +
+    "SHARE"
+  );
+  lines.push(subSep);
+  fxBreakdownNp.items.forEach(b => {
+    lines.push(
+      b.currency.padEnd(14) +
+      b.count.toString().padEnd(8) +
+      `${b.symbol} ${b.originalSum.toFixed(b.decimals)}`.padEnd(18) +
+      `1 ${b.currency} = Rs. ${b.rateToInr}`.padEnd(20) +
+      formatCurrency(b.inrSum).padEnd(16) +
+      `${b.sharePct.toFixed(1)}%`
+    );
+  });
+  lines.push(subSep);
+  lines.push(`COMBINED SUPERCHATS GRAND TOTAL: ${formatCurrency(fxBreakdownNp.grandTotalInr)}`);
+  lines.push(subSep);
   lines.push("");
 
   // Superchats Breakdown
