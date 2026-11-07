@@ -1257,9 +1257,11 @@ function stopProgressSimulation() {
   }
 }
 
-// ── 6. Processing Engine (ZERO FAKE DATA) ──
+// ── 6. High-Performance Processing Engine (Safe Concurrency Pool & Live Streaming UI) ──
+const CONCURRENCY_LIMIT = 3;
+
 async function startProcessing(urls, label = null) {
-  // ── Session Isolation Reset (Zero cross-stream pollution) ──
+  // 1. Session Isolation Reset (Zero cross-session pollution)
   state.discoveredTiers.clear();
   state.results = null;
   if (elements.streamsTableBody) elements.streamsTableBody.innerHTML = '';
@@ -1271,7 +1273,6 @@ async function startProcessing(urls, label = null) {
   state.processing = true;
   elements.processingCard.style.display = 'block';
   elements.resultsSection.style.display = 'none';
-
   elements.processingCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
   state.metrics = {
@@ -1282,10 +1283,11 @@ async function startProcessing(urls, label = null) {
   };
   updateMetricsDisplay();
 
-  elements.statusTitle.textContent = label || `Processing ${urls.length} Stream(s)...`;
-  elements.progressBarFill.style.width = '0%';
-  elements.progressPercent.textContent = '0%';
-  elements.statusTicker.textContent = 'Connecting to YouTube streaming sockets...';
+  const numWorkers = Math.min(CONCURRENCY_LIMIT, urls.length);
+  elements.statusTitle.textContent = label || (urls.length > 1 ? `Auditing ${urls.length} Streams (${numWorkers} Parallel Safe Workers)...` : 'Analyzing Stream...');
+  elements.progressBarFill.style.width = '3%';
+  elements.progressPercent.textContent = '3%';
+  elements.statusTicker.textContent = urls.length > 1 ? `Initializing ${numWorkers} parallel workers with human traffic jitter...` : 'Connecting to YouTube streaming sockets...';
 
   const resultsAccumulator = {
     streams: [],
@@ -1296,12 +1298,19 @@ async function startProcessing(urls, label = null) {
     uniqueChatters: new Set()
   };
 
-  for (let i = 0; i < urls.length; i++) {
-    const url = urls[i];
-    const vid = extractVideoId(url) || `VID_${i + 1}`;
+  // Shared state across concurrent workers
+  let nextTaskIndex = 0;
+  let completedCount = 0;
+  let hasShownFirstResult = false;
 
-    // Start Granular Progress Tracker for this stream
-    startProgressSimulation(i, urls.length, vid);
+  async function processSingleUrl(url, taskIdx, workerId) {
+    const vid = extractVideoId(url) || `VID_${taskIdx + 1}`;
+
+    if (urls.length === 1) {
+      startProgressSimulation(0, 1, vid);
+    } else {
+      elements.statusTicker.textContent = `[Safe Worker ${workerId}] Fetching live chat for ${vid}... (${completedCount}/${urls.length} completed)`;
+    }
 
     try {
       const resp = await fetch(`${API_BASE}/analyze-stream`, {
@@ -1311,11 +1320,6 @@ async function startProcessing(urls, label = null) {
       });
 
       const resData = await resp.json();
-      stopProgressSimulation();
-
-      const stepCompletedPct = Math.round(((i + 1) / urls.length) * 100);
-      elements.progressBarFill.style.width = `${stepCompletedPct}%`;
-      elements.progressPercent.textContent = `${stepCompletedPct}%`;
 
       if (resData.success && resData.data) {
         state.metrics.success++;
@@ -1366,38 +1370,76 @@ async function startProcessing(urls, label = null) {
         })));
 
         p.unique_donors.forEach(d => resultsAccumulator.uniqueDonors.add(d));
+
+        // ── LIVE PROGRESSIVE STREAMING UI (Real-time dynamic updates) ──
+        state.results = resultsAccumulator;
+        renderAllResults(resultsAccumulator);
+        renderTiersBar();
+
+        if (!hasShownFirstResult) {
+          hasShownFirstResult = true;
+          elements.resultsSection.style.display = 'block';
+        }
       } else if (resData.error === "NO_CHAT_AVAILABLE") {
         state.metrics.noChat++;
-        elements.statusTicker.textContent = `[NO CHAT] Live chat replay was disabled or not available for: ${resData.title || vid}`;
+        elements.statusTicker.textContent = `[NO CHAT] Live chat replay was disabled for: ${resData.title || vid}`;
       } else {
         state.metrics.failed++;
         elements.statusTicker.textContent = `[FAILED] ${resData.message || 'Stream unavailable'}`;
       }
     } catch (netErr) {
-      stopProgressSimulation();
       state.metrics.failed++;
-      elements.statusTicker.textContent = `[ERROR] Network timeout or connection error for ${vid}`;
-    }
+      elements.statusTicker.textContent = `[ERROR] Network error for ${vid}`;
+    } finally {
+      completedCount++;
+      updateMetricsDisplay();
 
-    updateMetricsDisplay();
+      if (urls.length > 1) {
+        const stepPct = Math.round((completedCount / urls.length) * 100);
+        elements.progressBarFill.style.width = `${stepPct}%`;
+        elements.progressPercent.textContent = `${stepPct}%`;
+        const currentGross = resultsAccumulator.streams.reduce((acc, s) => acc + (s.grossInr || 0), 0);
+        elements.statusTicker.textContent = `[Safe Worker ${workerId}] Audited ${completedCount}/${urls.length} streams. Current Gross: ${formatCurrency(currentGross)}`;
+      }
+    }
   }
 
-  // 100% Complete
+  // Launch Worker Pool with human traffic jitter
+  const workerPromises = [];
+  for (let w = 0; w < numWorkers; w++) {
+    const workerId = w + 1;
+    const workerPromise = (async () => {
+      if (w > 0) {
+        await new Promise(r => setTimeout(r, w * 350));
+      }
+      while (nextTaskIndex < urls.length) {
+        const currentTask = nextTaskIndex++;
+        const currentUrl = urls[currentTask];
+        await processSingleUrl(currentUrl, currentTask, workerId);
+      }
+    })();
+    workerPromises.push(workerPromise);
+  }
+
+  // Wait for all concurrent safe workers to finish
+  await Promise.all(workerPromises);
+
+  // 100% Finalize
   stopProgressSimulation();
   elements.progressBarFill.style.width = '100%';
   elements.progressPercent.textContent = '100%';
-  elements.progressPercent.textContent = '100%';
-
   state.processing = false;
   state.results = resultsAccumulator;
 
   if (state.metrics.success > 0) {
-    elements.statusTicker.textContent = `Audit Complete! Successfully parsed ${state.metrics.success} stream(s).`;
-    elements.statusTitle.textContent = 'Audit Finished';
+    elements.statusTicker.textContent = `Audit Complete! Successfully parsed ${state.metrics.success} stream(s) via 3 Safe Workers.`;
+    elements.statusTitle.textContent = `Audit Finished (${state.metrics.success} Streams Succeeded)`;
     renderAllResults(resultsAccumulator);
     renderTiersBar();
     elements.resultsSection.style.display = 'block';
-    elements.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!hasShownFirstResult) {
+      elements.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   } else {
     elements.statusTitle.textContent = 'Audit Result: No Live Chat Available';
     elements.statusTicker.innerHTML = `⚠️ YouTube live chat could not be retrieved from this stream URL because chat replay was disabled or restricted by YouTube. Please verify that the stream was live and chat replay is enabled on YouTube.`;
