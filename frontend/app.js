@@ -378,6 +378,15 @@ function setupUploadMode() {
 }
 
 function handleJsonFile(file) {
+  // ── Session Isolation Reset (Zero cross-file pollution) ──
+  state.discoveredTiers.clear();
+  state.results = null;
+  if (elements.streamsTableBody) elements.streamsTableBody.innerHTML = '';
+  if (elements.superchatTableBody) elements.superchatTableBody.innerHTML = '';
+  if (elements.membershipsTableBody) elements.membershipsTableBody.innerHTML = '';
+  if (elements.jewelsTableBody) elements.jewelsTableBody.innerHTML = '';
+  if (elements.tiersBar) elements.tiersBar.style.display = 'none';
+
   elements.processingCard.style.display = 'block';
   elements.resultsSection.style.display = 'none';
   elements.statusTitle.textContent = `Parsing ${file.name}...`;
@@ -676,6 +685,15 @@ function parseAmountStr(text) {
 
 // ── 6. Processing Engine (ZERO FAKE DATA) ──
 async function startProcessing(urls, label = null) {
+  // ── Session Isolation Reset (Zero cross-stream pollution) ──
+  state.discoveredTiers.clear();
+  state.results = null;
+  if (elements.streamsTableBody) elements.streamsTableBody.innerHTML = '';
+  if (elements.superchatTableBody) elements.superchatTableBody.innerHTML = '';
+  if (elements.membershipsTableBody) elements.membershipsTableBody.innerHTML = '';
+  if (elements.jewelsTableBody) elements.jewelsTableBody.innerHTML = '';
+  if (elements.tiersBar) elements.tiersBar.style.display = 'none';
+
   state.processing = true;
   elements.processingCard.style.display = 'block';
   elements.resultsSection.style.display = 'none';
