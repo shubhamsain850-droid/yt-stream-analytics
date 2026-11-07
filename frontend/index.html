@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>StreamVault — YouTube Live Stream Earning & Chat Analytics</title>
+  <meta name="description" content="Calculate and export YouTube Live Stream Super Chats, Memberships, Jewels Gifts and Earning Reports with single link or bulk channel dates.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <div class="nav-container">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+          </svg>
+        </div>
+        <span class="logo-text">Stream<span>Vault</span></span>
+        <span class="badge-beta">Beta</span>
+      </div>
+
+      <div class="nav-actions">
+        <div class="currency-switch">
+          <span class="currency-label">Currency:</span>
+          <button class="curr-btn active" data-curr="INR">₹ INR</button>
+          <button class="curr-btn" data-curr="USD">$ USD</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Hero Header -->
+    <section class="hero-section">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        YouTube Super Chat, Jewels &amp; Membership Earning Engine
+      </div>
+      <h1 class="hero-title">Track &amp; Export YouTube Live Stream <span>Earnings</span></h1>
+      <p class="hero-sub">
+        Accurately audit live stream revenue, filter Super Chats, calculate YouTube Jewels to INR, and export clean CSV reports for creators, managers &amp; editors.
+      </p>
+    </section>
+
+    <!-- Main Tool Container -->
+    <div class="tool-card">
+      <!-- Input Mode Switcher (Option A, B, C) -->
+      <div class="mode-tabs">
+        <button class="tab-btn active" data-mode="single">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          <span>Option A: Single Stream</span>
+        </button>
+        <button class="tab-btn" data-mode="channel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span>Option B: Channel &amp; Date Range</span>
+        </button>
+        <button class="tab-btn" data-mode="multi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          <span>Option C: Multi-URL Batch</span>
+          <span class="tab-counter-badge" id="multiTabBadge">0 Added</span>
+        </button>
+      </div>
+
+      <!-- Mode A: Single Stream Input -->
+      <div class="mode-panel active" id="panel-single">
+        <label class="input-label" for="singleUrlInput">Paste YouTube Live Stream URL or Video ID</label>
+        <div class="input-row">
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
+            <input type="text" id="singleUrlInput" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+            <button class="btn-paste" id="pasteSingleBtn" type="button">Paste</button>
+          </div>
+          <button class="btn-primary" id="startSingleBtn">
+            <span>Analyze Earning</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+        <div class="quick-examples">
+          <span>Quick Example:</span>
+          <button class="example-chip" data-url="https://www.youtube.com/watch?v=GBiPHQ42WjE">Live Stream Sample 1</button>
+          <button class="example-chip" data-url="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Gaming Stream Sample 2</button>
+        </div>
+      </div>
+
+      <!-- Mode B: Bulk Channel & Date Range Input -->
+      <div class="mode-panel" id="panel-channel">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label class="input-label" for="channelUrlInput">YouTube Channel URL, Handle or Stream Tab</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <input type="text" id="channelUrlInput" placeholder="e.g. https://www.youtube.com/@Aashiislive/streams or @CarryMinati" autocomplete="off">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="input-label" for="fromDateInput">From Date</label>
+            <input type="date" id="fromDateInput" class="date-input">
+          </div>
+
+          <div class="form-group">
+            <label class="input-label" for="toDateInput">To Date</label>
+            <input type="date" id="toDateInput" class="date-input">
+          </div>
+        </div>
+
+        <div class="presets-row">
+          <span class="preset-label">Quick Date Presets:</span>
+          <button class="preset-chip" data-preset="7d">Last 7 Days</button>
+          <button class="preset-chip" data-preset="30d">Last 30 Days</button>
+          <button class="preset-chip" data-preset="90d">Last 3 Months</button>
+          <button class="preset-chip active" data-preset="all">All Streams</button>
+        </div>
+
+        <div class="action-row">
+          <button class="btn-primary" id="startChannelBtn">
+            <span>Fetch Channel Streams &amp; Analyze</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mode C: Custom Multi-URL Batch Input -->
+      <div class="mode-panel" id="panel-multi">
+        <label class="input-label" for="multiUrlInput">Paste Stream Link &amp; Click '+' to Add to Batch</label>
+        <div class="input-row">
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            <input type="text" id="multiUrlInput" placeholder="Paste YouTube stream URL here..." autocomplete="off">
+          </div>
+          <button class="btn-add" id="addUrlBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Add Stream</span>
+          </button>
+        </div>
+
+        <!-- URL Queue List & Live Counter -->
+        <div class="url-queue-header">
+          <div class="queue-counter">
+            <span class="count-badge" id="queueCount">0</span>
+            <span class="count-text">Streams Ready for Batch Analysis</span>
+          </div>
+          <button class="btn-clear" id="clearAllUrlsBtn" type="button" style="display: none;">Clear All</button>
+        </div>
+
+        <div class="url-queue-list" id="urlQueueList">
+          <div class="empty-queue-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong>.</span>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn-primary" id="startMultiBtn" disabled>
+            <span>Start Batch Processing</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Processing & Progress Status Card -->
+    <div class="status-card" id="processingCard" style="display: none;">
+      <div class="status-header">
+        <div class="status-title-group">
+          <div class="spinner-dot"></div>
+          <h3 class="status-title" id="statusTitle">Processing Streams...</h3>
+        </div>
+        <span class="percentage-badge" id="progressPercent">0%</span>
+      </div>
+
+      <!-- Main Progress Bar -->
+      <div class="progress-track">
+        <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+      </div>
+
+      <!-- Live Stream Parsing Terminal Ticker -->
+      <div class="ticker-box">
+        <div class="ticker-dot"></div>
+        <span class="ticker-text" id="statusTicker">Initializing connection...</span>
+      </div>
+
+      <!-- Real-Time Metrics Counters (Visible during AND after processing) -->
+      <div class="metrics-grid">
+        <div class="metric-chip total">
+          <div class="metric-icon">📊</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countTotal">0</span>
+            <span class="metric-label">Total Streams</span>
+          </div>
+        </div>
+
+        <div class="metric-chip success">
+          <div class="metric-icon">✅</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countSuccess">0</span>
+            <span class="metric-label">Processed</span>
+          </div>
+        </div>
+
+        <div class="metric-chip failed">
+          <div class="metric-icon">❌</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countFailed">0</span>
+            <span class="metric-label">Failed</span>
+          </div>
+        </div>
+
+        <div class="metric-chip nochat">
+          <div class="metric-icon">⚠️</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countNoChat">0</span>
+            <span class="metric-label">Chat Unavailable</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comprehensive Completed Results Section -->
+    <section class="results-section" id="resultsSection" style="display: none;">
+      <!-- KPI Revenue Overview Banner -->
+      <div class="kpi-banner">
+        <div class="kpi-card highlight">
+          <span class="kpi-badge">Gross Total</span>
+          <h2 class="kpi-amount" id="kpiGrossTotal">₹0</h2>
+          <span class="kpi-sub" id="kpiNetTotal">Net Creator Take (~70%): ₹0</span>
+        </div>
+
+        <div class="kpi-card sc-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Super Chat</span>
+            <span class="pill-badge pill-red">Donations</span>
+          </div>
+          <h3 class="kpi-value" id="kpiSuperchat">₹0</h3>
+          <span class="kpi-note" id="kpiSuperchatCount">0 Superchats recorded</span>
+        </div>
+
+        <div class="kpi-card jewels-card">
+          <div class="kpi-header">
+            <span class="kpi-title">YouTube Jewels</span>
+            <span class="pill-badge pill-amber">Gifts</span>
+          </div>
+          <h3 class="kpi-value" id="kpiJewels">₹0</h3>
+          <span class="kpi-note" id="kpiJewelsCount">0 Total Jewels (₹1.20/jewel)</span>
+        </div>
+
+        <div class="kpi-card member-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Memberships</span>
+            <span class="pill-badge pill-purple">Sponsors</span>
+          </div>
+          <h3 class="kpi-value" id="kpiMemberships">₹0</h3>
+          <span class="kpi-note" id="kpiMemberCount">0 New Joins &amp; Gifts</span>
+        </div>
+
+        <div class="kpi-card donors-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Unique Supporters</span>
+            <span class="pill-badge pill-blue">Audience</span>
+          </div>
+          <h3 class="kpi-value" id="kpiUniqueDonors">0</h3>
+          <span class="kpi-note" id="kpiUniqueChatters">0 Active Chatters</span>
+        </div>
+      </div>
+
+      <!-- Results Sub-Navigation Bar & Export Dropdown -->
+      <div class="results-toolbar">
+        <div class="results-tabs">
+          <button class="res-tab-btn active" data-view="overview">
+            <span>Total Earning Report</span>
+          </button>
+          <button class="res-tab-btn" data-view="superchats">
+            <span>Superchat Only</span>
+            <span class="tab-pill" id="badgeScTab">0</span>
+          </button>
+          <button class="res-tab-btn" data-view="memberships">
+            <span>Memberships Only</span>
+            <span class="tab-pill" id="badgeMemTab">0</span>
+          </button>
+          <button class="res-tab-btn" data-view="jewels">
+            <span>Jewels Only</span>
+            <span class="tab-pill" id="badgeJewelTab">0</span>
+          </button>
+        </div>
+
+        <div class="export-group">
+          <button class="btn-export" id="exportAllCsvBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Export CSV</span>
+          </button>
+          <button class="btn-export secondary" id="exportJsonBtn">
+            <span>Export JSON</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search & Filter Controls -->
+      <div class="filter-bar">
+        <div class="search-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="tableSearchInput" placeholder="Filter by Donor Name, Message, or Stream Title...">
+        </div>
+        <div class="sort-select-wrapper">
+          <label>Sort:</label>
+          <select id="sortSelect">
+            <option value="amount-desc">Highest Amount First</option>
+            <option value="amount-asc">Lowest Amount First</option>
+            <option value="name-asc">Donor Name (A-Z)</option>
+            <option value="time-desc">Newest First</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- View 1: Total Earning Overview (Streams Breakdown) -->
+      <div class="view-panel active" id="view-overview">
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="data-table" id="streamsTable">
+              <thead>
+                <tr>
+                  <th>Stream Title &amp; ID</th>
+                  <th>Date</th>
+                  <th>Superchats</th>
+                  <th>Jewels Value</th>
+                  <th>Memberships</th>
+                  <th>Total Gross</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="streamsTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- View 2: Superchat Only Leaderboard & Logs -->
+      <div class="view-panel" id="view-superchats">
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="data-table" id="superchatTable">
+              <thead>
+                <tr>
+                  <th># Rank</th>
+                  <th>Donor Name</th>
+                  <th>Amount</th>
+                  <th>Currency</th>
+                  <th>Message</th>
+                  <th>Stream ID</th>
+                </tr>
+              </thead>
+              <tbody id="superchatTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- View 3: Memberships Only -->
+      <div class="view-panel" id="view-memberships">
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="data-table" id="membershipsTable">
+              <thead>
+                <tr>
+                  <th>Author / Member</th>
+                  <th>Event Type</th>
+                  <th>Tier / Quantity</th>
+                  <th>Est. Value</th>
+                  <th>Stream</th>
+                </tr>
+              </thead>
+              <tbody id="membershipsTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- View 4: Jewels Only -->
+      <div class="view-panel" id="view-jewels">
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="data-table" id="jewelsTable">
+              <thead>
+                <tr>
+                  <th>Gift Name</th>
+                  <th>Author</th>
+                  <th>Quantity</th>
+                  <th>Total Jewels</th>
+                  <th>Converted Value (INR)</th>
+                  <th>Stream</th>
+                </tr>
+              </thead>
+              <tbody id="jewelsTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Creator SEO & Feature Highlights Section -->
+    <section class="info-section">
+      <div class="info-grid">
+        <div class="info-box">
+          <div class="info-icon">💎</div>
+          <h4>Live YouTube Jewels Conversion</h4>
+          <p>Calculates Indian Jewels gifts (Panipuri, Samosa, Mic Drop, Castle etc.) using real streamer conversion rates (₹1.20 per jewel).</p>
+        </div>
+        <div class="info-box">
+          <div class="info-icon">⚡</div>
+          <h4>Instant Batch Analysis</h4>
+          <p>Audit 10, 50 or 200 streams concurrently without freezing your phone or desktop browser.</p>
+        </div>
+        <div class="info-box">
+          <div class="info-icon">📁</div>
+          <h4>One-Click Clean CSV Exports</h4>
+          <p>Ready-to-use CSV &amp; Excel sheets formatted for accountant records, tax audits, and stream highlights editors.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <p>© 2026 StreamVault — YouTube Stream Earnings &amp; Chat Intelligence. Made for Content Creators.</p>
+      <div class="footer-links">
+        <span>Privacy Friendly</span>
+        <span>•</span>
+        <span>Client-side Streaming</span>
+        <span>•</span>
+        <span>Fast Processing</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
