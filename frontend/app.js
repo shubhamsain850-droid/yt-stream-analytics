@@ -140,7 +140,6 @@ const elements = {
   singleUrlInput: document.getElementById('singleUrlInput'),
   pasteSingleBtn: document.getElementById('pasteSingleBtn'),
   startSingleBtn: document.getElementById('startSingleBtn'),
-  exampleChips: document.querySelectorAll('.example-chip'),
 
   // Channel Mode
   channelUrlInput: document.getElementById('channelUrlInput'),
@@ -706,11 +705,7 @@ function setupSingleMode() {
     }
   });
 
-  elements.exampleChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      elements.singleUrlInput.value = chip.dataset.url;
-    });
-  });
+
 
   elements.startSingleBtn.addEventListener('click', () => {
     const url = elements.singleUrlInput.value.trim();
