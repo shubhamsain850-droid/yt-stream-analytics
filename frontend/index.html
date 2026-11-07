@@ -83,7 +83,7 @@
         <button class="tab-btn" data-mode="multi">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
           <span>Option C: Multi-URL Batch</span>
-          <span class="tab-counter-badge" id="multiTabBadge">0 Added</span>
+          <span class="tab-counter-badge" id="multiTabBadge">0/25 Added</span>
         </button>
       </div>
 
@@ -143,7 +143,10 @@
 
       <!-- Mode C: Custom Multi-URL Batch Input -->
       <div class="mode-panel" id="panel-multi">
-        <label class="input-label" for="multiUrlInput">Paste Stream Link &amp; Click '+' to Add to Batch</label>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <label class="input-label" for="multiUrlInput" style="margin-bottom: 0;">Paste Stream Link &amp; Click 'Add Stream'</label>
+          <span class="batch-limit-pill" id="batchLimitNotice">Max 25 Streams / Batch</span>
+        </div>
         <div class="input-row">
           <div class="input-wrapper">
             <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
@@ -158,8 +161,8 @@
         <!-- URL Queue List & Live Counter -->
         <div class="url-queue-header">
           <div class="queue-counter">
-            <span class="count-badge" id="queueCount">0</span>
-            <span class="count-text">Streams Ready for Batch Analysis</span>
+            <span class="count-badge" id="queueCount">0 / 25</span>
+            <span class="count-text">Streams in Batch (Limit: 25 Max)</span>
           </div>
           <button class="btn-clear" id="clearAllUrlsBtn" type="button" style="display: none;">Clear All</button>
         </div>

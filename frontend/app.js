@@ -776,7 +776,11 @@ function setupChannelMode() {
 
       const resJson = await resp.json();
       if (resJson.success && resJson.streams && resJson.streams.length > 0) {
-        const urls = resJson.streams.map(s => s.url);
+        let urls = resJson.streams.map(s => s.url);
+        if (urls.length > 25) {
+          urls = urls.slice(0, 25);
+          alert(`Channel returned ${resJson.streams.length} streams. Capped to the latest 25 streams to ensure fast and stable analysis.`);
+        }
         startProcessing(urls, `Channel: ${channel} (${urls.length} Streams Found)`);
         return;
       } else {
@@ -791,20 +795,36 @@ function setupChannelMode() {
   });
 }
 
-// ── Option C (Multi-URL Batch) ──
+// ── Option C (Multi-URL Batch - Max 25 Streams) ──
+const MAX_MULTI_STREAMS = 25;
+
 function setupMultiMode() {
   function updateMultiBadgeAndUI() {
     const count = state.multiUrlQueue.length;
-    elements.multiTabBadge.textContent = `${count} Added`;
-    elements.queueCount.textContent = count;
+    elements.multiTabBadge.textContent = `${count}/${MAX_MULTI_STREAMS} Added`;
+    elements.queueCount.textContent = `${count} / ${MAX_MULTI_STREAMS}`;
     elements.startMultiBtn.disabled = count === 0;
     elements.clearAllUrlsBtn.style.display = count > 0 ? 'inline-block' : 'none';
+
+    if (count >= MAX_MULTI_STREAMS) {
+      elements.addUrlBtn.disabled = true;
+      elements.addUrlBtn.style.opacity = '0.5';
+      elements.addUrlBtn.style.cursor = 'not-allowed';
+      elements.addUrlBtn.title = `Maximum batch limit of ${MAX_MULTI_STREAMS} streams reached`;
+      elements.multiUrlInput.placeholder = `Limit of ${MAX_MULTI_STREAMS} reached. Click 'Start Batch Processing' below.`;
+    } else {
+      elements.addUrlBtn.disabled = false;
+      elements.addUrlBtn.style.opacity = '1';
+      elements.addUrlBtn.style.cursor = 'pointer';
+      elements.addUrlBtn.title = 'Add stream to batch list';
+      elements.multiUrlInput.placeholder = 'Paste YouTube stream URL here...';
+    }
 
     if (count === 0) {
       elements.urlQueueList.innerHTML = `
         <div class="empty-queue-hint">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong>.</span>
+          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (up to 25 streams per batch).</span>
         </div>`;
       return;
     }
@@ -822,7 +842,7 @@ function setupMultiMode() {
     `).join('');
 
     document.querySelectorAll('.queue-item-remove').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         const i = parseInt(btn.dataset.index, 10);
         state.multiUrlQueue.splice(i, 1);
         updateMultiBadgeAndUI();
@@ -831,16 +851,40 @@ function setupMultiMode() {
   }
 
   function addCurrentUrl() {
-    const val = elements.multiUrlInput.value.trim();
-    if (!val) return;
-    if (state.multiUrlQueue.includes(val)) {
-      alert('This stream URL is already in your batch list.');
+    const rawVal = elements.multiUrlInput.value.trim();
+    if (!rawVal) return;
+
+    if (state.multiUrlQueue.length >= MAX_MULTI_STREAMS) {
+      alert(`Maximum batch limit reached (${MAX_MULTI_STREAMS} streams max). Please remove some streams or start processing.`);
       return;
     }
-    state.multiUrlQueue.push(val);
+
+    // Support single URL or multiple pasted URLs (split by newline, comma, space)
+    const items = rawVal.split(/[\r\n,\s]+/).map(u => u.trim()).filter(Boolean);
+    let addedCount = 0;
+    let duplicateCount = 0;
+
+    for (const url of items) {
+      if (state.multiUrlQueue.length >= MAX_MULTI_STREAMS) {
+        break;
+      }
+      if (state.multiUrlQueue.includes(url)) {
+        duplicateCount++;
+        continue;
+      }
+      state.multiUrlQueue.push(url);
+      addedCount++;
+    }
+
     elements.multiUrlInput.value = '';
     elements.multiUrlInput.focus();
     updateMultiBadgeAndUI();
+
+    if (state.multiUrlQueue.length >= MAX_MULTI_STREAMS && items.length > addedCount) {
+      alert(`Batch limit reached! Added ${addedCount} stream(s). Maximum ${MAX_MULTI_STREAMS} streams allowed per batch for fast and reliable audit.`);
+    } else if (addedCount === 0 && duplicateCount > 0) {
+      alert('The entered stream URL is already in your batch list.');
+    }
   }
 
   elements.addUrlBtn.addEventListener('click', addCurrentUrl);
@@ -857,7 +901,8 @@ function setupMultiMode() {
 
   elements.startMultiBtn.addEventListener('click', () => {
     if (state.multiUrlQueue.length === 0) return;
-    startProcessing([...state.multiUrlQueue]);
+    const batch = state.multiUrlQueue.slice(0, MAX_MULTI_STREAMS);
+    startProcessing(batch, `Multi-URL Batch (${batch.length} Streams)`);
   });
 }
 
