@@ -22,7 +22,9 @@ from youtube_engine import (
     fetch_innertube_stream_data,
     fetch_video_comments,
     get_video_metadata,
-    get_channel_metadata
+    get_channel_metadata,
+    search_youtube_channels,
+    get_socialblade_channel_analytics
 )
 
 def anti_cache_headers(response: Response):
@@ -56,6 +58,13 @@ class VideoMetadataRequest(BaseModel):
     url: str
 
 class ChannelMetadataRequest(BaseModel):
+    channel: str
+
+class SearchChannelsRequest(BaseModel):
+    query: str
+    max_results: Optional[int] = 15
+
+class ChannelAnalyticsRequest(BaseModel):
     channel: str
 
 # ─────────────────────────────────────────────
@@ -308,4 +317,57 @@ def fetch_channel_metadata_endpoint(req: ChannelMetadataRequest):
     if not meta.get("success"):
         raise HTTPException(status_code=400, detail=meta.get("error", "Failed to fetch channel metadata"))
     return meta
+
+
+@router.get("/search-channels")
+def search_channels_get(q: str = ""):
+    """
+    Live YouTube channel search: finds matching creators with avatar, subscriber count, and handle.
+    """
+    if not q.strip():
+        return {"success": True, "channels": []}
+    channels = search_youtube_channels(q, max_results=12)
+    return {"success": True, "query": q, "count": len(channels), "channels": channels}
+
+
+@router.post("/search-channels")
+def search_channels_post(req: SearchChannelsRequest):
+    """
+    Live YouTube channel search (POST body).
+    """
+    if not req.query.strip():
+        return {"success": True, "channels": []}
+    channels = search_youtube_channels(req.query, max_results=req.max_results or 15)
+    return {"success": True, "query": req.query, "count": len(channels), "channels": channels}
+
+
+@router.get("/channel-analytics")
+def get_channel_analytics_get(channel: str = ""):
+    """
+    Extracts complete SocialBlade-grade channel analytics:
+    - Profile, SB Grade, Global Ranks
+    - 30-Day Growth Metrics ($0.25 - $4.00 CPM range)
+    - 14-Day Daily Metrics Table
+    - Monthly Growth Chart Data
+    """
+    if not channel.strip():
+        raise HTTPException(status_code=400, detail="Channel query, URL, or @handle is required.")
+    data = get_socialblade_channel_analytics(channel)
+    if not data.get("success"):
+        raise HTTPException(status_code=400, detail=data.get("error", "Channel not found"))
+    return data
+
+
+@router.post("/channel-analytics")
+def get_channel_analytics_post(req: ChannelAnalyticsRequest):
+    """
+    Extracts complete SocialBlade-grade channel analytics (POST body).
+    """
+    if not req.channel.strip():
+        raise HTTPException(status_code=400, detail="Channel query, URL, or @handle is required.")
+    data = get_socialblade_channel_analytics(req.channel)
+    if not data.get("success"):
+        raise HTTPException(status_code=400, detail=data.get("error", "Channel not found"))
+    return data
+
 
