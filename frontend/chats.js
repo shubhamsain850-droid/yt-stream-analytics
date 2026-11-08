@@ -22,21 +22,22 @@
     activeCommSort: 'likes-desc',
     theme: localStorage.getItem('theme') || 'dark',
 
-    // Dedicated Interactive Viewer State ("View Mode")
+    lastExtractionType: 'chats',
+
+    // Interactive View Results Window Modal State
     viewer: {
       data: null,
+      sourceType: 'chats', // 'chats' or 'comments'
       filteredMessages: [],
       authorCounts: {},
       style: 'table', // 'table' or 'feed'
       filters: {
+        streamId: 'all',
         event: 'all',
         role: 'all',
         minAmount: 0,
-        frequency: 'all',
         sort: 'time-asc',
-        searchQuery: '',
-        timeFrom: '',
-        timeTo: ''
+        searchQuery: ''
       }
     }
   };
@@ -55,8 +56,7 @@
       single: document.getElementById('panel-single'),
       channel: document.getElementById('panel-channel'),
       multi: document.getElementById('panel-multi'),
-      comments: document.getElementById('panel-comments'),
-      view: document.getElementById('panel-view')
+      comments: document.getElementById('panel-comments')
     },
 
     // Mode A: Single Stream
@@ -85,50 +85,53 @@
     commentsLimitSelect: document.getElementById('commentsLimitSelect'),
     startCommentsBtn: document.getElementById('startCommentsBtn'),
 
-    // Mode E: Direct Chat Viewer ("View Mode")
-    viewerFileInput: document.getElementById('viewerFileInput'),
-    viewerSelectFileBtn: document.getElementById('viewerSelectFileBtn'),
-    viewerLoadSessionBtn: document.getElementById('viewerLoadSessionBtn'),
-    viewerSessionBtnText: document.getElementById('viewerSessionBtnText'),
-    viewerLoadDemoBtn: document.getElementById('viewerLoadDemoBtn'),
-    viewerDropTarget: document.getElementById('viewerDropTarget'),
+    // Modal Window for Interactive Result Viewing (Direct Online View - No Download Needed)
+    viewResultsModal: document.getElementById('viewResultsModal'),
+    viewModalOverlay: document.getElementById('viewModalOverlay'),
+    vmCloseBtn: document.getElementById('vmCloseBtn'),
+    vmCloseFooterBtn: document.getElementById('vmCloseFooterBtn'),
+    vmTypeBadge: document.getElementById('vmTypeBadge'),
+    vmTitle: document.getElementById('vmTitle'),
+    vmCounter: document.getElementById('vmCounter'),
+    vmLoadLocalFileBtn: document.getElementById('vmLoadLocalFileBtn'),
+    vmFileInput: document.getElementById('vmFileInput'),
 
-    viewerWorkspace: document.getElementById('viewerWorkspace'),
-    vshStreamType: document.getElementById('vshStreamType'),
-    vshStreamTitle: document.getElementById('vshStreamTitle'),
-    vshCounterDisplay: document.getElementById('vshCounterDisplay'),
-    viewerClearBtn: document.getElementById('viewerClearBtn'),
+    vmQuickBar: document.getElementById('vmQuickBar'),
+    vmPillAll: document.getElementById('vmPillAll'),
+    vmPillSc: document.getElementById('vmPillSc'),
+    vmPillMem: document.getElementById('vmPillMem'),
+    vmPillJewels: document.getElementById('vmPillJewels'),
+    vmPillNormal: document.getElementById('vmPillNormal'),
 
-    vQuickFilters: document.getElementById('vQuickFilters'),
-    vpillCountAll: document.getElementById('vpillCountAll'),
-    vpillCountSc: document.getElementById('vpillCountSc'),
-    vpillCountMem: document.getElementById('vpillCountMem'),
-    vpillCountJewels: document.getElementById('vpillCountJewels'),
-    vpillCountNormal: document.getElementById('vpillCountNormal'),
+    vmToggleTableBtn: document.getElementById('vmToggleTableBtn'),
+    vmToggleFeedBtn: document.getElementById('vmToggleFeedBtn'),
 
-    vFilterRole: document.getElementById('vFilterRole'),
-    vFilterMinAmount: document.getElementById('vFilterMinAmount'),
-    vFilterFrequency: document.getElementById('vFilterFrequency'),
-    vFilterSort: document.getElementById('vFilterSort'),
-    vSearchInput: document.getElementById('vSearchInput'),
-    vTimeFrom: document.getElementById('vTimeFrom'),
-    vTimeTo: document.getElementById('vTimeTo'),
-    vResetFiltersBtn: document.getElementById('vResetFiltersBtn'),
+    vmStreamFilterGroup: document.getElementById('vmStreamFilterGroup'),
+    vmFilterStream: document.getElementById('vmFilterStream'),
+    vmRoleFilterGroup: document.getElementById('vmRoleFilterGroup'),
+    vmFilterRole: document.getElementById('vmFilterRole'),
+    vmMinAmountFilterGroup: document.getElementById('vmMinAmountFilterGroup'),
+    vmFilterMinAmount: document.getElementById('vmFilterMinAmount'),
+    vmFilterSort: document.getElementById('vmFilterSort'),
+    vmSearchInput: document.getElementById('vmSearchInput'),
+    vmResetFiltersBtn: document.getElementById('vmResetFiltersBtn'),
 
-    vStyleTableBtn: document.getElementById('vStyleTableBtn'),
-    vStyleFeedBtn: document.getElementById('vStyleFeedBtn'),
-    vTableContainer: document.getElementById('vTableContainer'),
-    vTableBody: document.getElementById('vTableBody'),
-    vFeedContainer: document.getElementById('vFeedContainer'),
-    vFeedStream: document.getElementById('vFeedStream'),
+    vmTableContainer: document.getElementById('vmTableContainer'),
+    vmTableBody: document.getElementById('vmTableBody'),
+    vmFeedContainer: document.getElementById('vmFeedContainer'),
+    vmFeedStream: document.getElementById('vmFeedStream'),
 
-    vExportExcelBtn: document.getElementById('vExportExcelBtn'),
-    vExportTxtBtn: document.getElementById('vExportTxtBtn'),
-    vExportCsvBtn: document.getElementById('vExportCsvBtn'),
-    vExportJsonBtn: document.getElementById('vExportJsonBtn'),
+    vmFooterStatus: document.getElementById('vmFooterStatus'),
+    vmExportExcelBtn: document.getElementById('vmExportExcelBtn'),
+    vmExportTxtBtn: document.getElementById('vmExportTxtBtn'),
+    vmExportCsvBtn: document.getElementById('vmExportCsvBtn'),
+    vmCopyVisibleBtn: document.getElementById('vmCopyVisibleBtn'),
 
-    // Live URL Result Jump to Viewer
-    openChatInViewerBtn: document.getElementById('openChatInViewerBtn'),
+    // Trigger Buttons
+    openChatViewModalBtn: document.getElementById('openChatViewModalBtn'),
+    openCommViewModalBtn: document.getElementById('openCommViewModalBtn'),
+    quickViewBtn: document.getElementById('quickViewBtn'),
+    progressActions: document.getElementById('progressActions'),
 
     // Progress Card
     processingCard: document.getElementById('processingCard'),
@@ -299,15 +302,26 @@
     if (el.startChatMultiBtn) el.startChatMultiBtn.addEventListener('click', startMultiChatExtraction);
     if (el.startCommentsBtn) el.startCommentsBtn.addEventListener('click', startCommentsDownload);
 
-    // Direct Viewer Jump Button from URL Results
-    if (el.openChatInViewerBtn) {
-      el.openChatInViewerBtn.addEventListener('click', () => {
-        if (state.liveChatData) {
-          switchMode('view');
-          loadDataIntoViewer(state.liveChatData, state.liveChatData.title || `Stream [${state.liveChatData.stream_id}]`, '🔴 Live Extracted Stream');
-        }
-      });
+    // Modal Window Triggers (View Results)
+    if (el.openChatViewModalBtn) {
+      el.openChatViewModalBtn.addEventListener('click', () => openViewResultsModal('chats'));
     }
+    if (el.openCommViewModalBtn) {
+      el.openCommViewModalBtn.addEventListener('click', () => openViewResultsModal('comments'));
+    }
+    if (el.quickViewBtn) {
+      el.quickViewBtn.addEventListener('click', () => openViewResultsModal(state.lastExtractionType || 'chats'));
+    }
+
+    // Modal Close Triggers
+    if (el.vmCloseBtn) el.vmCloseBtn.addEventListener('click', closeViewResultsModal);
+    if (el.vmCloseFooterBtn) el.vmCloseFooterBtn.addEventListener('click', closeViewResultsModal);
+    if (el.viewModalOverlay) el.viewModalOverlay.addEventListener('click', closeViewResultsModal);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && el.viewResultsModal && el.viewResultsModal.style.display !== 'none') {
+        closeViewResultsModal();
+      }
+    });
   }
 
   function switchMode(mode) {
@@ -325,28 +339,13 @@
     if (mode === 'comments') {
       if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
       if (state.commentsData && el.resultsCommentsSection) el.resultsCommentsSection.style.display = 'block';
-    } else if (mode === 'view') {
-      if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
-      if (el.resultsCommentsSection) el.resultsCommentsSection.style.display = 'none';
-      updateViewerSessionButton();
     } else {
       if (el.resultsCommentsSection) el.resultsCommentsSection.style.display = 'none';
       if (state.liveChatData && el.resultsChatSection) el.resultsChatSection.style.display = 'block';
     }
   }
 
-  function updateViewerSessionButton() {
-    if (!el.viewerLoadSessionBtn || !el.viewerSessionBtnText) return;
-    if (state.liveChatData && state.liveChatData.messages && state.liveChatData.messages.length > 0) {
-      el.viewerLoadSessionBtn.disabled = false;
-      el.viewerLoadSessionBtn.style.opacity = '1';
-      el.viewerSessionBtnText.textContent = `Load Current Stream Chats (${state.liveChatData.messages.length} msgs)`;
-    } else {
-      el.viewerLoadSessionBtn.disabled = true;
-      el.viewerLoadSessionBtn.style.opacity = '0.5';
-      el.viewerSessionBtnText.textContent = 'Load Current Stream Chats (None active)';
-    }
-  }
+  function updateViewerSessionButton() {}
 
   // ─────────────────────────────────────────────
   // 3. MULTI-URL BATCH QUEUE
@@ -431,6 +430,12 @@
     if (el.countExtracted) el.countExtracted.textContent = extracted.toLocaleString();
     if (el.countUnique) el.countUnique.textContent = unique.toLocaleString();
     if (el.countEvents) el.countEvents.textContent = events.toLocaleString();
+
+    if (percent >= 100 && el.progressActions) {
+      el.progressActions.style.display = 'block';
+    } else if (el.progressActions) {
+      el.progressActions.style.display = 'none';
+    }
   }
 
   function hideProgress() {
@@ -468,6 +473,13 @@
       if (!res.success || !res.data) {
         throw new Error(res.message || 'No live chat replay was found or chat is disabled for this stream.');
       }
+
+      if (res.data.messages) {
+        res.data.messages.forEach(m => {
+          m.stream_id = m.stream_id || vid;
+        });
+      }
+      state.lastExtractionType = 'chats';
 
       setProgress(100, `Complete!`, `Processed ${res.data.total_messages} messages in ${res.elapsed_sec || 0.5}s`, res.data.total_messages, res.data.unique_chatters, res.data.events_count);
 
@@ -586,6 +598,7 @@
           if (res.success && res.data && res.data.messages) {
             res.data.messages.forEach(m => {
               m.idx = allMessages.length + 1;
+              m.stream_id = m.stream_id || vid;
               allMessages.push(m);
               uniqueChatters.add(m.author);
               userMsgCounts[m.author] = (userMsgCounts[m.author] || 0) + 1;
@@ -649,6 +662,14 @@
         throw new Error(res.error || 'Failed to download comments.');
       }
 
+      if (res.comments) {
+        res.comments.forEach(c => {
+          c.stream_id = c.stream_id || vid;
+        });
+      }
+      state.commentsData = res;
+      state.lastExtractionType = 'comments';
+
       setProgress(100, 'Complete!', `Downloaded ${res.total_comments} comments in ${res.elapsed_sec || 1.5}s`, res.total_comments, res.unique_commenters, 0);
 
       setTimeout(() => {
@@ -665,70 +686,28 @@
   }
 
   // ─────────────────────────────────────────────
-  // 5. DIRECT CHAT VIEWER & MULTI-FILTER INSPECTOR (Tab E)
+  // 5. INTERACTIVE VIEW RESULTS MODAL CONTROLLER
   // ─────────────────────────────────────────────
   function initChatViewer() {
-    // Open File button
-    if (el.viewerSelectFileBtn && el.viewerFileInput) {
-      el.viewerSelectFileBtn.addEventListener('click', () => el.viewerFileInput.click());
-      el.viewerFileInput.addEventListener('change', (e) => {
+    initInspectionModal();
+  }
+
+  function initInspectionModal() {
+    // Open Local .json File button inside modal
+    if (el.vmLoadLocalFileBtn && el.vmFileInput) {
+      el.vmLoadLocalFileBtn.addEventListener('click', () => el.vmFileInput.click());
+      el.vmFileInput.addEventListener('change', (e) => {
         if (e.target.files && e.target.files.length > 0) {
           handleUploadedFileForViewer(e.target.files[0]);
         }
       });
     }
 
-    // Drag and drop zone
-    if (el.viewerDropTarget) {
-      el.viewerDropTarget.addEventListener('click', () => el.viewerFileInput.click());
-      el.viewerDropTarget.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        el.viewerDropTarget.classList.add('dragover');
-      });
-      el.viewerDropTarget.addEventListener('dragleave', () => {
-        el.viewerDropTarget.classList.remove('dragover');
-      });
-      el.viewerDropTarget.addEventListener('drop', (e) => {
-        e.preventDefault();
-        el.viewerDropTarget.classList.remove('dragover');
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-          handleUploadedFileForViewer(e.dataTransfer.files[0]);
-        }
-      });
-    }
-
-    // Load active session button
-    if (el.viewerLoadSessionBtn) {
-      el.viewerLoadSessionBtn.addEventListener('click', () => {
-        if (state.liveChatData) {
-          loadDataIntoViewer(state.liveChatData, state.liveChatData.title || `Stream [${state.liveChatData.stream_id}]`, '🔴 Current Stream Session');
-        } else {
-          alert('No live stream chats have been extracted in this session yet. You can paste a link in Option A or load an exported file.');
-        }
-      });
-    }
-
-    // Load demo sample button
-    if (el.viewerLoadDemoBtn) {
-      el.viewerLoadDemoBtn.addEventListener('click', () => {
-        const demoData = generateSampleLiveChatData();
-        loadDataIntoViewer(demoData, 'Aashi is Live — BGMI Custom Tournament Finals (Demo Stream)', '⭐ Sample Demo Stream');
-      });
-    }
-
-    // Close / Clear view
-    if (el.viewerClearBtn) {
-      el.viewerClearBtn.addEventListener('click', () => {
-        state.viewer.data = null;
-        if (el.viewerWorkspace) el.viewerWorkspace.style.display = 'none';
-      });
-    }
-
-    // Quick Event filter pills
-    if (el.vQuickFilters) {
-      el.vQuickFilters.querySelectorAll('.v-quick-pill').forEach(pill => {
+    // Quick Event filter pills inside Modal
+    if (el.vmQuickBar) {
+      el.vmQuickBar.querySelectorAll('.vm-pill').forEach(pill => {
         pill.addEventListener('click', () => {
-          el.vQuickFilters.querySelectorAll('.v-quick-pill').forEach(p => p.classList.remove('active'));
+          el.vmQuickBar.querySelectorAll('.vm-pill').forEach(p => p.classList.remove('active'));
           pill.classList.add('active');
           state.viewer.filters.event = pill.dataset.eventFilter;
           applyViewerFilters();
@@ -736,86 +715,128 @@
       });
     }
 
-    // Advanced Dropdown Filters
-    if (el.vFilterRole) {
-      el.vFilterRole.addEventListener('change', (e) => {
+    // Stream ID Filter Dropdown (Crucial for bulk streams!)
+    if (el.vmFilterStream) {
+      el.vmFilterStream.addEventListener('change', (e) => {
+        state.viewer.filters.streamId = e.target.value;
+        applyViewerFilters();
+      });
+    }
+
+    // User Role Filter
+    if (el.vmFilterRole) {
+      el.vmFilterRole.addEventListener('change', (e) => {
         state.viewer.filters.role = e.target.value;
         applyViewerFilters();
       });
     }
 
-    if (el.vFilterMinAmount) {
-      el.vFilterMinAmount.addEventListener('change', (e) => {
+    // Min Superchat Amount Filter
+    if (el.vmFilterMinAmount) {
+      el.vmFilterMinAmount.addEventListener('change', (e) => {
         state.viewer.filters.minAmount = parseFloat(e.target.value) || 0;
         applyViewerFilters();
       });
     }
 
-    if (el.vFilterFrequency) {
-      el.vFilterFrequency.addEventListener('change', (e) => {
-        state.viewer.filters.frequency = e.target.value;
-        applyViewerFilters();
-      });
-    }
-
-    if (el.vFilterSort) {
-      el.vFilterSort.addEventListener('change', (e) => {
+    // Sort Dropdown
+    if (el.vmFilterSort) {
+      el.vmFilterSort.addEventListener('change', (e) => {
         state.viewer.filters.sort = e.target.value;
         applyViewerFilters();
       });
     }
 
-    // Search query
-    if (el.vSearchInput) {
-      el.vSearchInput.addEventListener('input', (e) => {
+    // Live Search Input
+    if (el.vmSearchInput) {
+      el.vmSearchInput.addEventListener('input', (e) => {
         state.viewer.filters.searchQuery = e.target.value.toLowerCase().trim();
         applyViewerFilters();
       });
     }
 
-    // Time range
-    if (el.vTimeFrom) {
-      el.vTimeFrom.addEventListener('input', (e) => {
-        state.viewer.filters.timeFrom = e.target.value.trim();
-        applyViewerFilters();
-      });
-    }
-    if (el.vTimeTo) {
-      el.vTimeTo.addEventListener('input', (e) => {
-        state.viewer.filters.timeTo = e.target.value.trim();
-        applyViewerFilters();
-      });
+    // Reset Filters Button
+    if (el.vmResetFiltersBtn) {
+      el.vmResetFiltersBtn.addEventListener('click', resetViewerFilters);
     }
 
-    // Reset filters button
-    if (el.vResetFiltersBtn) {
-      el.vResetFiltersBtn.addEventListener('click', resetViewerFilters);
-    }
-
-    // Style toggles (Table vs Feed)
-    if (el.vStyleTableBtn && el.vStyleFeedBtn) {
-      el.vStyleTableBtn.addEventListener('click', () => {
+    // Table vs Feed Toggle
+    if (el.vmToggleTableBtn && el.vmToggleFeedBtn) {
+      el.vmToggleTableBtn.addEventListener('click', () => {
         state.viewer.style = 'table';
-        el.vStyleTableBtn.classList.add('active');
-        el.vStyleFeedBtn.classList.remove('active');
-        if (el.vTableContainer) el.vTableContainer.style.display = 'block';
-        if (el.vFeedContainer) el.vFeedContainer.style.display = 'none';
+        el.vmToggleTableBtn.classList.add('active');
+        el.vmToggleFeedBtn.classList.remove('active');
+        if (el.vmTableContainer) el.vmTableContainer.style.display = 'block';
+        if (el.vmFeedContainer) el.vmFeedContainer.style.display = 'none';
       });
 
-      el.vStyleFeedBtn.addEventListener('click', () => {
+      el.vmToggleFeedBtn.addEventListener('click', () => {
         state.viewer.style = 'feed';
-        el.vStyleFeedBtn.classList.add('active');
-        el.vStyleTableBtn.classList.remove('active');
-        if (el.vTableContainer) el.vTableContainer.style.display = 'none';
-        if (el.vFeedContainer) el.vFeedContainer.style.display = 'block';
+        el.vmToggleFeedBtn.classList.add('active');
+        el.vmToggleTableBtn.classList.remove('active');
+        if (el.vmTableContainer) el.vmTableContainer.style.display = 'none';
+        if (el.vmFeedContainer) el.vmFeedContainer.style.display = 'block';
       });
     }
 
-    // Filtered Exports
-    if (el.vExportExcelBtn) el.vExportExcelBtn.addEventListener('click', exportViewerFilteredExcel);
-    if (el.vExportTxtBtn) el.vExportTxtBtn.addEventListener('click', exportViewerFilteredTxt);
-    if (el.vExportCsvBtn) el.vExportCsvBtn.addEventListener('click', exportViewerFilteredCsv);
-    if (el.vExportJsonBtn) el.vExportJsonBtn.addEventListener('click', exportViewerFilteredJson);
+    // Modal Export Suite
+    if (el.vmExportExcelBtn) el.vmExportExcelBtn.addEventListener('click', exportViewerFilteredExcel);
+    if (el.vmExportTxtBtn) el.vmExportTxtBtn.addEventListener('click', exportViewerFilteredTxt);
+    if (el.vmExportCsvBtn) el.vmExportCsvBtn.addEventListener('click', exportViewerFilteredCsv);
+    if (el.vmCopyVisibleBtn) el.vmCopyVisibleBtn.addEventListener('click', copyVisibleRowsToClipboard);
+  }
+
+  function openViewResultsModal(type = 'chats') {
+    state.viewer.sourceType = type;
+
+    if (type === 'chats') {
+      if (!state.liveChatData || !state.liveChatData.messages || state.liveChatData.messages.length === 0) {
+        alert('No live chats currently available to view. Please fetch or extract a stream first.');
+        return;
+      }
+      loadDataIntoViewer(state.liveChatData, state.liveChatData.title || `Live Stream [${state.liveChatData.stream_id || 'Batch'}]`, '🔴 Live Stream Replay');
+    } else if (type === 'comments') {
+      if (!state.commentsData || !state.commentsData.comments || state.commentsData.comments.length === 0) {
+        alert('No comments currently available to view. Please download comments from a video first.');
+        return;
+      }
+      const adapted = adaptCommentsForViewer(state.commentsData);
+      loadDataIntoViewer(adapted, state.commentsData.video_title || `Video [${state.commentsData.video_id}]`, '💬 Video Comments');
+    }
+
+    if (el.viewResultsModal) {
+      el.viewResultsModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeViewResultsModal() {
+    if (el.viewResultsModal) {
+      el.viewResultsModal.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  }
+
+  function adaptCommentsForViewer(commData) {
+    const msgs = (commData.comments || []).map((c, idx) => ({
+      idx: idx + 1,
+      stream_id: c.stream_id || commData.video_id || '',
+      time: c.published_time || 'Uploaded',
+      author: c.author || 'Anonymous',
+      event_type: 'COMMENT',
+      message: c.text || '',
+      badges: c.badges || [],
+      likes: c.likes || 0,
+      reply_count: c.reply_count || 0,
+      details: c.likes ? `${c.likes} Likes` : ''
+    }));
+
+    return {
+      stream_id: commData.video_id || 'comments',
+      title: commData.video_title || 'Video Comments Feed',
+      total_messages: msgs.length,
+      messages: msgs
+    };
   }
 
   function handleUploadedFileForViewer(file) {
@@ -830,7 +851,6 @@
         const text = e.target.result;
         let parsed = null;
 
-        // Try parsing as standard JSON first
         try {
           const directJson = JSON.parse(text);
           if (directJson.messages && Array.isArray(directJson.messages)) {
@@ -842,9 +862,7 @@
               messages: directJson
             };
           }
-        } catch (err) {
-          // If direct JSON parse fails, it's newline-delimited JSON Lines (yt-dlp .live_chat.json)
-        }
+        } catch (err) {}
 
         if (!parsed) {
           const lines = text.split('\n');
@@ -857,6 +875,10 @@
         }
 
         loadDataIntoViewer(parsed, file.name, '📂 Exported JSON File');
+        if (el.viewResultsModal) {
+          el.viewResultsModal.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+        }
 
       } catch (err) {
         alert(`Failed to parse file: ${err.message}`);
@@ -868,67 +890,69 @@
   function loadDataIntoViewer(chatData, title, sourceBadge) {
     state.viewer.data = chatData;
 
-    // Precalculate author message counts
-    const counts = {};
-    chatData.messages.forEach(m => {
-      counts[m.author] = (counts[m.author] || 0) + 1;
-    });
-    state.viewer.authorCounts = counts;
-
     // Header info
-    if (el.viewerWorkspace) el.viewerWorkspace.style.display = 'block';
-    if (el.vshStreamType) el.vshStreamType.textContent = sourceBadge || '🔴 Live Chat';
-    if (el.vshStreamTitle) el.vshStreamTitle.textContent = title || `Stream [${chatData.stream_id || 'File'}]`;
+    if (el.vmTypeBadge) el.vmTypeBadge.textContent = sourceBadge || '🔴 Live Stream Chats';
+    if (el.vmTitle) el.vmTitle.textContent = title || `Stream Results [${chatData.stream_id || 'Combined'}]`;
+
+    // Populate Stream ID filter dropdown
+    const uniqueStreams = Array.from(new Set((chatData.messages || []).map(m => m.stream_id).filter(Boolean)));
+    if (el.vmFilterStream) {
+      if (uniqueStreams.length > 1) {
+        if (el.vmStreamFilterGroup) el.vmStreamFilterGroup.style.display = 'flex';
+        el.vmFilterStream.innerHTML = `<option value="all">All Streams (${uniqueStreams.length})</option>` +
+          uniqueStreams.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+      } else if (uniqueStreams.length === 1) {
+        if (el.vmStreamFilterGroup) el.vmStreamFilterGroup.style.display = 'flex';
+        el.vmFilterStream.innerHTML = `<option value="all">Stream: ${escapeHtml(uniqueStreams[0])}</option>`;
+      } else {
+        if (el.vmStreamFilterGroup) el.vmStreamFilterGroup.style.display = 'none';
+      }
+    }
+
+    // Role / Min Amount visibility based on whether it is comments or chats
+    const isComments = state.viewer.sourceType === 'comments';
+    if (el.vmRoleFilterGroup) el.vmRoleFilterGroup.style.display = isComments ? 'none' : 'flex';
+    if (el.vmMinAmountFilterGroup) el.vmMinAmountFilterGroup.style.display = isComments ? 'none' : 'flex';
 
     // Counts for quick pills
     let scCount = 0, memCount = 0, jewelsCount = 0, normalCount = 0;
-    chatData.messages.forEach(m => {
+    (chatData.messages || []).forEach(m => {
       if (m.event_type === 'SUPERCHAT' || m.event_type === 'STICKER') scCount++;
       else if (m.event_type === 'MEMBERSHIP' || m.event_type === 'GIFT') memCount++;
       else if (m.event_type === 'JEWELS') jewelsCount++;
       else normalCount++;
     });
 
-    if (el.vpillCountAll) el.vpillCountAll.textContent = chatData.messages.length.toLocaleString();
-    if (el.vpillCountSc) el.vpillCountSc.textContent = scCount.toLocaleString();
-    if (el.vpillCountMem) el.vpillCountMem.textContent = memCount.toLocaleString();
-    if (el.vpillCountJewels) el.vpillCountJewels.textContent = jewelsCount.toLocaleString();
-    if (el.vpillCountNormal) el.vpillCountNormal.textContent = normalCount.toLocaleString();
+    if (el.vmPillAll) el.vmPillAll.textContent = (chatData.messages || []).length.toLocaleString();
+    if (el.vmPillSc) el.vmPillSc.textContent = scCount.toLocaleString();
+    if (el.vmPillMem) el.vmPillMem.textContent = memCount.toLocaleString();
+    if (el.vmPillJewels) el.vmPillJewels.textContent = jewelsCount.toLocaleString();
+    if (el.vmPillNormal) el.vmPillNormal.textContent = normalCount.toLocaleString();
 
     resetViewerFilters();
-    applyViewerFilters();
-
-    // Scroll viewer workspace into view smoothly
-    if (el.viewerWorkspace) {
-      el.viewerWorkspace.scrollIntoView({ behavior: 'smooth' });
-    }
   }
 
   function resetViewerFilters() {
     state.viewer.filters = {
+      streamId: 'all',
       event: 'all',
       role: 'all',
       minAmount: 0,
-      frequency: 'all',
       sort: 'time-asc',
-      searchQuery: '',
-      timeFrom: '',
-      timeTo: ''
+      searchQuery: ''
     };
 
-    if (el.vQuickFilters) {
-      el.vQuickFilters.querySelectorAll('.v-quick-pill').forEach(p => {
+    if (el.vmQuickBar) {
+      el.vmQuickBar.querySelectorAll('.vm-pill').forEach(p => {
         p.classList.toggle('active', p.dataset.eventFilter === 'all');
       });
     }
 
-    if (el.vFilterRole) el.vFilterRole.value = 'all';
-    if (el.vFilterMinAmount) el.vFilterMinAmount.value = '0';
-    if (el.vFilterFrequency) el.vFilterFrequency.value = 'all';
-    if (el.vFilterSort) el.vFilterSort.value = 'time-asc';
-    if (el.vSearchInput) el.vSearchInput.value = '';
-    if (el.vTimeFrom) el.vTimeFrom.value = '';
-    if (el.vTimeTo) el.vTimeTo.value = '';
+    if (el.vmFilterStream) el.vmFilterStream.value = 'all';
+    if (el.vmFilterRole) el.vmFilterRole.value = 'all';
+    if (el.vmFilterMinAmount) el.vmFilterMinAmount.value = '0';
+    if (el.vmFilterSort) el.vmFilterSort.value = 'time-asc';
+    if (el.vmSearchInput) el.vmSearchInput.value = '';
 
     applyViewerFilters();
   }
@@ -937,19 +961,18 @@
     if (!state.viewer.data || !state.viewer.data.messages) return;
     const all = state.viewer.data.messages;
     const f = state.viewer.filters;
-    const counts = state.viewer.authorCounts;
-
-    const fromSecs = parseTimestampToSeconds(f.timeFrom);
-    const toSecs = parseTimestampToSeconds(f.timeTo);
 
     let filtered = all.filter(m => {
-      // 1. Event Type filter
+      // 1. Stream ID filter
+      if (f.streamId && f.streamId !== 'all' && m.stream_id && m.stream_id !== f.streamId) return false;
+
+      // 2. Event Type filter
       if (f.event === 'SUPERCHAT' && m.event_type !== 'SUPERCHAT' && m.event_type !== 'STICKER') return false;
       if (f.event === 'MEMBERSHIP' && m.event_type !== 'MEMBERSHIP' && m.event_type !== 'GIFT') return false;
       if (f.event === 'JEWELS' && m.event_type !== 'JEWELS') return false;
-      if (f.event === 'CHAT' && m.event_type !== 'CHAT') return false;
+      if (f.event === 'CHAT' && m.event_type !== 'CHAT' && m.event_type !== 'COMMENT') return false;
 
-      // 2. Role / Badge filter
+      // 3. Role / Badge filter
       if (f.role !== 'all') {
         const badges = m.badges || [];
         if (f.role === 'OWNER' && !badges.includes('OWNER')) return false;
@@ -959,44 +982,27 @@
         if (f.role === 'REGULAR' && badges.length > 0) return false;
       }
 
-      // 3. Min Superchat Amount filter
+      // 4. Min Superchat Amount filter
       if (f.minAmount > 0) {
         if (m.event_type !== 'SUPERCHAT' && m.event_type !== 'STICKER') return false;
         const amt = extractNumericAmount(m.amount || m.details || m.badge_label);
         if (amt < f.minAmount) return false;
       }
 
-      // 4. Chatter Activity / Frequency filter
-      if (f.frequency !== 'all') {
-        const userCount = counts[m.author] || 1;
-        if (f.frequency === '1' && userCount !== 1) return false;
-        if (f.frequency === '3plus' && userCount < 3) return false;
-        if (f.frequency === '10plus' && userCount < 10) return false;
-      }
-
-      // 5. Time Range filter
-      if (fromSecs !== null || toSecs !== null) {
-        const msgSecs = parseTimestampToSeconds(m.time);
-        if (msgSecs !== null) {
-          if (fromSecs !== null && msgSecs < fromSecs) return false;
-          if (toSecs !== null && msgSecs > toSecs) return false;
-        }
-      }
-
-      // 6. Search Query
+      // 5. Search Query
       if (f.searchQuery) {
         const q = f.searchQuery;
         const inAuthor = (m.author || '').toLowerCase().includes(q);
         const inMsg = (m.message || '').toLowerCase().includes(q);
+        const inStream = (m.stream_id || '').toLowerCase().includes(q);
         const inDetails = (m.details || '').toLowerCase().includes(q);
-        const inBadge = (m.badge_label || '').toLowerCase().includes(q);
-        if (!inAuthor && !inMsg && !inDetails && !inBadge) return false;
+        if (!inAuthor && !inMsg && !inStream && !inDetails) return false;
       }
 
       return true;
     });
 
-    // 7. Sorting
+    // 6. Sorting
     if (f.sort === 'time-asc') {
       filtered.sort((a, b) => a.idx - b.idx);
     } else if (f.sort === 'time-desc') {
@@ -1006,17 +1012,18 @@
     } else if (f.sort === 'author-asc') {
       filtered.sort((a, b) => (a.author || '').localeCompare(b.author || ''));
     } else if (f.sort === 'events-first') {
-      const isEv = (x) => x.event_type !== 'CHAT' ? 1 : 0;
+      const isEv = (x) => x.event_type !== 'CHAT' && x.event_type !== 'COMMENT' ? 1 : 0;
       filtered.sort((a, b) => isEv(b) - isEv(a) || a.idx - b.idx);
-    } else if (f.sort === 'freq-desc') {
-      filtered.sort((a, b) => (counts[b.author] || 0) - (counts[a.author] || 0) || a.idx - b.idx);
     }
 
     state.viewer.filteredMessages = filtered;
 
-    // Update Counter
-    if (el.vshCounterDisplay) {
-      el.vshCounterDisplay.textContent = `Showing ${filtered.length.toLocaleString()} / ${all.length.toLocaleString()} Messages`;
+    // Update Counter & Footer
+    if (el.vmCounter) {
+      el.vmCounter.textContent = `${filtered.length.toLocaleString()} Messages`;
+    }
+    if (el.vmFooterStatus) {
+      el.vmFooterStatus.textContent = `Showing ${filtered.length.toLocaleString()} of ${all.length.toLocaleString()} messages matching filters`;
     }
 
     renderViewerTable(filtered);
@@ -1024,13 +1031,13 @@
   }
 
   function renderViewerTable(messages) {
-    if (!el.vTableBody) return;
+    if (!el.vmTableBody) return;
 
     if (messages.length === 0) {
-      el.vTableBody.innerHTML = `
+      el.vmTableBody.innerHTML = `
         <tr>
           <td colspan="6" style="text-align: center; padding: 45px 20px; color: var(--text-muted);">
-            No chat messages found matching your active filter combination. Click "Reset Filters" above to clear.
+            No messages found matching your active filter combination. Click "Reset" above to clear filters.
           </td>
         </tr>
       `;
@@ -1038,19 +1045,21 @@
     }
 
     const slice = messages.slice(0, 500);
-    el.vTableBody.innerHTML = slice.map(m => {
+    el.vmTableBody.innerHTML = slice.map(m => {
       let rowClass = '';
-      let eventPill = `<span class="event-badge badge-chat">Chat</span>`;
+      let eventPill = `<span class="event-badge badge-chat">💬 Chat</span>`;
 
       if (m.event_type === 'SUPERCHAT' || m.event_type === 'STICKER') {
         rowClass = 'row-superchat';
-        eventPill = `<span class="event-badge badge-superchat">⭐ ${escapeHtml(m.badge_label || m.details || 'Super Chat')}</span>`;
+        eventPill = `<span class="event-badge badge-superchat">⭐ ${escapeHtml(m.badge_label || m.details || m.amount || 'Super Chat')}</span>`;
       } else if (m.event_type === 'MEMBERSHIP' || m.event_type === 'GIFT') {
         rowClass = 'row-membership';
         eventPill = `<span class="event-badge badge-membership">💎 ${escapeHtml(m.badge_label || m.details || 'Membership')}</span>`;
       } else if (m.event_type === 'JEWELS') {
         rowClass = 'row-jewels';
         eventPill = `<span class="event-badge badge-jewels">🎁 Jewels</span>`;
+      } else if (m.event_type === 'COMMENT') {
+        eventPill = `<span class="event-badge badge-chat">💭 Comment ${m.likes ? `(${m.likes} 👍)` : ''}</span>`;
       }
 
       // Author Badges
@@ -1059,8 +1068,16 @@
         if (m.badges.includes('OWNER')) authorBadgesHtml += `<span class="author-badge-icon badge-owner" title="Streamer / Channel Owner">👑</span>`;
         if (m.badges.includes('MODERATOR')) authorBadgesHtml += `<span class="author-badge-icon badge-mod" title="Chat Moderator">🛡️</span>`;
         if (m.badges.includes('MEMBER')) authorBadgesHtml += `<span class="author-badge-icon badge-member" title="Channel Member">💎</span>`;
-        if (m.badges.includes('VERIFIED')) authorBadgesHtml += `<span class="author-badge-icon badge-verified" title="Verified">✓</span>`;
+        if (m.badges.includes('VERIFIED')) authorBadgesHtml += `<span class="author-badge-icon badge-verified" title="Verified Channel">✓</span>`;
       }
+
+      // Stream ID link badge
+      const streamHtml = m.stream_id ? `
+        <a href="https://www.youtube.com/watch?v=${m.stream_id}" target="_blank" class="stream-id-badge" title="Open YouTube stream ${m.stream_id}">
+          <span>${escapeHtml(m.stream_id)}</span>
+          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        </a>
+      ` : '-';
 
       // Clickable timestamp
       const secs = parseTimestampToSeconds(m.time);
@@ -1074,6 +1091,7 @@
       return `
         <tr class="${rowClass}">
           <td class="cell-num">#${m.idx}</td>
+          <td>${streamHtml}</td>
           <td>${timeHtml}</td>
           <td>
             <div class="author-cell">
@@ -1085,19 +1103,16 @@
           <td class="chat-msg-cell">
             <span class="msg-text">${escapeHtml(m.message || '-')}</span>
           </td>
-          <td>
-            ${m.stream_id ? `<span class="stream-vid-badge">${escapeHtml(m.stream_id)}</span>` : '-'}
-          </td>
         </tr>
       `;
     }).join('');
   }
 
   function renderViewerFeed(messages) {
-    if (!el.vFeedStream) return;
+    if (!el.vmFeedStream) return;
 
     if (messages.length === 0) {
-      el.vFeedStream.innerHTML = `
+      el.vmFeedStream.innerHTML = `
         <div style="text-align: center; padding: 40px; color: var(--text-muted);">
           No chat messages to display.
         </div>
@@ -1106,7 +1121,7 @@
     }
 
     const slice = messages.slice(0, 300);
-    el.vFeedStream.innerHTML = slice.map(m => {
+    el.vmFeedStream.innerHTML = slice.map(m => {
       let badgesHtml = '';
       if (m.badges && m.badges.length > 0) {
         if (m.badges.includes('OWNER')) badgesHtml += `<span title="Streamer">👑</span>`;
@@ -1178,6 +1193,35 @@
         `;
       }
     }).join('');
+  }
+
+  function copyVisibleRowsToClipboard() {
+    const list = state.viewer.filteredMessages || [];
+    if (list.length === 0) {
+      alert('No rows currently visible to copy.');
+      return;
+    }
+
+    const header = ['#', 'Stream ID', 'Time', 'Author', 'Event Type', 'Message Content'].join('\t');
+    const rows = list.map(m => [
+      m.idx,
+      m.stream_id || '-',
+      m.time || '-',
+      m.author || '-',
+      m.event_type || '-',
+      (m.message || '').replace(/[\r\n\t]+/g, ' ')
+    ].join('\t'));
+
+    const text = [header, ...rows].join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = el.vmCopyVisibleBtn.innerHTML;
+      el.vmCopyVisibleBtn.innerHTML = '<span>✓ Copied to Clipboard!</span>';
+      setTimeout(() => {
+        el.vmCopyVisibleBtn.innerHTML = orig;
+      }, 1800);
+    }).catch(err => {
+      alert(`Could not copy to clipboard: ${err.message}`);
+    });
   }
 
   // ─────────────────────────────────────────────
