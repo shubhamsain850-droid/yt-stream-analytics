@@ -338,6 +338,7 @@
 
     // Results KPI Cards
     resultsHeadingText: document.getElementById('resultsHeadingText'),
+    kpiNetTitle: document.getElementById('kpiNetTitle'),
     kpiNetVal: document.getElementById('kpiNetVal'),
     kpiNetSub: document.getElementById('kpiNetSub'),
     kpiGrossVal: document.getElementById('kpiGrossVal'),
@@ -346,6 +347,10 @@
     kpiRpmSub: document.getElementById('kpiRpmSub'),
     kpiCpmVal: document.getElementById('kpiCpmVal'),
     kpiCpmSub: document.getElementById('kpiCpmSub'),
+    kpiMonetizedTitle: document.getElementById('kpiMonetizedTitle'),
+    kpiMonetizedBadge: document.getElementById('kpiMonetizedBadge'),
+    kpiMonetizedVal: document.getElementById('kpiMonetizedVal'),
+    kpiMonetizedSub: document.getElementById('kpiMonetizedSub'),
 
     // Channel Projections
     channelProjectionsCard: document.getElementById('channelProjectionsCard'),
@@ -599,88 +604,76 @@
     const calc = isChannel ? calculateChannelRevenue() : calculateVideoRevenue();
     state.currentCalc = calc;
 
-    // 1. Header and Subtitles
+    // 1. Header and KPI Cards
     if (isChannel) {
-      el.resultsHeadingText.textContent = 'Projected Channel AdSense Trajectory & Earnings';
-      el.kpiNetSub.textContent = 'Your estimated monthly in-pocket AdSense earnings';
-      el.kpiGrossSub.textContent = 'Estimated monthly gross brand spend across your channel';
-      el.channelProjectionsCard.style.display = 'block';
+      if (el.resultsHeadingText) el.resultsHeadingText.textContent = 'Projected Channel AdSense Earnings';
+      if (el.kpiNetTitle) el.kpiNetTitle.textContent = 'ESTIMATED MONTHLY';
+      if (el.kpiNetVal) el.kpiNetVal.textContent = formatMoney(calc.monthlyNetUsd);
+      if (el.kpiNetSub) el.kpiNetSub.textContent = `Range: ${formatMoney(calc.scenarios.bearNetUsd)} – ${formatMoney(calc.scenarios.bullNetUsd)}`;
 
-      // Monthly KPI Card
-      el.kpiNetVal.textContent = formatMoney(calc.monthlyNetUsd);
-      el.kpiGrossVal.textContent = formatMoney(calc.grossSpendUsd);
-      el.kpiRpmVal.textContent = `${formatMoney(calc.effectiveRpmUsd, 2)} / 1K`;
-      el.kpiCpmVal.textContent = `${formatMoney(calc.grossCpmUsd, 2)} CPM`;
+      if (el.kpiRpmVal) el.kpiRpmVal.textContent = `${formatMoney(calc.effectiveRpmUsd, 2)}`;
+      if (el.kpiRpmSub) el.kpiRpmSub.textContent = 'Average RPM per 1,000 views';
+
+      if (el.kpiCpmVal) el.kpiCpmVal.textContent = `${formatMoney(calc.grossCpmUsd, 2)}`;
+      if (el.kpiCpmSub) el.kpiCpmSub.textContent = 'Ad playback auction rate';
+
+      if (el.kpiMonetizedTitle) el.kpiMonetizedTitle.textContent = 'MONETIZED VIEWS / MO';
+      if (el.kpiMonetizedVal) el.kpiMonetizedVal.textContent = formatViews(calc.monetizedViews);
+      if (el.kpiMonetizedSub) el.kpiMonetizedSub.textContent = `~52% of ${formatViews(calc.monthlyViews)} views with ads`;
 
       // Channel Projections Box
-      el.projMonthlyViewsBadge.textContent = formatViews(calc.monthlyViews);
-      el.projDailyVal.textContent = formatMoney(calc.dailyNetUsd);
-      el.projMonthlyVal.textContent = formatMoney(calc.monthlyNetUsd);
-      el.projYearlyVal.textContent = formatMoney(calc.yearlyNetUsd);
+      if (el.channelProjectionsCard) {
+        el.channelProjectionsCard.style.display = 'block';
+        el.projMonthlyViewsBadge.textContent = formatViews(calc.monthlyViews);
+        el.projDailyVal.textContent = formatMoney(calc.dailyNetUsd);
+        el.projMonthlyVal.textContent = formatMoney(calc.monthlyNetUsd);
+        el.projYearlyVal.textContent = formatMoney(calc.yearlyNetUsd);
 
-      if (calc.lifetimeViews > 0) {
-        el.projLifetimeVal.textContent = formatMoney(calc.lifetimeNetUsd);
-        el.projLifetimeSub.textContent = `From ${formatViews(calc.lifetimeViews)} lifetime views`;
-      } else {
-        el.projLifetimeVal.textContent = formatMoney(calc.yearlyNetUsd * 2.5);
-        el.projLifetimeSub.textContent = `Estimated multi-year projection`;
-      }
-
-    } else {
-      el.resultsHeadingText.textContent = 'Estimated Video AdSense Revenue & Analytics';
-      el.kpiNetSub.textContent = "Your estimated in-pocket earnings after YouTube's cut";
-      el.kpiGrossSub.textContent = 'Total money paid by advertisers to Google';
-      el.channelProjectionsCard.style.display = 'none';
-
-      // Single Video KPI Cards
-      el.kpiNetVal.textContent = formatMoney(calc.netRevenueUsd);
-      el.kpiGrossVal.textContent = formatMoney(calc.grossSpendUsd);
-      el.kpiRpmVal.textContent = `${formatMoney(calc.effectiveRpmUsd, 2)} / 1K`;
-      el.kpiCpmVal.textContent = `${formatMoney(calc.grossCpmUsd, 2)} CPM`;
-    }
-
-    // 2. Scenarios (Low / Base / High)
-    el.scenarioLowVal.textContent = formatMoney(calc.scenarios.bearNetUsd);
-    el.scenarioLowRpm.textContent = `${formatMoney(calc.scenarios.bearRpmUsd, 2)}`;
-
-    el.scenarioBaseVal.textContent = formatMoney(calc.scenarios.baseNetUsd);
-    el.scenarioBaseRpm.textContent = `${formatMoney(calc.scenarios.baseRpmUsd, 2)}`;
-
-    el.scenarioHighVal.textContent = formatMoney(calc.scenarios.bullNetUsd);
-    el.scenarioHighRpm.textContent = `${formatMoney(calc.scenarios.bullRpmUsd, 2)}`;
-
-    // 3. Monetization Fill Rate Breakdown
-    const totalViews = isChannel ? calc.monthlyViews : calc.views;
-    const monViews = calc.monetizedViews;
-    const nonMonViews = Math.max(0, totalViews - monViews);
-    el.monetizedViewsNum.textContent = `${formatViews(monViews)} views`;
-    el.nonMonetizedViewsNum.textContent = `${formatViews(nonMonViews)} views`;
-
-    // 4. Format Leverage / Mid-Roll Boost
-    if (isChannel) {
-      el.leverageBoostVal.textContent = `${calc.longPct}% Long / ${calc.shortsPct}% Shorts`;
-      el.leverageBoostLbl.textContent = 'Channel Views Ratio';
-      el.leverageExplainText.textContent = `Long-form views generate full AdSense RPM (${formatMoney(calc.effectiveRpmUsd * 1.4, 2)}/1K), while Shorts views earn from the Creator Pool (~$0.02 - $0.05/1K).`;
-    } else {
-      if (calc.isShorts) {
-        el.leverageBoostVal.textContent = 'Creator Pool';
-        el.leverageBoostVal.className = 'leverage-val text-muted';
-        el.leverageBoostLbl.textContent = 'Shorts Revenue Model';
-        el.leverageExplainText.textContent = 'YouTube Shorts revenue is distributed from the Creator Pool based on your share of total platform views, rather than per-video auction CPM.';
-      } else {
-        const boostPct = Math.round((calc.formatMult - 1.0) * 100);
-        if (boostPct > 0) {
-          el.leverageBoostVal.textContent = `+${boostPct}%`;
-          el.leverageBoostVal.className = 'leverage-val text-success';
-          el.leverageBoostLbl.textContent = 'Extra Revenue from Mid-Roll Ads';
-          el.leverageExplainText.textContent = 'Videos 8 minutes or longer allow multiple mid-roll ad breaks, dramatically increasing total ad impressions per viewer.';
+        if (calc.lifetimeViews > 0) {
+          el.projLifetimeVal.textContent = formatMoney(calc.lifetimeNetUsd);
+          el.projLifetimeSub.textContent = `From ${formatViews(calc.lifetimeViews)} lifetime views`;
         } else {
-          el.leverageBoostVal.textContent = 'Baseline (1.0x)';
-          el.leverageBoostVal.className = 'leverage-val';
-          el.leverageBoostLbl.textContent = 'Pre & Post-Roll Only';
-          el.leverageExplainText.textContent = 'Videos under 8 minutes are restricted to pre-roll and post-roll ads. Extend your videos past 8 minutes to unlock mid-rolls!';
+          el.projLifetimeVal.textContent = formatMoney(calc.yearlyNetUsd * 2.5);
+          el.projLifetimeSub.textContent = `Estimated multi-year projection`;
         }
       }
+
+    } else {
+      if (el.resultsHeadingText) el.resultsHeadingText.textContent = 'Estimated Video AdSense Earnings';
+      if (el.kpiNetTitle) el.kpiNetTitle.textContent = 'ESTIMATED EARNINGS';
+      if (el.kpiNetVal) el.kpiNetVal.textContent = formatMoney(calc.netRevenueUsd);
+      if (el.kpiNetSub) el.kpiNetSub.textContent = `Range: ${formatMoney(calc.scenarios.bearNetUsd)} – ${formatMoney(calc.scenarios.bullNetUsd)}`;
+
+      if (el.kpiRpmVal) el.kpiRpmVal.textContent = `${formatMoney(calc.effectiveRpmUsd, 2)}`;
+      if (el.kpiRpmSub) el.kpiRpmSub.textContent = 'Revenue per 1,000 video views';
+
+      if (el.kpiCpmVal) el.kpiCpmVal.textContent = `${formatMoney(calc.grossCpmUsd, 2)}`;
+      if (el.kpiCpmSub) el.kpiCpmSub.textContent = 'Ad playback auction rate';
+
+      if (el.kpiMonetizedTitle) el.kpiMonetizedTitle.textContent = 'MONETIZED PLAYBACKS';
+      if (el.kpiMonetizedVal) el.kpiMonetizedVal.textContent = formatViews(calc.monetizedViews);
+      if (el.kpiMonetizedSub) el.kpiMonetizedSub.textContent = `~52% of ${formatViews(calc.views)} views with ads`;
+
+      if (el.channelProjectionsCard) el.channelProjectionsCard.style.display = 'none';
+    }
+
+    // Guard scenarios elements if present in DOM
+    if (el.scenarioLowVal) {
+      el.scenarioLowVal.textContent = formatMoney(calc.scenarios.bearNetUsd);
+      if (el.scenarioLowRpm) el.scenarioLowRpm.textContent = `${formatMoney(calc.scenarios.bearRpmUsd, 2)}`;
+      if (el.scenarioBaseVal) el.scenarioBaseVal.textContent = formatMoney(calc.scenarios.baseNetUsd);
+      if (el.scenarioBaseRpm) el.scenarioBaseRpm.textContent = `${formatMoney(calc.scenarios.baseRpmUsd, 2)}`;
+      if (el.scenarioHighVal) el.scenarioHighVal.textContent = formatMoney(calc.scenarios.bullNetUsd);
+      if (el.scenarioHighRpm) el.scenarioHighRpm.textContent = `${formatMoney(calc.scenarios.bullRpmUsd, 2)}`;
+    }
+
+    // Guard insight elements if present in DOM
+    if (el.monetizedViewsNum) {
+      const totalViews = isChannel ? calc.monthlyViews : calc.views;
+      const monViews = calc.monetizedViews;
+      const nonMonViews = Math.max(0, totalViews - monViews);
+      el.monetizedViewsNum.textContent = `${formatViews(monViews)} views`;
+      if (el.nonMonetizedViewsNum) el.nonMonetizedViewsNum.textContent = `${formatViews(nonMonViews)} views`;
     }
   }
 
@@ -1257,8 +1250,8 @@
    <Row><Cell><Data ss:Type="String">Estimated Daily Creator Earnings</Data></Cell><Cell><Data ss:Type="String">${formatMoney(calc.dailyNetUsd)}</Data></Cell><Cell><Data ss:Type="String">${state.currency}</Data></Cell></Row>
    <Row><Cell><Data ss:Type="String">Effective Channel RPM</Data></Cell><Cell><Data ss:Type="String">${formatMoney(calc.effectiveRpmUsd, 2)}</Data></Cell><Cell><Data ss:Type="String">per 1K views</Data></Cell></Row>
    <Row><Cell><Data ss:Type="String">Gross Advertiser Spend</Data></Cell><Cell><Data ss:Type="String">${formatMoney(calc.grossSpendUsd)}</Data></Cell><Cell><Data ss:Type="String">${state.currency}</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String">Conservative Scenario (Bear)</Data></Cell><Cell><Data ss:Type="String">${formatMoney(calc.scenarios.bearNetUsd)}</Data></Cell><Cell><Data ss:Type="String">${state.currency}/mo</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String">Optimistic Scenario (Peak Q4)</Data></Cell><Cell><Data ss:Type="String">${formatMoney(calc.scenarios.bullNetUsd)}</Data></Cell><Cell><Data ss:Type="String">${state.currency}/mo</Data></Cell></Row>`;
+   <Row><Cell><Data ss:Type="String">Estimated Low Range</Data></Cell><Cell><Data ss:Type="String">${formatMoney(calc.scenarios.bearNetUsd)}</Data></Cell><Cell><Data ss:Type="String">${state.currency}/mo</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Estimated High Range</Data></Cell><Cell><Data ss:Type="String">${formatMoney(calc.scenarios.bullNetUsd)}</Data></Cell><Cell><Data ss:Type="String">${state.currency}/mo</Data></Cell></Row>`;
     } else {
       content += `
    <Row><Cell><Data ss:Type="String">Total Video Views</Data></Cell><Cell><Data ss:Type="Number">${calc.views}</Data></Cell><Cell><Data ss:Type="String">views</Data></Cell></Row>
@@ -1268,8 +1261,8 @@
    <Row><Cell><Data ss:Type="String">Effective CPM</Data></Cell><Cell><Data ss:Type="String">${formatMoney(calc.grossCpmUsd, 2)}</Data></Cell><Cell><Data ss:Type="String">per 1K ad views</Data></Cell></Row>
    <Row><Cell><Data ss:Type="String">Gross Advertiser Spend (100%)</Data></Cell><Cell><Data ss:Type="String">${formatMoney(calc.grossSpendUsd)}</Data></Cell><Cell><Data ss:Type="String">${state.currency}</Data></Cell></Row>
    <Row><Cell><Data ss:Type="String">Monetized Playbacks (~52%)</Data></Cell><Cell><Data ss:Type="Number">${calc.monetizedViews}</Data></Cell><Cell><Data ss:Type="String">impressions</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String">Conservative Scenario (Low)</Data></Cell><Cell><Data ss:Type="String">${formatMoney(calc.scenarios.bearNetUsd)}</Data></Cell><Cell><Data ss:Type="String">${state.currency}</Data></Cell></Row>
-   <Row><Cell><Data ss:Type="String">Optimistic Scenario (Q4 Surge)</Data></Cell><Cell><Data ss:Type="String">${formatMoney(calc.scenarios.bullNetUsd)}</Data></Cell><Cell><Data ss:Type="String">${state.currency}</Data></Cell></Row>`;
+   <Row><Cell><Data ss:Type="String">Estimated Low Range</Data></Cell><Cell><Data ss:Type="String">${formatMoney(calc.scenarios.bearNetUsd)}</Data></Cell><Cell><Data ss:Type="String">${state.currency}</Data></Cell></Row>
+   <Row><Cell><Data ss:Type="String">Estimated High Range</Data></Cell><Cell><Data ss:Type="String">${formatMoney(calc.scenarios.bullNetUsd)}</Data></Cell><Cell><Data ss:Type="String">${state.currency}</Data></Cell></Row>`;
     }
 
     content += `
@@ -1311,10 +1304,10 @@
       txt += `  - Projected Yearly Revenue: ${formatMoney(calc.yearlyNetUsd)}\n`;
       txt += `  - Effective Channel RPM: ${formatMoney(calc.effectiveRpmUsd, 2)} per 1K views\n`;
       txt += `  - Gross Advertiser Spend: ${formatMoney(calc.grossSpendUsd)}\n\n`;
-      txt += `SCENARIOS (LOW / BASE / HIGH):\n`;
-      txt += `  - Conservative (Bear): ${formatMoney(calc.scenarios.bearNetUsd)} / mo\n`;
-      txt += `  - Realistic (Base):    ${formatMoney(calc.scenarios.baseNetUsd)} / mo\n`;
-      txt += `  - Optimistic (Peak):   ${formatMoney(calc.scenarios.bullNetUsd)} / mo\n`;
+      txt += `ESTIMATED RANGE:\n`;
+      txt += `  - Estimated Low: ${formatMoney(calc.scenarios.bearNetUsd)} / mo\n`;
+      txt += `  - Estimated Base:    ${formatMoney(calc.scenarios.baseNetUsd)} / mo\n`;
+      txt += `  - Estimated High:   ${formatMoney(calc.scenarios.bullNetUsd)} / mo\n`;
     } else {
       txt += `VIDEO METRICS:\n`;
       txt += `  - Total Video Views: ${formatViews(calc.views)}\n`;
@@ -1324,10 +1317,10 @@
       txt += `  - Effective RPM:                   ${formatMoney(calc.effectiveRpmUsd, 2)} per 1K views\n`;
       txt += `  - Effective Gross CPM:             ${formatMoney(calc.grossCpmUsd, 2)} per 1K ad views\n`;
       txt += `  - Monetized Playbacks (~52%):      ${formatViews(calc.monetizedViews)}\n\n`;
-      txt += `SCENARIOS:\n`;
-      txt += `  - Conservative (Bear): ${formatMoney(calc.scenarios.bearNetUsd)}\n`;
-      txt += `  - Realistic (Base):    ${formatMoney(calc.scenarios.baseNetUsd)}\n`;
-      txt += `  - Optimistic (Bull):   ${formatMoney(calc.scenarios.bullNetUsd)}\n`;
+      txt += `ESTIMATED RANGE:\n`;
+      txt += `  - Estimated Low: ${formatMoney(calc.scenarios.bearNetUsd)}\n`;
+      txt += `  - Estimated Base:    ${formatMoney(calc.scenarios.baseNetUsd)}\n`;
+      txt += `  - Estimated High:   ${formatMoney(calc.scenarios.bullNetUsd)}\n`;
     }
 
     txt += `\n========================================================\n`;
@@ -1353,19 +1346,18 @@
     if (isChannel) {
       md = `📊 **YouTube Channel AdSense Projection** (${calc.nicheName})\n` +
            `• **Monthly Views:** ${formatViews(calc.monthlyViews)} (${calc.shortsPct}% Shorts / ${calc.longPct}% Long-form)\n` +
-           `• **Estimated Monthly Net Take:** ${formatMoney(calc.monthlyNetUsd)}\n` +
+           `• **Estimated Monthly Net:** ${formatMoney(calc.monthlyNetUsd)}\n` +
            `• **Projected Yearly Net:** ${formatMoney(calc.yearlyNetUsd)}\n` +
            `• **Effective Channel RPM:** ${formatMoney(calc.effectiveRpmUsd, 2)} / 1K views\n` +
-           `• **Gross Brand Spend:** ${formatMoney(calc.grossSpendUsd)}\n` +
-           `• **Scenarios:** Low ${formatMoney(calc.scenarios.bearNetUsd)} | Base ${formatMoney(calc.scenarios.baseNetUsd)} | Peak Q4 ${formatMoney(calc.scenarios.bullNetUsd)}`;
+           `• **Estimated Range:** ${formatMoney(calc.scenarios.bearNetUsd)} – ${formatMoney(calc.scenarios.bullNetUsd)} / mo`;
     } else {
       md = `📹 **YouTube Video AdSense Revenue Estimate**\n` +
            `• **Views:** ${formatViews(calc.views)} | **Niche:** ${calc.nicheName}\n` +
-           `• **Estimated Net Creator Take (55%):** ${formatMoney(calc.netRevenueUsd)}\n` +
-           `• **Gross Brand Spend:** ${formatMoney(calc.grossSpendUsd)}\n` +
+           `• **Estimated Net Earnings:** ${formatMoney(calc.netRevenueUsd)}\n` +
+           `• **Estimated Range:** ${formatMoney(calc.scenarios.bearNetUsd)} – ${formatMoney(calc.scenarios.bullNetUsd)}\n` +
            `• **Effective RPM:** ${formatMoney(calc.effectiveRpmUsd, 2)} per 1K views\n` +
            `• **Effective CPM:** ${formatMoney(calc.grossCpmUsd, 2)}\n` +
-           `• **Range:** Low ${formatMoney(calc.scenarios.bearNetUsd)} | Realistic ${formatMoney(calc.scenarios.baseNetUsd)} | Bull ${formatMoney(calc.scenarios.bullNetUsd)}`;
+           `• **Monetized Views:** ${formatViews(calc.monetizedViews)} (~52%)`;
     }
 
     navigator.clipboard.writeText(md).then(() => {

@@ -421,9 +421,9 @@
         <div class="results-title-group">
           <h2 class="results-heading">
             <span class="heading-icon">📊</span>
-            <span id="resultsHeadingText">Estimated AdSense Revenue &amp; Analytics</span>
+            <span id="resultsHeadingText">Estimated Video AdSense Earnings</span>
           </h2>
-          <span class="results-subtitle" id="resultsSubtitleText">100% Client-Side Pure AdSense Modeling (YouTube 55% Creator / 45% Google split)</span>
+          <span class="results-subtitle" id="resultsSubtitleText">Estimated earnings based on video views, format, niche, and country</span>
         </div>
         <div class="results-actions">
           <button class="action-btn" id="btnExportExcel" type="button" title="Download Excel projection report">
@@ -441,46 +441,46 @@
         </div>
       </div>
 
-      <!-- 4 Hero KPI Cards -->
+      <!-- 4 Clean Creator KPI Cards -->
       <div class="kpi-grid">
-        <!-- 1. Net Creator Take -->
+        <!-- 1. Estimated Creator Earnings -->
         <div class="kpi-card hero-net-card">
           <div class="kpi-label-row">
-            <span class="kpi-label">ESTIMATED CREATOR TAKE</span>
-            <span class="kpi-badge net-badge">55% Net</span>
+            <span class="kpi-label" id="kpiNetTitle">ESTIMATED EARNINGS</span>
+            <span class="kpi-badge net-badge">Creator Net</span>
           </div>
-          <div class="kpi-main-val text-success" id="kpiNetVal">₹6,750</div>
-          <div class="kpi-sub-text" id="kpiNetSub">Your estimated in-pocket earnings after YouTube's cut</div>
+          <div class="kpi-main-val text-success" id="kpiNetVal">₹6,058</div>
+          <div class="kpi-sub-text" id="kpiNetSub">Range: ₹4,362 – ₹8,360</div>
         </div>
 
-        <!-- 2. Gross Brand Spend -->
+        <!-- 2. Estimated RPM -->
         <div class="kpi-card">
           <div class="kpi-label-row">
-            <span class="kpi-label">GROSS ADVERTISER SPEND</span>
-            <span class="kpi-badge">100% Gross</span>
-          </div>
-          <div class="kpi-main-val" id="kpiGrossVal">₹12,273</div>
-          <div class="kpi-sub-text" id="kpiGrossSub">Total money paid by advertisers to Google</div>
-        </div>
-
-        <!-- 3. Effective RPM -->
-        <div class="kpi-card">
-          <div class="kpi-label-row">
-            <span class="kpi-label">EFFECTIVE RPM</span>
+            <span class="kpi-label">ESTIMATED RPM</span>
             <span class="kpi-badge" id="kpiRpmBadge">Per 1,000 Views</span>
           </div>
-          <div class="kpi-main-val" id="kpiRpmVal">₹67.50</div>
-          <div class="kpi-sub-text" id="kpiRpmSub">Creator net revenue per 1,000 total video views</div>
+          <div class="kpi-main-val" id="kpiRpmVal">₹60.58</div>
+          <div class="kpi-sub-text" id="kpiRpmSub">Revenue per 1,000 video views</div>
         </div>
 
-        <!-- 4. Effective CPM -->
+        <!-- 3. Estimated CPM -->
         <div class="kpi-card">
           <div class="kpi-label-row">
-            <span class="kpi-label">EFFECTIVE CPM</span>
-            <span class="kpi-badge">Per 1,000 Ad Impressions</span>
+            <span class="kpi-label">ESTIMATED CPM</span>
+            <span class="kpi-badge">Per 1,000 Ads</span>
           </div>
-          <div class="kpi-main-val" id="kpiCpmVal">₹236.00</div>
-          <div class="kpi-sub-text" id="kpiCpmSub">Advertiser auction cost per 1K monetized playbacks</div>
+          <div class="kpi-main-val" id="kpiCpmVal">₹211.81</div>
+          <div class="kpi-sub-text" id="kpiCpmSub">Ad playback auction rate</div>
+        </div>
+
+        <!-- 4. Monetized Views -->
+        <div class="kpi-card">
+          <div class="kpi-label-row">
+            <span class="kpi-label" id="kpiMonetizedTitle">MONETIZED PLAYBACKS</span>
+            <span class="kpi-badge" id="kpiMonetizedBadge">~52% Fill</span>
+          </div>
+          <div class="kpi-main-val" id="kpiMonetizedVal">52,000</div>
+          <div class="kpi-sub-text" id="kpiMonetizedSub">Views that showed ads (~52%)</div>
         </div>
       </div>
 
@@ -510,91 +510,6 @@
             <span class="proj-label">ESTIMATED LIFETIME REVENUE</span>
             <span class="proj-val text-gold" id="projLifetimeVal">--</span>
             <span class="proj-sub" id="projLifetimeSub">From total channel views</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Compact Comparative Scenarios Bar (Lightweight, clean, 1 row!) -->
-      <div class="scenarios-compact-card">
-        <div class="scenarios-compact-header">
-          <span class="scenarios-compact-title">🎯 Revenue Scenario Ranges</span>
-          <span class="scenarios-compact-sub">Conservative Bear vs Industry Average vs Peak Q4 Surge</span>
-        </div>
-        <div class="scenarios-compact-grid">
-          <div class="sc-item bear">
-            <div class="sc-item-header">
-              <span class="sc-label">🐻 Conservative (Bear)</span>
-              <span class="sc-tag">~38% Fill</span>
-            </div>
-            <div class="sc-val text-muted" id="scenarioLowVal">₹4,362</div>
-            <div class="sc-sub">RPM: <strong id="scenarioLowRpm">₹43.62</strong></div>
-          </div>
-
-          <div class="sc-item base active">
-            <div class="sc-item-header">
-              <span class="sc-label">⚖️ Realistic (Expected)</span>
-              <span class="sc-tag best-tag">~52% Fill</span>
-            </div>
-            <div class="sc-val text-success" id="scenarioBaseVal">₹6,058</div>
-            <div class="sc-sub">RPM: <strong id="scenarioBaseRpm">₹60.58</strong></div>
-          </div>
-
-          <div class="sc-item bull">
-            <div class="sc-item-header">
-              <span class="sc-label">🚀 Optimistic (Peak Q4)</span>
-              <span class="sc-tag">~65% Fill</span>
-            </div>
-            <div class="sc-val text-gold" id="scenarioHighVal">₹8,360</div>
-            <div class="sc-sub">RPM: <strong id="scenarioHighRpm">₹83.60</strong></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Compact Breakdown & Insights -->
-      <div class="insights-grid" style="margin-top: 16px;">
-        <div class="insight-card">
-          <h4 class="insight-title">
-            <span class="insight-icon">🔍</span>
-            <span>View Monetization Breakdown</span>
-          </h4>
-          <div class="monetization-bars">
-            <div class="m-bar-row">
-              <div class="m-bar-header">
-                <span>Monetized Ad Playbacks (~52%)</span>
-                <span id="monetizedViewsNum">52,000 views</span>
-              </div>
-              <div class="m-progress-bar">
-                <div class="m-fill green" style="width: 52%;"></div>
-              </div>
-            </div>
-            <div class="m-bar-row">
-              <div class="m-bar-header">
-                <span>Non-Monetized Views (~48%)</span>
-                <span id="nonMonetizedViewsNum">48,000 views</span>
-              </div>
-              <div class="m-progress-bar">
-                <div class="m-fill red" style="width: 48%;"></div>
-              </div>
-            </div>
-          </div>
-          <p class="insight-note">
-            Non-monetized views include ad-blockers, short retention (&lt;5s view before skipping), unmonetized regions, and Premium pool share.
-          </p>
-        </div>
-
-        <div class="insight-card">
-          <h4 class="insight-title">
-            <span class="insight-icon">💡</span>
-            <span>Format &amp; Mid-Roll Leverage</span>
-          </h4>
-          <div class="leverage-content">
-            <div class="leverage-metric">
-              <span class="leverage-val text-success" id="leverageBoostVal">+55%</span>
-              <span class="leverage-lbl" id="leverageBoostLbl">Extra Revenue vs Under-8-Minute Videos</span>
-            </div>
-            <p class="insight-note" id="leverageExplainText">
-              YouTube videos 8 minutes or longer allow manual and automatic mid-roll placements. Creators typically earn 1.5x to 2.5x more per view than sub-8m videos.
-            </p>
           </div>
         </div>
       </div>
