@@ -20,7 +20,9 @@ from youtube_engine import (
     get_channel_streams,
     get_cookie_arg,
     fetch_innertube_stream_data,
-    fetch_video_comments
+    fetch_video_comments,
+    get_video_metadata,
+    get_channel_metadata
 )
 
 def anti_cache_headers(response: Response):
@@ -49,6 +51,12 @@ class ChannelStreamsRequest(BaseModel):
     from_date: Optional[str] = None
     to_date: Optional[str] = None
     max_results: Optional[int] = 50
+
+class VideoMetadataRequest(BaseModel):
+    url: str
+
+class ChannelMetadataRequest(BaseModel):
+    channel: str
 
 # ─────────────────────────────────────────────
 # ENDPOINTS
@@ -268,3 +276,36 @@ async def analyze_uploaded_chat_json_endpoint(file: UploadFile = File(...)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to parse uploaded JSON file: {str(e)}")
+
+
+@router.post("/video-metadata")
+def fetch_video_metadata_endpoint(req: VideoMetadataRequest):
+    """
+    Extracts video duration, view count, format classification (Shorts vs Long-form),
+    channel details, and auto-detects content niche for AdSense revenue calculation.
+    """
+    url = req.url.strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="YouTube video URL or Video ID is required.")
+    
+    meta = get_video_metadata(url)
+    if not meta.get("success"):
+        raise HTTPException(status_code=400, detail=meta.get("error", "Failed to fetch video metadata"))
+    return meta
+
+
+@router.post("/channel-metadata")
+def fetch_channel_metadata_endpoint(req: ChannelMetadataRequest):
+    """
+    Extracts channel subscribers, total lifetime views, total uploads, joined date,
+    avatar, and auto-detects primary channel niche for AdSense revenue calculation.
+    """
+    channel = req.channel.strip()
+    if not channel:
+        raise HTTPException(status_code=400, detail="YouTube channel URL or @handle is required.")
+    
+    meta = get_channel_metadata(channel)
+    if not meta.get("success"):
+        raise HTTPException(status_code=400, detail=meta.get("error", "Failed to fetch channel metadata"))
+    return meta
+

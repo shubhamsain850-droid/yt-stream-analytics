@@ -1113,3 +1113,339 @@ def fetch_video_comments(video_id: str, max_comments: int = 300) -> dict:
         print(f"[Comments Error] {e}")
         return {"success": False, "error": str(e), "video_id": video_id}
 
+
+# ─────────────────────────────────────────────
+# AD-SENSE & REVENUE METADATA EXTRACTORS
+# ─────────────────────────────────────────────
+
+def detect_niche(category: str = "", title: str = "", tags: list = None, desc: str = "") -> str:
+    """
+    Intelligently identifies YouTube content niche based on YouTube Category,
+    Title keywords, Tags, and Channel description.
+    """
+    category = (category or "").lower()
+    title = (title or "").lower()
+    desc = (desc or "").lower()
+    tag_str = " ".join([str(t).lower() for t in (tags or [])])
+    text = f"{title} {tag_str} {desc}"
+
+    # 1. Finance / Crypto / Stocks / Trading
+    if any(k in text for k in ["crypto", "bitcoin", "stocks", "trading", "invest", "mutual fund", "sip", "share market", "finance", "options trading", "money management", "forex", "wealth", "passive income"]):
+        return "finance"
+
+    # 2. Business / Marketing / SaaS / E-commerce
+    if any(k in text for k in ["business", "saas", "marketing", "entrepreneur", "dropshipping", "ecommerce", "startups", "sales", "agency", "freelancing", "digital marketing", "agency"]):
+        return "business"
+
+    # 3. Real Estate & Architecture
+    if any(k in text for k in ["real estate", "luxury home", "mansion", "property", "house tour", "apartment tour", "mortgage", "architecture", "interior design"]):
+        return "real_estate"
+
+    # 4. Tech / AI / Programming
+    if any(k in text for k in ["tech", "iphone", "samsung", "gadget", "software", "coding", "python", "javascript", "ai ", "artificial intelligence", "chatgpt", "machine learning", "review", "unboxing", "laptop", "pc build", "developer"]):
+        return "tech"
+
+    # 5. Gaming & Esports
+    if category == "gaming" or any(k in text for k in ["gaming", "gameplay", "bgmi", "gta", "minecraft", "free fire", "roblox", "valorant", "pubg", "fortnite", "streamer", "esports", "fps"]):
+        return "gaming"
+
+    # 6. Education / Tutorials / Science
+    if category == "education" or any(k in text for k in ["tutorial", "course", "learn", "how to", "study", "lecture", "upsc", "history", "science", "documentary", "math", "physics", "lesson"]):
+        return "education"
+
+    # 7. Fitness / Health / Bodybuilding
+    if any(k in text for k in ["workout", "fitness", "gym", "bodybuilding", "diet", "protein", "weight loss", "fat loss", "muscle", "health", "exercise", "calisthenics"]):
+        return "fitness"
+
+    # 8. Cars & Automotive
+    if category in ["autos & vehicles", "vehicles"] or any(k in text for k in ["cars", "supercars", "bmw", "mercedes", "audi", "porsche", "automobile", "bike", "tuning", "drag race", "exhaust", "superbike"]):
+        return "automotive"
+
+    # 9. Travel & Tourism
+    if category == "travel & events" or any(k in text for k in ["travel", "vlog travel", "tourism", "hotel review", "flight", "resort", "explore", "backpacking", "vacation", "trip"]):
+        return "travel"
+
+    # 10. Food & Cooking
+    if any(k in text for k in ["recipe", "cooking", "street food", "restaurant", "food review", "chef", "baking", "cake", "mukbang", "kitchen", "tasty"]):
+        return "food"
+
+    # 11. Beauty & Fashion
+    if any(k in text for k in ["makeup", "skincare", "beauty", "fashion", "outfit", "haul", "cosmetics", "lipstick", "haircare", "styling"]):
+        return "beauty"
+
+    # 12. Music & Audio
+    if category == "music" or any(k in text for k in ["music", "official song", "official audio", "lyrics", "cover song", "music video", "album", "remix"]):
+        return "music"
+
+    # 13. Kids & Animation (COPPA)
+    if any(k in text for k in ["kids", "nursery rhymes", "cocomelon", "cartoon", "toys", "children", "baby song", "toddler"]):
+        return "kids"
+
+    # 14. Vlogs & Daily Life
+    if category == "people & blogs" or any(k in text for k in ["daily vlog", "vlog", "family vlog", "lifestyle", "routine", "my day", "challenge"]):
+        return "vlogs"
+
+    # 15. Default Entertainment
+    return "entertainment"
+
+
+def parse_yt_number(s: str) -> int:
+    """Safely parses string with suffixes like 525M, 112K, 146,262,472,980 into an integer."""
+    if not s:
+        return 0
+    m = re.search(r'([\d,]+(?:\.\d+)?)\s*([KkMmBb])?', str(s).strip())
+    if not m:
+        return 0
+    num_str = m.group(1).replace(',', '')
+    unit = (m.group(2) or '').upper()
+    multiplier = 1
+    if unit == 'B':
+        multiplier = 1_000_000_000
+    elif unit == 'M':
+        multiplier = 1_000_000
+    elif unit == 'K':
+        multiplier = 1_000
+    try:
+        return int(float(num_str) * multiplier)
+    except Exception:
+        return 0
+
+
+def get_video_metadata(video_url_or_id: str) -> dict:
+    """
+    Fetches comprehensive YouTube video metadata required for AdSense Revenue calculation:
+    - View count, duration in seconds, format classification (Shorts vs standard vs mid-roll vs extended)
+    - Channel title, channel follower count
+    - Title, tags, categories, and auto-detected niche.
+    """
+    vid = extract_video_id(video_url_or_id)
+    if not vid:
+        return {"success": False, "error": "Invalid YouTube URL or Video ID"}
+
+    url = f"https://www.youtube.com/watch?v={vid}"
+    cmd = ["yt-dlp"] + get_cookie_arg() + [
+        "--skip-download",
+        "--print", "%(id)s\t%(title)s\t%(duration)s\t%(view_count)s\t%(channel)s\t%(channel_id)s\t%(channel_follower_count)s\t%(categories)s\t%(tags)s\t%(thumbnail)s\t%(upload_date)s",
+        url
+    ]
+
+    try:
+        res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="ignore", timeout=20)
+        lines = [line.strip() for line in res.stdout.strip().splitlines() if line.strip()]
+        if not lines:
+            return {"success": False, "error": "Could not extract video metadata", "video_id": vid}
+
+        last_line = lines[-1]
+        parts = last_line.split("\t")
+        if len(parts) < 5:
+            return {"success": False, "error": "Incomplete video metadata", "video_id": vid}
+
+        v_id = parts[0].strip() or vid
+        title = parts[1].strip() if len(parts) > 1 else "YouTube Video"
+        
+        duration_sec = 0
+        try:
+            duration_sec = int(float(parts[2].strip())) if len(parts) > 2 and parts[2].strip() != "NA" else 0
+        except Exception:
+            duration_sec = 0
+
+        views = 0
+        try:
+            views = int(parts[3].strip()) if len(parts) > 3 and parts[3].strip() != "NA" else 0
+        except Exception:
+            views = 0
+
+        channel = parts[4].strip() if len(parts) > 4 else ""
+        channel_id = parts[5].strip() if len(parts) > 5 else ""
+        
+        subs = 0
+        try:
+            subs = int(parts[6].strip()) if len(parts) > 6 and parts[6].strip() != "NA" else 0
+        except Exception:
+            subs = 0
+
+        category_raw = parts[7].strip() if len(parts) > 7 else ""
+        tags_raw = parts[8].strip() if len(parts) > 8 else ""
+        thumbnail = parts[9].strip() if len(parts) > 9 else f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"
+        upload_date = parts[10].strip() if len(parts) > 10 else ""
+
+        # Format classification
+        # Shorts: duration <= 60s or url contains /shorts/
+        is_short = (duration_sec > 0 and duration_sec <= 60) or ("/shorts/" in video_url_or_id.lower())
+        
+        if is_short:
+            format_type = "shorts"
+            format_label = "YouTube Shorts (<60s)"
+            midroll_eligible = False
+        elif duration_sec < 480: # Under 8 minutes
+            format_type = "under_8m"
+            format_label = "Standard Video (<8 min)"
+            midroll_eligible = False
+        elif duration_sec < 900: # 8 to 15 minutes
+            format_type = "midroll_8_15m"
+            format_label = "Mid-Roll Enabled (8–15 min)"
+            midroll_eligible = True
+        elif duration_sec < 1800: # 15 to 30 minutes
+            format_type = "extended_15_30m"
+            format_label = "Extended Video (15–30 min)"
+            midroll_eligible = True
+        else: # 30 min+ / Stream replay
+            format_type = "stream_30m_plus"
+            format_label = "Long Video / Stream (30+ min)"
+            midroll_eligible = True
+
+        # Parse tags
+        tags_list = []
+        try:
+            if tags_raw.startswith("[") and tags_raw.endswith("]"):
+                tags_list = json.loads(tags_raw.replace("'", '"'))
+        except Exception:
+            tags_list = [t.strip() for t in tags_raw.split(",") if t.strip()]
+
+        detected_niche = detect_niche(category=category_raw, title=title, tags=tags_list)
+
+        # Duration formatted
+        m, s = divmod(duration_sec, 60)
+        h, m = divmod(m, 60)
+        dur_formatted = f"{h}:{m:02d}:{s:02d}" if h > 0 else f"{m}:{s:02d}"
+
+        return {
+            "success": True,
+            "video_id": v_id,
+            "title": title,
+            "duration_sec": duration_sec,
+            "duration_formatted": dur_formatted,
+            "view_count": views,
+            "channel_title": channel,
+            "channel_id": channel_id,
+            "subscriber_count": subs,
+            "is_short": is_short,
+            "format_type": format_type,
+            "format_label": format_label,
+            "midroll_eligible": midroll_eligible,
+            "detected_niche": detected_niche,
+            "thumbnail_url": thumbnail,
+            "upload_date": upload_date,
+            "category": category_raw
+        }
+
+    except Exception as e:
+        print(f"[Video Metadata Error] {e}")
+        return {"success": False, "error": str(e), "video_id": vid}
+
+
+def get_channel_metadata(channel_input: str) -> dict:
+    """
+    Fetches full YouTube channel public stats and metadata:
+    - Channel title, handle, subscriber count, total video count
+    - Lifetime channel view count, joined date, avatar
+    - Auto-detected primary niche
+    """
+    ch = channel_input.strip()
+    if not ch:
+        return {"success": False, "error": "Channel URL or handle is required"}
+
+    if not ch.startswith("http"):
+        if not ch.startswith("@") and not ch.startswith("UC"):
+            ch = "@" + ch
+        url = f"https://www.youtube.com/{ch}"
+    else:
+        url = ch
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9"
+    }
+
+    try:
+        r = requests.get(url, headers=headers, timeout=12)
+        if r.status_code != 200:
+            return {"success": False, "error": f"Channel page returned status {r.status_code}"}
+
+        title = ""
+        handle = ""
+        description = ""
+        subscribers_text = ""
+        videos_text = ""
+        total_views_text = ""
+        joined_date = ""
+        avatar_url = ""
+        country = ""
+
+        m_init = re.search(r'var ytInitialData = ({.*?});</script>', r.text)
+        if m_init:
+            d = json.loads(m_init.group(1))
+            c_meta = d.get("metadata", {}).get("channelMetadataRenderer", {})
+            title = c_meta.get("title", "")
+            description = c_meta.get("description", "")
+            handle = c_meta.get("vanityChannelUrl", "").split("/")[-1] if c_meta.get("vanityChannelUrl") else ""
+            avatar_arr = c_meta.get("avatar", {}).get("thumbnails", [])
+            if avatar_arr:
+                avatar_url = avatar_arr[-1].get("url", "")
+
+            # Header metadata rows
+            vm = d.get("header", {}).get("pageHeaderRenderer", {}).get("content", {}).get("pageHeaderViewModel", {})
+            for row in vm.get("metadata", {}).get("contentMetadataViewModel", {}).get("metadataRows", []):
+                for part in row.get("metadataParts", []):
+                    txt = part.get("text", {}).get("content", "")
+                    if "subscriber" in txt.lower():
+                        subscribers_text = txt
+                    elif "video" in txt.lower():
+                        videos_text = txt
+                    elif txt.startswith("@") and not handle:
+                        handle = txt
+
+        # Fetch about page for total views & joined date
+        about_url = url.rstrip("/") + "/about"
+        try:
+            r2 = requests.get(about_url, headers=headers, timeout=10)
+            if r2.status_code == 200:
+                m2 = re.search(r'var ytInitialData = ({.*?});</script>', r2.text)
+                if m2:
+                    s2 = m2.group(1)
+                    m_views = re.search(r'"viewCountText":\s*"([^"]+views)"', s2)
+                    if m_views:
+                        total_views_text = m_views.group(1)
+                    m_join = re.search(r'"joinedDateText":\s*\{"content":\s*"([^"]+)"', s2)
+                    if m_join:
+                        joined_date = m_join.group(1)
+                    m_cntry = re.search(r'"country":\s*\{"simpleText":\s*"([^"]+)"', s2)
+                    if m_cntry:
+                        country = m_cntry.group(1)
+        except Exception:
+            pass
+
+        subs_num = parse_yt_number(subscribers_text)
+        videos_num = parse_yt_number(videos_text)
+        views_num = parse_yt_number(total_views_text)
+
+        detected_niche = detect_niche(category="", title=title, tags=[], desc=description)
+
+        # Estimate monthly views if views_num is available
+        # Industry rule of thumb: active channels generate roughly 2% - 6% of total lifetime views per month
+        estimated_monthly_views = max(100_000, int(views_num * 0.035)) if views_num > 0 else 1_000_000
+
+        return {
+            "success": True,
+            "title": title or "YouTube Creator",
+            "handle": handle or ch,
+            "channel_url": url,
+            "subscribers_text": subscribers_text or "Public",
+            "subscribers_count": subs_num,
+            "videos_text": videos_text or "Multiple",
+            "videos_count": videos_num,
+            "total_views_text": total_views_text or "Available",
+            "total_views_count": views_num,
+            "estimated_monthly_views": estimated_monthly_views,
+            "joined_date": joined_date,
+            "avatar_url": avatar_url,
+            "country": country,
+            "description": description[:300] if description else "",
+            "detected_niche": detected_niche
+        }
+
+    except Exception as e:
+        print(f"[Channel Metadata Error] {e}")
+        return {"success": False, "error": str(e), "channel": ch}
+
+
