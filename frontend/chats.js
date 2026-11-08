@@ -204,6 +204,36 @@
     }
   }
 
+  function initCurrency() {
+    const saved = localStorage.getItem('streamvault_currency') || 'INR';
+    const currBtns = document.querySelectorAll('.currency-switch .curr-btn[data-curr]');
+    const moreSelect = document.getElementById('moreCurrencySelect');
+
+    function setCurr(c) {
+      localStorage.setItem('streamvault_currency', c);
+      currBtns.forEach(b => {
+        if (b.dataset.curr === c) b.classList.add('active');
+        else b.classList.remove('active');
+      });
+      if (moreSelect) {
+        if (!['INR', 'USD', 'EUR'].includes(c)) moreSelect.value = c;
+        else moreSelect.selectedIndex = 0;
+      }
+    }
+
+    currBtns.forEach(b => {
+      b.addEventListener('click', () => setCurr(b.dataset.curr));
+    });
+
+    if (moreSelect) {
+      moreSelect.addEventListener('change', (e) => {
+        if (e.target.value) setCurr(e.target.value);
+      });
+    }
+
+    setCurr(saved);
+  }
+
   function applyTheme(t) {
     document.documentElement.setAttribute('data-theme', t);
     if (t === 'light') {
@@ -2090,6 +2120,7 @@
   // ─────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     initTheme();
+    initCurrency();
     initModeTabs();
     initChatViewer();
     initFilterAndExports();

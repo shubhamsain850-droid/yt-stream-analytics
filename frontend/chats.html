@@ -48,6 +48,36 @@
           <span class="theme-icon moon-icon" style="display:none;">🌙</span>
           <span class="theme-text" id="themeText">Light</span>
         </button>
+
+        <!-- Dynamic Base Currency Selector -->
+        <div class="currency-switch">
+          <span class="currency-label">View In:</span>
+          <button class="curr-btn active" data-curr="INR">₹ INR</button>
+          <button class="curr-btn" data-curr="USD">$ USD</button>
+          <button class="curr-btn" data-curr="EUR">€ EUR</button>
+          <select class="curr-select" id="moreCurrencySelect" title="Select more currencies">
+            <option value="" disabled selected>More...</option>
+            <option value="GBP">🇬🇧 GBP (£)</option>
+            <option value="CAD">🇨🇦 CAD (C$)</option>
+            <option value="AUD">🇦🇺 AUD (A$)</option>
+            <option value="SGD">🇸🇬 SGD (S$)</option>
+            <option value="AED">🇦🇪 AED (د.إ)</option>
+            <option value="SAR">🇸🇦 SAR (SR)</option>
+            <option value="BRL">🇧🇷 BRL (R$)</option>
+            <option value="JPY">🇯🇵 JPY (¥)</option>
+            <option value="KRW">🇰🇷 KRW (₩)</option>
+            <option value="PHP">🇵🇭 PHP (₱)</option>
+            <option value="PKR">🇵🇰 PKR (Rs)</option>
+            <option value="BDT">🇧🇩 BDT (৳)</option>
+            <option value="RUB">🇷🇺 RUB (₽)</option>
+            <option value="TRY">🇹🇷 TRY (₺)</option>
+            <option value="PLN">🇵🇱 PLN (zł)</option>
+            <option value="MXN">🇲🇽 MXN (Mex$)</option>
+            <option value="IDR">🇮🇩 IDR (Rp)</option>
+            <option value="THB">🇹🇭 THB (฿)</option>
+            <option value="VND">🇻🇳 VND (₫)</option>
+          </select>
+        </div>
       </div>
     </div>
   </header>

@@ -460,6 +460,20 @@
     if (!channelQuery || !channelQuery.trim()) return;
 
     const query = channelQuery.trim();
+
+    // Sync active state on trending creator pills
+    if (el.trendingPills) {
+      const qNorm = query.toLowerCase().replace(/[@\s]/g, '');
+      el.trendingPills.forEach(p => {
+        const pNorm = (p.dataset.channel || '').toLowerCase().replace(/[@\s]/g, '');
+        if (pNorm && (pNorm === qNorm || qNorm.includes(pNorm))) {
+          p.classList.add('active');
+        } else {
+          p.classList.remove('active');
+        }
+      });
+    }
+
     showLoading(true, `Analyzing @${query.replace(/^@/, '')}...`);
     hideError();
 
