@@ -304,7 +304,7 @@
 
     viewsInput: document.getElementById('viewsInput'),
     viewsSlider: document.getElementById('viewsSlider'),
-    formatBtns: document.querySelectorAll('.format-btn[data-format]'),
+    formatBtns: document.querySelectorAll('.format-chip[data-format], .format-btn[data-format]'),
     formatMultiplierHint: document.getElementById('formatMultiplierHint'),
     nicheSelect: document.getElementById('nicheSelect'),
     tierSelect: document.getElementById('tierSelect'),
@@ -926,17 +926,17 @@
       el.tabChannelMode.classList.remove('active');
       el.panelVideo.classList.add('active');
       el.panelChannel.classList.remove('active');
-      el.modeBannerTitle.textContent = 'Single Video Mode:';
-      el.modeBannerDesc.textContent = 'Enter a YouTube video URL or enter views manually to calculate take-home creator earnings, RPM, and gross advertiser spend based on duration and format.';
-      el.modeBannerIcon.textContent = '📹';
+      if (el.modeBannerTitle) el.modeBannerTitle.textContent = 'Single Video Mode:';
+      if (el.modeBannerDesc) el.modeBannerDesc.textContent = 'Enter a YouTube video URL or enter views manually to calculate take-home creator earnings, RPM, and gross advertiser spend based on duration and format.';
+      if (el.modeBannerIcon) el.modeBannerIcon.textContent = '📹';
     } else {
       el.tabChannelMode.classList.add('active');
       el.tabVideoMode.classList.remove('active');
       el.panelChannel.classList.add('active');
       el.panelVideo.classList.remove('active');
-      el.modeBannerTitle.textContent = 'Full Channel Mode:';
-      el.modeBannerDesc.textContent = 'Enter a YouTube channel link or @handle to estimate daily, monthly, yearly, and lifetime AdSense earnings with Shorts vs Long-form view ratios.';
-      el.modeBannerIcon.textContent = '📊';
+      if (el.modeBannerTitle) el.modeBannerTitle.textContent = 'Full Channel Mode:';
+      if (el.modeBannerDesc) el.modeBannerDesc.textContent = 'Enter a YouTube channel link or @handle to estimate daily, monthly, yearly, and lifetime AdSense earnings with Shorts vs Long-form view ratios.';
+      if (el.modeBannerIcon) el.modeBannerIcon.textContent = '📊';
     }
     renderResults();
   }

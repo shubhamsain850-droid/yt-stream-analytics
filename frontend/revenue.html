@@ -83,21 +83,21 @@
   </header>
 
   <main class="main-content">
-    <!-- Hero Header -->
-    <section class="hero-section">
+    <!-- Hero Header (Calm, compact, elegant) -->
+    <section class="hero-section" style="padding-bottom: 16px;">
       <div class="hero-badge">
         <span class="pulse-dot"></span>
         YouTube Views &amp; AdSense Revenue Intelligence
       </div>
       <h1 class="hero-title">YouTube Views &amp; <span>AdSense Calculator</span></h1>
       <p class="hero-sub">
-        Calculate exact creator AdSense earnings, CPM, and RPM based on real video views, watch time mid-roll multipliers, niche benchmarks, and geographic tiers. 100% pure AdSense views revenue model.
+        Calculate creator AdSense earnings, CPM, and RPM based on real video views, watch time mid-roll multipliers, niche benchmarks, and geographic tiers. 100% pure AdSense views revenue model.
       </p>
     </section>
 
-    <!-- Main Tool Container (Clean, straight, matching Page 1 & Page 2) -->
+    <!-- Main Tool Container (Clean & Straight) -->
     <div class="tool-card">
-      <!-- 2 Clean Mode Tabs -->
+      <!-- 2 Mode Tabs -->
       <div class="mode-tabs">
         <button class="tab-btn active" data-mode="video" id="tabVideoMode">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -116,47 +116,30 @@
         </button>
       </div>
 
-      <!-- Mode Description Banner -->
-      <div class="mode-info-banner" id="modeBanner">
-        <div class="mode-info-icon" id="modeBannerIcon">📹</div>
-        <div class="mode-info-text">
-          <strong id="modeBannerTitle">Single Video Mode:</strong>
-          <span id="modeBannerDesc">Enter a YouTube video URL or enter views manually to calculate take-home creator earnings, RPM, and gross advertiser spend based on duration and format.</span>
-        </div>
-      </div>
-
       <!-- ======================================================== -->
       <!-- PANEL 1: SINGLE VIDEO ADSENSE REVENUE                    -->
       <!-- ======================================================== -->
-      <div class="tab-panel active" id="panel-video">
-        <!-- Quick Fetch Bar -->
-        <div class="input-group">
-          <label class="input-label" for="videoUrlInput">
-            <span>Paste YouTube Video URL or Video ID</span>
-            <span class="label-hint">Works with Long Videos, YouTube Shorts &amp; Live Streams</span>
-          </label>
+      <div class="mode-panel active" id="panel-video">
+        <!-- Clean Input Row matching Page 1 -->
+        <label class="input-label" for="videoUrlInput">Paste YouTube Video or Shorts URL (Optional)</label>
+        <div class="input-row">
           <div class="input-wrapper">
-            <span class="input-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-              </svg>
-            </span>
-            <input type="text" id="videoUrlInput" class="text-input" placeholder="https://www.youtube.com/watch?v=... or https://youtube.com/shorts/..." spellcheck="false" autocomplete="off">
-            <button class="paste-btn" id="pasteVideoBtn" type="button" title="Paste from clipboard">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-              <span>Paste</span>
-            </button>
-            <button class="primary-btn" id="fetchVideoBtn" type="button">
-              <span class="btn-text">Fetch &amp; Auto-Fill</span>
-              <span class="btn-arrow">&rarr;</span>
-            </button>
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+              <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+            </svg>
+            <input type="text" id="videoUrlInput" placeholder="https://www.youtube.com/watch?v=... or /shorts/..." autocomplete="off">
+            <button class="btn-paste" id="pasteVideoBtn" type="button">Paste</button>
           </div>
-          <div class="field-error-msg" id="videoErrorMsg" style="display:none;"></div>
+          <button class="btn-primary" id="fetchVideoBtn" type="button">
+            <span class="btn-text">Fetch &amp; Auto-Fill</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
         </div>
+        <div class="field-error-msg" id="videoErrorMsg" style="display:none; margin-top: 8px;"></div>
 
         <!-- Fetched Video Info Card (Hidden until fetched) -->
-        <div class="fetched-card" id="fetchedVideoCard" style="display:none;">
+        <div class="fetched-card" id="fetchedVideoCard" style="display:none; margin-top: 16px;">
           <div class="fetched-card-thumb">
             <img id="videoThumbImg" src="" alt="Thumbnail">
             <span class="fetched-card-duration" id="videoDurationBadge">--:--</span>
@@ -178,7 +161,7 @@
         </div>
 
         <!-- Interactive Calculator Controls Grid -->
-        <div class="calc-grid">
+        <div class="calc-grid" style="margin-top: 18px;">
           <!-- Views Input & Slider -->
           <div class="calc-card">
             <div class="calc-card-header">
@@ -194,59 +177,37 @@
             <div class="slider-wrapper">
               <input type="range" id="viewsSlider" class="range-slider" min="1000" max="10000000" step="5000" value="100000">
             </div>
-            <!-- Quick View Preset Pills -->
+            <!-- Quick View Preset Pills (Clean 5 items) -->
             <div class="quick-preset-pills">
-              <button class="preset-pill" data-val="10000">10K</button>
               <button class="preset-pill" data-val="50000">50K</button>
               <button class="preset-pill active" data-val="100000">100K</button>
               <button class="preset-pill" data-val="500000">500K</button>
               <button class="preset-pill" data-val="1000000">1M</button>
               <button class="preset-pill" data-val="5000000">5M</button>
-              <button class="preset-pill" data-val="10000000">10M</button>
             </div>
           </div>
 
-          <!-- Video Format & Duration -->
+          <!-- Video Format & Duration (Clean compact pills) -->
           <div class="calc-card">
             <div class="calc-card-header">
               <span class="calc-label">
                 <span class="calc-label-icon">⏱️</span>
-                <span>Video Format &amp; Duration</span>
+                <span>Format &amp; Mid-Roll Ads</span>
               </span>
               <span class="calc-sub-hint" id="formatMultiplierHint">Mid-Rolls enabled (1.55x RPM)</span>
             </div>
-            <div class="format-selector-grid" id="formatSelectorGrid">
-              <button class="format-btn" data-format="shorts" title="Creator Pool Model (~$0.02 - $0.06 RPM)">
-                <span class="fmt-icon">⚡</span>
-                <span class="fmt-name">Shorts (&lt;60s)</span>
-                <span class="fmt-badge">Creator Pool</span>
-              </button>
-              <button class="format-btn" data-format="under_8m" title="Standard pre/post roll ads only (1.0x RPM)">
-                <span class="fmt-icon">⏱️</span>
-                <span class="fmt-name">Short (&lt;8 min)</span>
-                <span class="fmt-badge">1 Ad Break</span>
-              </button>
-              <button class="format-btn active" data-format="midroll_8_15m" title="Eligible for Mid-Roll ads! Boosts revenue by 1.55x">
-                <span class="fmt-icon">🎬</span>
-                <span class="fmt-name">Mid-Roll (8–15m)</span>
-                <span class="fmt-badge highlight">+55% Mid-Roll</span>
-              </button>
-              <button class="format-btn" data-format="extended_15_30m" title="Extended video with 3-5 mid-rolls (2.15x RPM)">
-                <span class="fmt-icon">🎙️</span>
-                <span class="fmt-name">Long (15–30m)</span>
-                <span class="fmt-badge highlight">+115% Ads</span>
-              </button>
-              <button class="format-btn" data-format="stream_30m_plus" title="Stream Replay / Podcast with multiple ad breaks (2.6x RPM)">
-                <span class="fmt-icon">🔴</span>
-                <span class="fmt-name">Extended (30m+)</span>
-                <span class="fmt-badge highlight">2.6x RPM</span>
-              </button>
+            <div class="format-chips-row" id="formatSelectorGrid">
+              <button class="format-chip" data-format="shorts" title="Shorts Creator Pool Model">⚡ Shorts (&lt;60s)</button>
+              <button class="format-chip" data-format="under_8m" title="Pre/Post-roll ads only">⏱️ Under 8m</button>
+              <button class="format-chip active" data-format="midroll_8_15m" title="Mid-rolls enabled (+55% RPM)">🎬 8–15m (Mid-Roll)</button>
+              <button class="format-chip" data-format="extended_15_30m" title="3-5 mid-rolls (+115% RPM)">🎙️ 15–30m</button>
+              <button class="format-chip" data-format="stream_30m_plus" title="Stream Replay (2.6x RPM)">🔴 30m+ Stream</button>
             </div>
           </div>
         </div>
 
-        <!-- Secondary Controls: Niche, Country Tier, Seasonality -->
-        <div class="calc-controls-row">
+        <!-- Secondary Controls: Niche & Geography (Clean 2-Column Row) -->
+        <div class="calc-controls-row" style="margin-top: 14px;">
           <!-- Channel Niche -->
           <div class="control-box">
             <label class="control-label" for="nicheSelect">
@@ -269,7 +230,7 @@
                 <option value="entertainment">🎭 Entertainment &amp; Comedy ($2–$5)</option>
                 <option value="vlogs">📸 Vlogs &amp; Daily Life ($2–$4.50)</option>
                 <option value="music">🎵 Music &amp; Songs ($0.90–$2.40)</option>
-                <option value="kids">🧸 Kids &amp; Animation (COPPA Restricted: $0.50–$1.50)</option>
+                <option value="kids">🧸 Kids &amp; Animation (COPPA: $0.50–$1.50)</option>
               </select>
             </div>
           </div>
@@ -281,62 +242,47 @@
             </label>
             <div class="select-wrapper">
               <select id="tierSelect" class="styled-select">
-                <option value="tier1">🇺🇸 Tier 1 (US, UK, CA, AU, Germany, Norway) — Top Ad Rates</option>
-                <option value="tier2">🇪🇺 Tier 2 (EU, UAE, Japan, South Korea, Singapore) — Medium</option>
-                <option value="tier3" selected>🇮🇳 Tier 3 (India, Brazil, Mexico, SEA, LATAM) — Emerging</option>
+                <option value="tier1">🇺🇸 Tier 1 (US, UK, CA, AU, Germany) — High CPM</option>
+                <option value="tier2">🇪🇺 Tier 2 (EU, UAE, Japan, Singapore) — Medium CPM</option>
+                <option value="tier3" selected>🇮🇳 Tier 3 (India, Brazil, Mexico, SEA) — Emerging</option>
                 <option value="global">🌐 Global / Blended Audience (Worldwide Mix)</option>
               </select>
             </div>
           </div>
 
-          <!-- Seasonality -->
-          <div class="control-box">
-            <label class="control-label" for="seasonSelect">
-              <span>📅 Ad Seasonality / Quarter</span>
-            </label>
-            <div class="select-wrapper">
-              <select id="seasonSelect" class="styled-select">
-                <option value="standard" selected>⚖️ Q2 / Q3 Standard Season (Average Ad Spend)</option>
-                <option value="q4">🚀 Q4 Holiday Surge (Oct–Dec) [+40% Advertiser Peak]</option>
-                <option value="q1">❄️ Q1 Post-Holiday Dip (Jan–Feb) [-20% Ad Spend]</option>
-              </select>
-            </div>
-          </div>
+          <!-- Hidden Seasonality Select (Defaults to standard) -->
+          <select id="seasonSelect" style="display:none;">
+            <option value="standard" selected>Standard</option>
+            <option value="q4">Q4 Peak</option>
+            <option value="q1">Q1 Dip</option>
+          </select>
         </div>
       </div>
 
       <!-- ======================================================== -->
       <!-- PANEL 2: FULL CHANNEL ADSENSE REVENUE                    -->
       <!-- ======================================================== -->
-      <div class="tab-panel" id="panel-channel">
-        <!-- Channel Handle / URL Fetch Bar -->
-        <div class="input-group">
-          <label class="input-label" for="channelInput">
-            <span>Paste YouTube Channel URL, ID, or @Handle</span>
-            <span class="label-hint">e.g. @MrBeast, @CarryMinati, @Syniislive or channel link</span>
-          </label>
+      <div class="mode-panel" id="panel-channel">
+        <!-- Clean Input Row matching Page 1 -->
+        <label class="input-label" for="channelInput">Enter YouTube Channel URL or @Handle</label>
+        <div class="input-row">
           <div class="input-wrapper">
-            <span class="input-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-            </span>
-            <input type="text" id="channelInput" class="text-input" placeholder="e.g. @MrBeast or https://www.youtube.com/@CarryMinati" spellcheck="false" autocomplete="off">
-            <button class="paste-btn" id="pasteChannelBtn" type="button" title="Paste from clipboard">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-              <span>Paste</span>
-            </button>
-            <button class="primary-btn" id="fetchChannelBtn" type="button">
-              <span class="btn-text">Fetch Channel Stats</span>
-              <span class="btn-arrow">&rarr;</span>
-            </button>
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <input type="text" id="channelInput" placeholder="e.g. @MrBeast, @CarryMinati, @Syniislive..." autocomplete="off">
+            <button class="btn-paste" id="pasteChannelBtn" type="button">Paste</button>
           </div>
-          <div class="field-error-msg" id="channelErrorMsg" style="display:none;"></div>
+          <button class="btn-primary" id="fetchChannelBtn" type="button">
+            <span class="btn-text">Fetch Channel</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
         </div>
+        <div class="field-error-msg" id="channelErrorMsg" style="display:none; margin-top: 8px;"></div>
 
         <!-- Fetched Channel Profile Card (Hidden until fetched) -->
-        <div class="fetched-card channel-profile-card" id="fetchedChannelCard" style="display:none;">
+        <div class="fetched-card channel-profile-card" id="fetchedChannelCard" style="display:none; margin-top: 16px;">
           <div class="channel-avatar-wrapper">
             <img id="channelAvatarImg" src="" alt="Channel Avatar" class="channel-avatar">
           </div>
@@ -367,14 +313,14 @@
           </div>
         </div>
 
-        <!-- Channel Calculator Controls Grid -->
-        <div class="calc-grid">
+        <!-- Channel Controls Grid -->
+        <div class="calc-grid" style="margin-top: 18px;">
           <!-- Monthly Channel Views -->
           <div class="calc-card">
             <div class="calc-card-header">
               <label class="calc-label" for="channelMonthlyViewsInput">
                 <span class="calc-label-icon">📈</span>
-                <span>Average Monthly Channel Views</span>
+                <span>Monthly Channel Views</span>
               </label>
               <div class="views-input-box">
                 <input type="text" id="channelMonthlyViewsInput" class="num-input" value="1,000,000">
@@ -384,27 +330,25 @@
             <div class="slider-wrapper">
               <input type="range" id="channelMonthlyViewsSlider" class="range-slider" min="10000" max="50000000" step="50000" value="1000000">
             </div>
-            <!-- Quick Channel Preset Pills -->
+            <!-- Quick Channel Preset Pills (Clean 5 items) -->
             <div class="quick-preset-pills">
-              <button class="preset-pill channel-preset" data-val="100000">100K/mo</button>
-              <button class="preset-pill channel-preset" data-val="500000">500K/mo</button>
-              <button class="preset-pill channel-preset active" data-val="1000000">1M/mo</button>
-              <button class="preset-pill channel-preset" data-val="5000000">5M/mo</button>
-              <button class="preset-pill channel-preset" data-val="20000000">20M/mo</button>
-              <button class="preset-pill channel-preset" data-val="50000000">50M/mo</button>
+              <button class="preset-pill channel-preset" data-val="100000">100K</button>
+              <button class="preset-pill channel-preset" data-val="500000">500K</button>
+              <button class="preset-pill channel-preset active" data-val="1000000">1M</button>
+              <button class="preset-pill channel-preset" data-val="5000000">5M</button>
+              <button class="preset-pill channel-preset" data-val="20000000">20M</button>
             </div>
           </div>
 
-          <!-- Shorts vs Long-Form Views Ratio Slider -->
+          <!-- Shorts vs Long-Form Views Mix -->
           <div class="calc-card">
             <div class="calc-card-header">
               <span class="calc-label">
                 <span class="calc-label-icon">⚖️</span>
-                <span>Shorts vs Long-Form Views Mix</span>
+                <span>Shorts vs Long-Form Views</span>
               </span>
-              <span class="calc-sub-hint" id="ratioHint">30% Shorts / 70% Long-Form</span>
+              <span class="calc-sub-hint" id="ratioHint">30% Shorts / 70% Long</span>
             </div>
-            <!-- Dual Visual Ratio Bar -->
             <div class="ratio-progress-bar">
               <div class="ratio-bar-shorts" id="ratioBarShorts" style="width: 30%;">
                 <span>30% Shorts</span>
@@ -417,15 +361,15 @@
               <input type="range" id="shortsRatioSlider" class="range-slider" min="0" max="100" step="5" value="30">
             </div>
             <div class="ratio-labels">
-              <span>0% Shorts (100% Long-form)</span>
+              <span>0% Shorts (100% Long)</span>
               <span>50/50 Mix</span>
-              <span>100% Shorts (Pure Shorts Channel)</span>
+              <span>100% Shorts</span>
             </div>
           </div>
         </div>
 
         <!-- Secondary Controls: Niche & Country Tier -->
-        <div class="calc-controls-row">
+        <div class="calc-controls-row" style="margin-top: 14px;">
           <div class="control-box">
             <label class="control-label" for="channelNicheSelect">
               <span>🎯 Channel Niche</span>
@@ -457,7 +401,7 @@
             </label>
             <div class="select-wrapper">
               <select id="channelTierSelect" class="styled-select">
-                <option value="tier1">🇺🇸 Tier 1 (US, UK, CA, AU, Germany) — Highest CPM</option>
+                <option value="tier1">🇺🇸 Tier 1 (US, UK, CA, AU, Germany) — High CPM</option>
                 <option value="tier2">🇪🇺 Tier 2 (EU, UAE, Japan, Singapore) — Medium CPM</option>
                 <option value="tier3" selected>🇮🇳 Tier 3 (India, Brazil, Mexico, SEA) — Emerging</option>
                 <option value="global">🌐 Global / Blended Audience</option>
@@ -472,7 +416,7 @@
     <!-- RESULTS & REVENUE DASHBOARD SECTION                      -->
     <!-- ======================================================== -->
     <section class="results-section" id="resultsSection">
-      <!-- Section Title & Status -->
+      <!-- Section Title & Export Actions -->
       <div class="results-header">
         <div class="results-title-group">
           <h2 class="results-heading">
@@ -490,20 +434,20 @@
             <span class="btn-icon">📝</span>
             <span>Notepad (.txt)</span>
           </button>
-          <button class="action-btn" id="btnCopySummary" type="button" title="Copy markdown summary">
+          <button class="action-btn" id="btnCopySummary" type="button" title="Copy summary">
             <span class="btn-icon">📋</span>
-            <span>Copy Summary</span>
+            <span>Copy</span>
           </button>
         </div>
       </div>
 
-      <!-- Hero KPI Cards (Primary Financials) -->
+      <!-- 4 Hero KPI Cards -->
       <div class="kpi-grid">
         <!-- 1. Net Creator Take -->
         <div class="kpi-card hero-net-card">
           <div class="kpi-label-row">
             <span class="kpi-label">ESTIMATED CREATOR TAKE</span>
-            <span class="kpi-badge net-badge">55% Pocket Pay</span>
+            <span class="kpi-badge net-badge">55% Net</span>
           </div>
           <div class="kpi-main-val text-success" id="kpiNetVal">₹6,750</div>
           <div class="kpi-sub-text" id="kpiNetSub">Your estimated in-pocket earnings after YouTube's cut</div>
@@ -513,7 +457,7 @@
         <div class="kpi-card">
           <div class="kpi-label-row">
             <span class="kpi-label">GROSS ADVERTISER SPEND</span>
-            <span class="kpi-badge">100% Brand Spend</span>
+            <span class="kpi-badge">100% Gross</span>
           </div>
           <div class="kpi-main-val" id="kpiGrossVal">₹12,273</div>
           <div class="kpi-sub-text" id="kpiGrossSub">Total money paid by advertisers to Google</div>
@@ -540,10 +484,10 @@
         </div>
       </div>
 
-      <!-- Channel Projections Row (Only active in Channel Mode) -->
+      <!-- Channel Projections Card (Only active in Channel Mode) -->
       <div class="channel-projections-card" id="channelProjectionsCard" style="display:none;">
         <div class="proj-header">
-          <h3 class="proj-title">📅 Projected Channel AdSense Trajectory</h3>
+          <h3 class="proj-title">📅 Projected Channel Trajectory</h3>
           <span class="proj-subtitle">Based on <span id="projMonthlyViewsBadge">1,000,000</span> monthly views and current Shorts/Long mix</span>
         </div>
         <div class="proj-grid">
@@ -570,76 +514,48 @@
         </div>
       </div>
 
-      <!-- 3 Real-World Scenarios (Conservative, Realistic, Optimistic) -->
-      <div class="scenarios-section">
-        <h3 class="scenarios-heading">🎯 Real-World Revenue Scenarios (Low vs Base vs High)</h3>
-        <div class="scenarios-grid">
-          <!-- 1. Conservative -->
-          <div class="scenario-card bear">
-            <div class="scenario-header">
-              <div class="scenario-name">
-                <span class="scenario-icon">🐻</span>
-                <span>Conservative (Bear)</span>
-              </div>
-              <span class="scenario-tag">Low Fill</span>
+      <!-- Compact Comparative Scenarios Bar (Lightweight, clean, 1 row!) -->
+      <div class="scenarios-compact-card">
+        <div class="scenarios-compact-header">
+          <span class="scenarios-compact-title">🎯 Revenue Scenario Ranges</span>
+          <span class="scenarios-compact-sub">Conservative Bear vs Industry Average vs Peak Q4 Surge</span>
+        </div>
+        <div class="scenarios-compact-grid">
+          <div class="sc-item bear">
+            <div class="sc-item-header">
+              <span class="sc-label">🐻 Conservative (Bear)</span>
+              <span class="sc-tag">~38% Fill</span>
             </div>
-            <div class="scenario-amount text-muted" id="scenarioLowVal">₹4,860</div>
-            <p class="scenario-desc">
-              Accounts for high ad-block usage (~35%), audience drop-off before mid-rolls, and lower seasonal auction bids.
-            </p>
-            <div class="scenario-stats">
-              <span>RPM: <strong id="scenarioLowRpm">₹48.60</strong></span>
-              <span>Fill Rate: <strong>~38%</strong></span>
-            </div>
+            <div class="sc-val text-muted" id="scenarioLowVal">₹4,362</div>
+            <div class="sc-sub">RPM: <strong id="scenarioLowRpm">₹43.62</strong></div>
           </div>
 
-          <!-- 2. Realistic (Base) -->
-          <div class="scenario-card base active">
-            <div class="scenario-header">
-              <div class="scenario-name">
-                <span class="scenario-icon">⚖️</span>
-                <span>Realistic (Expected)</span>
-              </div>
-              <span class="scenario-tag best-tag">Industry Average</span>
+          <div class="sc-item base active">
+            <div class="sc-item-header">
+              <span class="sc-label">⚖️ Realistic (Expected)</span>
+              <span class="sc-tag best-tag">~52% Fill</span>
             </div>
-            <div class="scenario-amount text-success" id="scenarioBaseVal">₹6,750</div>
-            <p class="scenario-desc">
-              Standard YouTube baseline with typical viewer retention, normal 52% ad playback fill rate, and steady CPM auction.
-            </p>
-            <div class="scenario-stats">
-              <span>RPM: <strong id="scenarioBaseRpm">₹67.50</strong></span>
-              <span>Fill Rate: <strong>~52%</strong></span>
-            </div>
+            <div class="sc-val text-success" id="scenarioBaseVal">₹6,058</div>
+            <div class="sc-sub">RPM: <strong id="scenarioBaseRpm">₹60.58</strong></div>
           </div>
 
-          <!-- 3. Optimistic (Bull) -->
-          <div class="scenario-card bull">
-            <div class="scenario-header">
-              <div class="scenario-name">
-                <span class="scenario-icon">🚀</span>
-                <span>Optimistic (Peak Q4)</span>
-              </div>
-              <span class="scenario-tag">High Retention</span>
+          <div class="sc-item bull">
+            <div class="sc-item-header">
+              <span class="sc-label">🚀 Optimistic (Peak Q4)</span>
+              <span class="sc-tag">~65% Fill</span>
             </div>
-            <div class="scenario-amount text-gold" id="scenarioHighVal">₹9,315</div>
-            <p class="scenario-desc">
-              Exceptional viewer retention (watching all mid-rolls), holiday surge advertiser competition (Q4), and premium audience demographics.
-            </p>
-            <div class="scenario-stats">
-              <span>RPM: <strong id="scenarioHighRpm">₹93.15</strong></span>
-              <span>Fill Rate: <strong>~65%</strong></span>
-            </div>
+            <div class="sc-val text-gold" id="scenarioHighVal">₹8,360</div>
+            <div class="sc-sub">RPM: <strong id="scenarioHighRpm">₹83.60</strong></div>
           </div>
         </div>
       </div>
 
-      <!-- Financial Mechanics & Niche Insights -->
-      <div class="insights-grid">
-        <!-- Card 1: View Monetization Mechanics -->
+      <!-- Compact Breakdown & Insights -->
+      <div class="insights-grid" style="margin-top: 16px;">
         <div class="insight-card">
           <h4 class="insight-title">
             <span class="insight-icon">🔍</span>
-            <span>View Monetization Mechanics</span>
+            <span>View Monetization Breakdown</span>
           </h4>
           <div class="monetization-bars">
             <div class="m-bar-row">
@@ -662,11 +578,10 @@
             </div>
           </div>
           <p class="insight-note">
-            Non-monetized views include ad-blockers, short retention (&lt;5s view before skipping), unmonetized countries, and YouTube Premium pool share.
+            Non-monetized views include ad-blockers, short retention (&lt;5s view before skipping), unmonetized regions, and Premium pool share.
           </p>
         </div>
 
-        <!-- Card 2: Mid-Roll Multiplier Impact -->
         <div class="insight-card">
           <h4 class="insight-title">
             <span class="insight-icon">💡</span>
@@ -693,4 +608,3 @@
   <script src="revenue.js"></script>
 </body>
 </html>
-
