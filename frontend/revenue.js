@@ -237,7 +237,7 @@
   const state = {
     activeMode: 'video', // 'video' or 'channel'
     currency: localStorage.getItem('streamvault_currency') || 'INR',
-    theme: localStorage.getItem('theme') || 'dark',
+    theme: localStorage.getItem('streamvault_theme') || localStorage.getItem('theme') || 'dark',
 
     // Video Mode State
     video: {
@@ -1183,21 +1183,23 @@
 
   function toggleTheme() {
     state.theme = state.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('streamvault_theme', state.theme);
     localStorage.setItem('theme', state.theme);
     applyTheme();
   }
 
   function applyTheme() {
+    document.documentElement.setAttribute('data-theme', state.theme);
     if (state.theme === 'light') {
       document.body.classList.add('light-mode');
-      el.sunIcon.style.display = 'none';
-      el.moonIcon.style.display = 'inline-block';
-      el.themeText.textContent = 'Dark';
+      if (el.sunIcon) el.sunIcon.style.display = 'none';
+      if (el.moonIcon) el.moonIcon.style.display = 'inline-block';
+      if (el.themeText) el.themeText.textContent = 'Dark';
     } else {
       document.body.classList.remove('light-mode');
-      el.sunIcon.style.display = 'inline-block';
-      el.moonIcon.style.display = 'none';
-      el.themeText.textContent = 'Light';
+      if (el.sunIcon) el.sunIcon.style.display = 'inline-block';
+      if (el.moonIcon) el.moonIcon.style.display = 'none';
+      if (el.themeText) el.themeText.textContent = 'Light';
     }
   }
 
@@ -1391,3 +1393,4 @@
   }
 
 })();
+

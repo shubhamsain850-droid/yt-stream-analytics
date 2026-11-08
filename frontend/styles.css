@@ -111,6 +111,8 @@ body {
   align-items: center;
   gap: 10px;
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
 .logo-icon {
@@ -1487,12 +1489,21 @@ body {
     order: 3;
     width: 100%;
     margin-left: 0;
-    justify-content: center;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px;
+    border-radius: 9999px;
+  }
+  .page-nav::-webkit-scrollbar {
+    display: none;
   }
   .nav-tab-link {
-    flex: 1;
+    flex: 1 0 auto;
+    white-space: nowrap;
     justify-content: center;
-    padding: 7px 10px;
+    padding: 7px 12px;
     font-size: 0.8rem;
   }
   .hero-section {

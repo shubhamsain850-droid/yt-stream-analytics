@@ -20,7 +20,7 @@
     commentsData: null,
     filteredComments: [],
     activeCommSort: 'likes-desc',
-    theme: localStorage.getItem('theme') || 'dark',
+    theme: localStorage.getItem('streamvault_theme') || localStorage.getItem('theme') || 'dark',
 
     lastExtractionType: 'chats',
 
@@ -197,6 +197,7 @@
     if (el.themeToggleBtn) {
       el.themeToggleBtn.addEventListener('click', () => {
         state.theme = state.theme === 'light' ? 'dark' : 'light';
+        localStorage.setItem('streamvault_theme', state.theme);
         localStorage.setItem('theme', state.theme);
         applyTheme(state.theme);
       });
@@ -2084,11 +2085,43 @@
     return m ? parseFloat(m[0]) : 0;
   }
 
+  // Currency Switcher Sync
+  function initCurrency() {
+    const savedCurr = localStorage.getItem('streamvault_currency') || 'INR';
+    const currBtns = document.querySelectorAll('.curr-btn[data-curr]');
+    const select = document.getElementById('moreCurrencySelect');
+
+    function applyCurrency(c) {
+      localStorage.setItem('streamvault_currency', c);
+      currBtns.forEach(b => {
+        if (b.dataset.curr === c) b.classList.add('active');
+        else b.classList.remove('active');
+      });
+      if (select) {
+        if (!['INR', 'USD', 'EUR'].includes(c)) select.value = c;
+        else select.selectedIndex = 0;
+      }
+    }
+
+    currBtns.forEach(b => {
+      b.addEventListener('click', () => applyCurrency(b.dataset.curr));
+    });
+
+    if (select) {
+      select.addEventListener('change', (e) => {
+        if (e.target.value) applyCurrency(e.target.value);
+      });
+    }
+
+    applyCurrency(savedCurr);
+  }
+
   // ─────────────────────────────────────────────
   // INITIALIZE ON DOM READY
   // ─────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     initTheme();
+    initCurrency();
     initModeTabs();
     initChatViewer();
     initFilterAndExports();

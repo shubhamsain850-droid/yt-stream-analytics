@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Theme Engine (YouTube Studio Dark & Light Mode) ──
 function setupTheme() {
-  const saved = localStorage.getItem('streamvault_theme') || 'dark';
+  const saved = localStorage.getItem('streamvault_theme') || localStorage.getItem('theme') || 'dark';
   applyTheme(saved);
 
   if (elements.themeToggleBtn) {
@@ -264,6 +264,7 @@ function setupTheme() {
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('streamvault_theme', theme);
+  localStorage.setItem('theme', theme);
 
   if (elements.themeToggleBtn) {
     const sunIcon = elements.themeToggleBtn.querySelector('.sun-icon');
