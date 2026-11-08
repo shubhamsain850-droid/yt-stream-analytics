@@ -1,18 +1,18 @@
 /**
  * StreamVault — YouTube Live Chat & Comments Downloader Controller
- * High-Speed In-Memory Client Engine
+ * Clean, fast, in-memory client engine
  */
 
 (function () {
   'use strict';
 
-  // API Backend URL (Hugging Face Space API)
+  // Hugging Face API Base URL
   const API_BASE = 'https://shubhamsain858-kickcuttr-api.hf.space/api/youtube';
+  const MAX_MULTI_STREAMS = 25;
 
   // Application State
   const state = {
-    activeTool: 'chat', // 'chat' or 'comments'
-    chatMode: 'single', // 'single', 'channel', 'multi', 'file'
+    activeMode: 'single', // 'single', 'channel', 'multi', 'comments'
     multiUrlQueue: [],
     liveChatData: null,
     filteredMessages: [],
@@ -24,9 +24,7 @@
     theme: localStorage.getItem('theme') || 'dark'
   };
 
-  const MAX_MULTI_STREAMS = 25;
-
-  // DOM Elements
+  // Cached DOM Elements
   const el = {
     // Theme
     themeToggleBtn: document.getElementById('themeToggleBtn'),
@@ -34,31 +32,27 @@
     moonIcon: document.querySelector('.moon-icon'),
     themeText: document.getElementById('themeText'),
 
-    // Tool switcher
-    toolBtnChat: document.getElementById('toolBtnChat'),
-    toolBtnComments: document.getElementById('toolBtnComments'),
-    sectionChat: document.getElementById('sectionChat'),
-    sectionComments: document.getElementById('sectionComments'),
-
-    // Chat mode tabs
-    chatTabBtns: document.querySelectorAll('[data-chat-mode]'),
-    chatPanels: {
-      single: document.getElementById('chat-panel-single'),
-      channel: document.getElementById('chat-panel-channel'),
-      multi: document.getElementById('chat-panel-multi'),
-      file: document.getElementById('chat-panel-file')
+    // Mode tabs & panels
+    tabBtns: document.querySelectorAll('.mode-tabs .tab-btn[data-mode]'),
+    panels: {
+      single: document.getElementById('panel-single'),
+      channel: document.getElementById('panel-channel'),
+      multi: document.getElementById('panel-multi'),
+      comments: document.getElementById('panel-comments')
     },
 
-    // Chat inputs
+    // Mode A: Single Stream
     chatSingleUrlInput: document.getElementById('chatSingleUrlInput'),
     pasteChatSingleBtn: document.getElementById('pasteChatSingleBtn'),
     startChatSingleBtn: document.getElementById('startChatSingleBtn'),
 
+    // Mode B: Channel
     chatChannelUrlInput: document.getElementById('chatChannelUrlInput'),
     chatFromDateInput: document.getElementById('chatFromDateInput'),
     chatToDateInput: document.getElementById('chatToDateInput'),
     startChatChannelBtn: document.getElementById('startChatChannelBtn'),
 
+    // Mode C: Multi-URL Batch
     chatMultiUrlInput: document.getElementById('chatMultiUrlInput'),
     addChatUrlBtn: document.getElementById('addChatUrlBtn'),
     chatQueueCount: document.getElementById('chatQueueCount'),
@@ -67,17 +61,13 @@
     startChatMultiBtn: document.getElementById('startChatMultiBtn'),
     multiTabBadge: document.getElementById('multiTabBadge'),
 
-    chatFileDropzone: document.getElementById('chatFileDropzone'),
-    chatFileInput: document.getElementById('chatFileInput'),
-    browseChatFileBtn: document.getElementById('browseChatFileBtn'),
-
-    // Comments inputs
+    // Mode D: Comments
     commentsUrlInput: document.getElementById('commentsUrlInput'),
     pasteCommentsBtn: document.getElementById('pasteCommentsBtn'),
     commentsLimitSelect: document.getElementById('commentsLimitSelect'),
     startCommentsBtn: document.getElementById('startCommentsBtn'),
 
-    // Status card
+    // Progress Card
     processingCard: document.getElementById('processingCard'),
     statusTitle: document.getElementById('statusTitle'),
     progressPercent: document.getElementById('progressPercent'),
@@ -88,7 +78,7 @@
     countEvents: document.getElementById('countEvents'),
     labelExtracted: document.getElementById('labelExtracted'),
 
-    // Chat Results
+    // Live Chat Results Section
     resultsChatSection: document.getElementById('resultsChatSection'),
     kpiChatTotal: document.getElementById('kpiChatTotal'),
     kpiChatStreamInfo: document.getElementById('kpiChatStreamInfo'),
@@ -114,7 +104,7 @@
     exportChatCsvBtn: document.getElementById('exportChatCsvBtn'),
     exportChatJsonBtn: document.getElementById('exportChatJsonBtn'),
 
-    // Comments Results
+    // Comments Results Section
     resultsCommentsSection: document.getElementById('resultsCommentsSection'),
     kpiCommTotal: document.getElementById('kpiCommTotal'),
     kpiCommVideoTitle: document.getElementById('kpiCommVideoTitle'),
@@ -130,7 +120,7 @@
     exportCommExcelBtn: document.getElementById('exportCommExcelBtn'),
     exportCommTxtBtn: document.getElementById('exportCommTxtBtn'),
     exportCommCsvBtn: document.getElementById('exportCommCsvBtn'),
-    exportCommJsonBtn: document.getElementById('exportCommJsonBtn'),
+    exportCommJsonBtn: document.getElementById('exportCommJsonBtn')
   };
 
   // ─────────────────────────────────────────────
@@ -161,62 +151,28 @@
   }
 
   // ─────────────────────────────────────────────
-  // 2. TOOL SWITCHING (Live Chat vs Video Comments)
+  // 2. MODE TABS CONTROLLER (Single, Channel, Multi, Comments)
   // ─────────────────────────────────────────────
-  function initToolSwitcher() {
-    el.toolBtnChat.addEventListener('click', () => switchTool('chat'));
-    el.toolBtnComments.addEventListener('click', () => switchTool('comments'));
-  }
-
-  function switchTool(tool) {
-    state.activeTool = tool;
-    if (tool === 'chat') {
-      el.toolBtnChat.classList.add('active');
-      el.toolBtnComments.classList.remove('active');
-      el.sectionChat.style.display = 'block';
-      el.sectionComments.style.display = 'none';
-      el.resultsCommentsSection.style.display = 'none';
-      if (state.liveChatData) el.resultsChatSection.style.display = 'block';
-    } else {
-      el.toolBtnComments.classList.add('active');
-      el.toolBtnChat.classList.remove('active');
-      el.sectionComments.style.display = 'block';
-      el.sectionChat.style.display = 'none';
-      el.resultsChatSection.style.display = 'none';
-      if (state.commentsData) el.resultsCommentsSection.style.display = 'block';
-    }
-  }
-
-  // ─────────────────────────────────────────────
-  // 3. CHAT MODE SWITCHING (Single, Channel, Multi, File)
-  // ─────────────────────────────────────────────
-  function initChatModes() {
-    el.chatTabBtns.forEach(btn => {
+  function initModeTabs() {
+    el.tabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        const mode = btn.dataset.chatMode;
-        state.chatMode = mode;
-        el.chatTabBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        Object.keys(el.chatPanels).forEach(k => {
-          if (el.chatPanels[k]) el.chatPanels[k].classList.remove('active');
-        });
-        if (el.chatPanels[mode]) el.chatPanels[mode].classList.add('active');
+        const mode = btn.dataset.mode;
+        switchMode(mode);
       });
     });
 
-    // Date Presets for Channel streams
-    document.querySelectorAll('#chat-panel-channel .preset-chip').forEach(chip => {
+    // Channel Date Presets
+    document.querySelectorAll('#panel-channel .preset-chip').forEach(chip => {
       chip.addEventListener('click', () => {
-        document.querySelectorAll('#chat-panel-channel .preset-chip').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('#panel-channel .preset-chip').forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
         const p = chip.dataset.preset;
         const today = new Date();
         const formatDate = (d) => d.toISOString().split('T')[0];
 
         if (p === 'all') {
-          el.chatFromDateInput.value = '';
-          el.chatToDateInput.value = '';
+          if (el.chatFromDateInput) el.chatFromDateInput.value = '';
+          if (el.chatToDateInput) el.chatToDateInput.value = '';
         } else if (p === '7d') {
           const past = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
           el.chatFromDateInput.value = formatDate(past);
@@ -233,24 +189,8 @@
       });
     });
 
-    // Quick stream example chips
-    document.querySelectorAll('.example-chip:not(.comment-example)').forEach(chip => {
-      chip.addEventListener('click', () => {
-        el.chatSingleUrlInput.value = chip.dataset.vid;
-        startSingleChatExtraction();
-      });
-    });
-
-    // Comments example chip
-    document.querySelectorAll('.comment-example').forEach(chip => {
-      chip.addEventListener('click', () => {
-        el.commentsUrlInput.value = chip.dataset.vid;
-        startCommentsDownload();
-      });
-    });
-
-    // Paste buttons
-    if (el.pasteChatSingleBtn) {
+    // Paste Buttons
+    if (el.pasteChatSingleBtn && el.chatSingleUrlInput) {
       el.pasteChatSingleBtn.addEventListener('click', async () => {
         try {
           const text = await navigator.clipboard.readText();
@@ -261,7 +201,7 @@
       });
     }
 
-    if (el.pasteCommentsBtn) {
+    if (el.pasteCommentsBtn && el.commentsUrlInput) {
       el.pasteCommentsBtn.addEventListener('click', async () => {
         try {
           const text = await navigator.clipboard.readText();
@@ -272,7 +212,7 @@
       });
     }
 
-    // Multi-URL batch management
+    // Multi-URL Batch Handlers
     if (el.addChatUrlBtn) {
       el.addChatUrlBtn.addEventListener('click', addUrlToChatQueue);
     }
@@ -283,23 +223,44 @@
     }
     if (el.clearAllChatUrlsBtn) {
       el.clearAllChatUrlsBtn.addEventListener('click', () => {
-        if (confirm('Clear all added streams from this queue?')) {
+        if (confirm('Clear all added streams from this batch queue?')) {
           state.multiUrlQueue = [];
           updateMultiChatQueueUI();
         }
       });
     }
 
-    // Local .live_chat.json File Dropzone
-    initFileDropzone();
-
-    // Trigger actions
-    el.startChatSingleBtn.addEventListener('click', startSingleChatExtraction);
-    el.startChatChannelBtn.addEventListener('click', startChannelChatExtraction);
-    el.startChatMultiBtn.addEventListener('click', startMultiChatExtraction);
-    el.startCommentsBtn.addEventListener('click', startCommentsDownload);
+    // Action Triggers
+    if (el.startChatSingleBtn) el.startChatSingleBtn.addEventListener('click', startSingleChatExtraction);
+    if (el.startChatChannelBtn) el.startChatChannelBtn.addEventListener('click', startChannelChatExtraction);
+    if (el.startChatMultiBtn) el.startChatMultiBtn.addEventListener('click', startMultiChatExtraction);
+    if (el.startCommentsBtn) el.startCommentsBtn.addEventListener('click', startCommentsDownload);
   }
 
+  function switchMode(mode) {
+    state.activeMode = mode;
+
+    el.tabBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+
+    Object.keys(el.panels).forEach(k => {
+      if (el.panels[k]) el.panels[k].classList.toggle('active', k === mode);
+    });
+
+    // Manage results visibility depending on tool mode
+    if (mode === 'comments') {
+      if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
+      if (state.commentsData && el.resultsCommentsSection) el.resultsCommentsSection.style.display = 'block';
+    } else {
+      if (el.resultsCommentsSection) el.resultsCommentsSection.style.display = 'none';
+      if (state.liveChatData && el.resultsChatSection) el.resultsChatSection.style.display = 'block';
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // 3. MULTI-URL BATCH QUEUE
+  // ─────────────────────────────────────────────
   function addUrlToChatQueue() {
     const raw = el.chatMultiUrlInput.value.trim();
     if (!raw) return;
@@ -310,7 +271,7 @@
     }
 
     if (state.multiUrlQueue.includes(vid)) {
-      alert('This stream is already added to the batch list.');
+      alert('This stream is already in the batch list.');
       el.chatMultiUrlInput.value = '';
       return;
     }
@@ -327,10 +288,12 @@
 
   function updateMultiChatQueueUI() {
     const count = state.multiUrlQueue.length;
-    el.chatQueueCount.textContent = `${count} / ${MAX_MULTI_STREAMS}`;
-    el.multiTabBadge.textContent = `${count}/${MAX_MULTI_STREAMS} Added`;
-    el.startChatMultiBtn.disabled = count === 0;
-    el.clearAllChatUrlsBtn.style.display = count > 0 ? 'inline-block' : 'none';
+    if (el.chatQueueCount) el.chatQueueCount.textContent = `${count} / ${MAX_MULTI_STREAMS}`;
+    if (el.multiTabBadge) el.multiTabBadge.textContent = `${count}/${MAX_MULTI_STREAMS} Added`;
+    if (el.startChatMultiBtn) el.startChatMultiBtn.disabled = count === 0;
+    if (el.clearAllChatUrlsBtn) el.clearAllChatUrlsBtn.style.display = count > 0 ? 'inline-block' : 'none';
+
+    if (!el.chatUrlQueueList) return;
 
     if (count === 0) {
       el.chatUrlQueueList.innerHTML = `
@@ -358,40 +321,6 @@
     });
   }
 
-  function initFileDropzone() {
-    const dz = el.chatFileDropzone;
-    const inp = el.chatFileInput;
-    const btn = el.browseChatFileBtn;
-
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      inp.click();
-    });
-
-    dz.addEventListener('click', () => inp.click());
-
-    dz.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dz.classList.add('dragover');
-    });
-
-    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-
-    dz.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dz.classList.remove('dragover');
-      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        processUploadedChatFile(e.dataTransfer.files[0]);
-      }
-    });
-
-    inp.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files.length > 0) {
-        processUploadedChatFile(e.target.files[0]);
-      }
-    });
-  }
-
   // ─────────────────────────────────────────────
   // 4. API CALLS & EXTRACTION ENGINES
   // ─────────────────────────────────────────────
@@ -403,21 +332,22 @@
   }
 
   function setProgress(percent, title, ticker, extracted = 0, unique = 0, events = 0) {
+    if (!el.processingCard) return;
     el.processingCard.style.display = 'block';
-    el.progressPercent.textContent = `${Math.round(percent)}%`;
-    el.progressBarFill.style.width = `${percent}%`;
-    el.statusTitle.textContent = title;
-    el.statusTicker.textContent = ticker;
-    el.countExtracted.textContent = extracted.toLocaleString();
-    el.countUnique.textContent = unique.toLocaleString();
-    el.countEvents.textContent = events.toLocaleString();
+    if (el.progressPercent) el.progressPercent.textContent = `${Math.round(percent)}%`;
+    if (el.progressBarFill) el.progressBarFill.style.width = `${percent}%`;
+    if (el.statusTitle) el.statusTitle.textContent = title;
+    if (el.statusTicker) el.statusTicker.textContent = ticker;
+    if (el.countExtracted) el.countExtracted.textContent = extracted.toLocaleString();
+    if (el.countUnique) el.countUnique.textContent = unique.toLocaleString();
+    if (el.countEvents) el.countEvents.textContent = events.toLocaleString();
   }
 
   function hideProgress() {
-    el.processingCard.style.display = 'none';
+    if (el.processingCard) el.processingCard.style.display = 'none';
   }
 
-  // Mode A: Single Live Chat
+  // Option A: Single Stream Live Chat
   async function startSingleChatExtraction() {
     const raw = el.chatSingleUrlInput.value.trim();
     const vid = extractVideoId(raw);
@@ -427,7 +357,8 @@
     }
 
     el.startChatSingleBtn.disabled = true;
-    el.resultsChatSection.style.display = 'none';
+    if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
+    if (el.labelExtracted) el.labelExtracted.textContent = 'Extracted Messages';
     setProgress(15, `Connecting to Stream [${vid}]...`, 'Connecting to YouTube InnerTube streaming engine...');
 
     try {
@@ -463,7 +394,7 @@
     }
   }
 
-  // Mode B: Bulk Channel Streams
+  // Option B: Channel Live Streams
   async function startChannelChatExtraction() {
     const channelUrl = el.chatChannelUrlInput.value.trim();
     if (!channelUrl) {
@@ -475,7 +406,8 @@
     const toDate = el.chatToDateInput.value;
 
     el.startChatChannelBtn.disabled = true;
-    el.resultsChatSection.style.display = 'none';
+    if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
+    if (el.labelExtracted) el.labelExtracted.textContent = 'Extracted Messages';
     setProgress(10, 'Discovering Channel Live Streams...', `Querying YouTube channel ${channelUrl}...`);
 
     try {
@@ -512,7 +444,7 @@
     }
   }
 
-  // Mode C: Multi-URL Batch
+  // Option C: Multi-URL Batch
   async function startMultiChatExtraction() {
     if (state.multiUrlQueue.length === 0) {
       alert('Please add at least 1 stream to the batch list.');
@@ -521,7 +453,8 @@
 
     const queue = [...state.multiUrlQueue];
     el.startChatMultiBtn.disabled = true;
-    el.resultsChatSection.style.display = 'none';
+    if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
+    if (el.labelExtracted) el.labelExtracted.textContent = 'Extracted Messages';
 
     try {
       const aggregatedData = await batchExtractChatMessages(queue);
@@ -535,18 +468,18 @@
     }
   }
 
-  // Helper: Sequential batch processor with progress bar
+  // Helper: Batch Stream Chat Processor
   async function batchExtractChatMessages(vids) {
     const total = vids.length;
     let allMessages = [];
-    const uniqueChatters = new set();
+    const uniqueChatters = new Set();
     const userMsgCounts = {};
     let totalSc = 0, totalMem = 0, totalJewels = 0;
 
     for (let i = 0; i < total; i++) {
       const vid = vids[i];
       const pct = Math.round(((i + 1) / total) * 100);
-      setProgress(pct, `Processing Stream ${i + 1} of ${total} [${vid}]`, `Connecting to stream ${vid}...`, allMessages.length, uniqueChatters.size, totalSc + totalMem + totalJewels);
+      setProgress(pct, `Processing Stream ${i + 1} of ${total} [${vid}]`, `Streaming live chat for ${vid}...`, allMessages.length, uniqueChatters.size, totalSc + totalMem + totalJewels);
 
       try {
         const resp = await fetch(`${API_BASE}/fetch-chat`, {
@@ -592,289 +525,7 @@
     };
   }
 
-  // Mode D: Client-Side .live_chat.json Reader (Instantaneous in browser!)
-  function processUploadedChatFile(file) {
-    if (!file.name.endsWith('.json')) {
-      alert('Please upload a valid .json or .live_chat.json file.');
-      return;
-    }
-
-    el.resultsChatSection.style.display = 'none';
-    setProgress(30, 'Reading Local File...', `Reading ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)...`);
-
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      try {
-        setProgress(70, 'Parsing Chat Lines...', 'Extracting usernames, timestamps & events...');
-        const text = e.target.result;
-        const lines = text.split('\n');
-        const parsed = clientSideParseAllChat(lines, file.name.replace('.live_chat.json', '').replace('.json', ''));
-
-        setProgress(100, 'Complete!', `Parsed ${parsed.total_messages} messages in 0.05s`, parsed.total_messages, parsed.unique_chatters, parsed.events_count);
-
-        setTimeout(() => {
-          hideProgress();
-          renderLiveChatReport(parsed, file.name);
-        }, 300);
-      } catch (err) {
-        hideProgress();
-        alert(`Failed to parse file: ${err.message}`);
-      }
-    };
-    reader.readAsText(file);
-  }
-
-  // Client-Side Parser identical to Python backend
-  function clientSideParseAllChat(lines, vid) {
-    const messages = [];
-    const seenIds = new Set();
-    const userMsgCounts = {};
-    const uniqueChatters = new Set();
-    let scCount = 0, memCount = 0, jewelCount = 0;
-
-    function extractText(obj) {
-      if (!obj) return '';
-      if (typeof obj === 'string') return obj.trim();
-      if (obj.simpleText) return String(obj.simpleText).trim();
-      if (Array.isArray(obj.runs)) {
-        return obj.runs.map(r => r.text || (r.emoji ? (r.emoji.shortcuts ? r.emoji.shortcuts[0] : 'emoji') : '')).join('').trim();
-      }
-      return '';
-    }
-
-    function extractBadges(badges) {
-      const res = [];
-      if (!Array.isArray(badges)) return res;
-      badges.forEach(b => {
-        const ren = b.liveChatAuthorBadgeRenderer;
-        if (!ren) return;
-        const tt = (ren.tooltip || '').toLowerCase();
-        const icon = (ren.icon ? ren.icon.iconType : '').toLowerCase();
-        if (tt.includes('moderator') || icon.includes('moderator')) res.push('MODERATOR');
-        else if (tt.includes('member') || ren.customThumbnail) res.push('MEMBER');
-        else if (tt.includes('owner') || icon.includes('owner')) res.push('OWNER');
-        else if (tt.includes('verified')) res.push('VERIFIED');
-        else if (ren.tooltip) res.push(ren.tooltip);
-      });
-      return res;
-    }
-
-    function walk(obj, timeOffset = '') {
-      if (!obj || typeof obj !== 'object') return;
-
-      if (obj.replayChatItemAction) {
-        const act = obj.replayChatItemAction;
-        let t = timeOffset;
-        if (act.videoOffsetTimeMsec && !t) {
-          const secs = Math.floor(parseInt(act.videoOffsetTimeMsec, 10) / 1000);
-          const s = secs % 60;
-          const m = Math.floor(secs / 60) % 60;
-          const h = Math.floor(secs / 3600);
-          t = h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
-        }
-        if (Array.isArray(act.actions)) {
-          act.actions.forEach(a => walk(a, t));
-        }
-        return;
-      }
-
-      if (obj.addChatItemAction && obj.addChatItemAction.item) {
-        const item = obj.addChatItemAction.item;
-        processItem(item, timeOffset);
-        return;
-      }
-
-      const keys = ['liveChatTextMessageRenderer', 'liveChatPaidMessageRenderer', 'liveChatPaidStickerRenderer', 'liveChatMembershipItemRenderer', 'liveChatSponsorshipsGiftPurchaseAnnouncementRenderer', 'giftMessageViewModel'];
-      for (const k of keys) {
-        if (obj[k]) {
-          processItem({ [k]: obj[k] }, timeOffset);
-          return;
-        }
-      }
-
-      if (Array.isArray(obj)) {
-        obj.forEach(x => walk(x, timeOffset));
-      } else {
-        Object.values(obj).forEach(x => walk(x, timeOffset));
-      }
-    }
-
-    function processItem(item, timeOffset) {
-      if (item.liveChatTextMessageRenderer) {
-        const r = item.liveChatTextMessageRenderer;
-        const id = r.id || `msg_${messages.length + 1}`;
-        if (seenIds.has(id)) return;
-        seenIds.add(id);
-
-        const author = extractText(r.authorName) || 'Viewer';
-        const msg = extractText(r.message);
-        const t = extractText(r.timestampText) || timeOffset;
-        const badges = extractBadges(r.authorBadges);
-
-        userMsgCounts[author] = (userMsgCounts[author] || 0) + 1;
-        uniqueChatters.add(author);
-
-        messages.push({
-          idx: messages.length + 1,
-          id, time: t, author,
-          author_id: r.authorExternalChannelId || '',
-          badges,
-          event_type: 'CHAT',
-          badge_label: badges[0] || '',
-          amount: 0, currency: '', details: '',
-          message: msg, stream_id: vid
-        });
-      } else if (item.liveChatPaidMessageRenderer) {
-        const r = item.liveChatPaidMessageRenderer;
-        const id = r.id || `sc_${messages.length + 1}`;
-        if (seenIds.has(id)) return;
-        seenIds.add(id);
-
-        const author = extractText(r.authorName) || 'Super Chatter';
-        const amt = extractText(r.purchaseAmountText);
-        const msg = extractText(r.message);
-        const t = extractText(r.timestampText) || timeOffset;
-        const badges = extractBadges(r.authorBadges);
-
-        scCount++;
-        userMsgCounts[author] = (userMsgCounts[author] || 0) + 1;
-        uniqueChatters.add(author);
-
-        messages.push({
-          idx: messages.length + 1,
-          id, time: t, author,
-          author_id: r.authorExternalChannelId || '',
-          badges,
-          event_type: 'SUPERCHAT',
-          badge_label: `Super Chat ${amt}`,
-          amount: amt, currency: '', details: amt,
-          message: msg || '[Super Chat]', stream_id: vid
-        });
-      } else if (item.liveChatPaidStickerRenderer) {
-        const r = item.liveChatPaidStickerRenderer;
-        const id = r.id || `st_${messages.length + 1}`;
-        if (seenIds.has(id)) return;
-        seenIds.add(id);
-
-        const author = extractText(r.authorName) || 'Super Chatter';
-        const amt = extractText(r.purchaseAmountText);
-        const t = extractText(r.timestampText) || timeOffset;
-        const badges = extractBadges(r.authorBadges);
-
-        scCount++;
-        userMsgCounts[author] = (userMsgCounts[author] || 0) + 1;
-        uniqueChatters.add(author);
-
-        messages.push({
-          idx: messages.length + 1,
-          id, time: t, author,
-          author_id: r.authorExternalChannelId || '',
-          badges,
-          event_type: 'STICKER',
-          badge_label: `Super Sticker ${amt}`,
-          amount: amt, currency: '', details: amt,
-          message: '[Super Sticker]', stream_id: vid
-        });
-      } else if (item.liveChatMembershipItemRenderer) {
-        const r = item.liveChatMembershipItemRenderer;
-        const id = r.id || `mem_${messages.length + 1}`;
-        if (seenIds.has(id)) return;
-        seenIds.add(id);
-
-        const author = extractText(r.authorName) || 'Member';
-        const sub = extractText(r.headerSubtext);
-        const pri = extractText(r.headerPrimaryText);
-        const msg = extractText(r.message);
-        const t = extractText(r.timestampText) || timeOffset;
-        const badges = extractBadges(r.authorBadges);
-        const tier = sub || pri || 'Member';
-
-        memCount++;
-        userMsgCounts[author] = (userMsgCounts[author] || 0) + 1;
-        uniqueChatters.add(author);
-
-        messages.push({
-          idx: messages.length + 1,
-          id, time: t, author,
-          author_id: r.authorExternalChannelId || '',
-          badges,
-          event_type: 'MEMBERSHIP',
-          badge_label: `Member: ${tier}`,
-          amount: 0, currency: '', details: tier,
-          message: msg || `Joined / Renewed (${tier})`, stream_id: vid
-        });
-      } else if (item.liveChatSponsorshipsGiftPurchaseAnnouncementRenderer) {
-        const r = item.liveChatSponsorshipsGiftPurchaseAnnouncementRenderer;
-        const id = r.id || `gift_${messages.length + 1}`;
-        if (seenIds.has(id)) return;
-        seenIds.add(id);
-
-        const header = (r.header && r.header.liveChatSponsorshipsHeaderRenderer) || {};
-        const author = extractText(header.authorName) || 'Gifter';
-        const pri = extractText(header.primaryText);
-
-        memCount++;
-        userMsgCounts[author] = (userMsgCounts[author] || 0) + 1;
-        uniqueChatters.add(author);
-
-        messages.push({
-          idx: messages.length + 1,
-          id, time: timeOffset, author,
-          author_id: r.authorExternalChannelId || '',
-          badges: ['GIFT_SPONSOR'],
-          event_type: 'GIFT',
-          badge_label: '🎁 Gift Memberships',
-          amount: 0, currency: '', details: pri,
-          message: pri, stream_id: vid
-        });
-      } else if (item.giftMessageViewModel) {
-        const r = item.giftMessageViewModel;
-        const text = extractText(r.text);
-        jewelCount++;
-
-        messages.push({
-          idx: messages.length + 1,
-          id: `jewel_${messages.length + 1}`,
-          time: timeOffset, author: 'Gift Supporter',
-          author_id: '',
-          badges: ['JEWELS'],
-          event_type: 'JEWELS',
-          badge_label: '💎 YouTube Jewels',
-          amount: 0, currency: '', details: text,
-          message: text, stream_id: vid
-        });
-      }
-    }
-
-    lines.forEach(line => {
-      if (!line || !line.trim()) return;
-      try {
-        const parsed = JSON.parse(line);
-        walk(parsed);
-      } catch (e) {}
-    });
-
-    const topChatters = Object.entries(userMsgCounts)
-      .map(([author, count]) => ({ author, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 25);
-
-    return {
-      stream_id: vid,
-      total_messages: messages.length,
-      unique_chatters: uniqueChatters.size,
-      superchats_count: scCount,
-      memberships_count: memCount,
-      jewels_count: jewelCount,
-      events_count: scCount + memCount + jewelCount,
-      top_chatters: topChatters,
-      messages
-    };
-  }
-
-  // ─────────────────────────────────────────────
-  // 5. VIDEO COMMENTS DOWNLOADER ENGINE
-  // ─────────────────────────────────────────────
+  // Option D: Video Comments Downloader
   async function startCommentsDownload() {
     const raw = el.commentsUrlInput.value.trim();
     const vid = extractVideoId(raw);
@@ -885,8 +536,8 @@
 
     const limit = parseInt(el.commentsLimitSelect.value, 10) || 300;
     el.startCommentsBtn.disabled = true;
-    el.resultsCommentsSection.style.display = 'none';
-    el.labelExtracted.textContent = 'Comments Downloaded';
+    if (el.resultsCommentsSection) el.resultsCommentsSection.style.display = 'none';
+    if (el.labelExtracted) el.labelExtracted.textContent = 'Comments Downloaded';
     setProgress(20, `Fetching Video Comments [${vid}]...`, 'Connecting to YouTube InnerTube comments engine...');
 
     try {
@@ -921,25 +572,25 @@
   }
 
   // ─────────────────────────────────────────────
-  // 6. RENDER LIVE CHAT REPORT & TABLE
+  // 5. RENDER LIVE CHAT REPORT & FEED TABLE
   // ─────────────────────────────────────────────
   function renderLiveChatReport(data, streamTitle) {
     state.liveChatData = data;
-    el.resultsChatSection.style.display = 'block';
-
-    // Scroll smoothly to results
-    el.resultsChatSection.scrollIntoView({ behavior: 'smooth' });
+    if (el.resultsChatSection) {
+      el.resultsChatSection.style.display = 'block';
+      el.resultsChatSection.scrollIntoView({ behavior: 'smooth' });
+    }
 
     // Populate KPIs
-    el.kpiChatTotal.textContent = data.total_messages.toLocaleString();
-    el.kpiChatStreamInfo.textContent = streamTitle || `Stream [${data.stream_id}]`;
-    el.kpiChatUnique.textContent = data.unique_chatters.toLocaleString();
-    el.kpiChatSuperchat.textContent = `${data.superchats_count} Recorded`;
-    el.kpiChatMemberships.textContent = `${data.memberships_count} Sponsors`;
-    el.kpiChatJewels.textContent = `${data.jewels_count} Gifts`;
+    if (el.kpiChatTotal) el.kpiChatTotal.textContent = data.total_messages.toLocaleString();
+    if (el.kpiChatStreamInfo) el.kpiChatStreamInfo.textContent = streamTitle || `Stream [${data.stream_id}]`;
+    if (el.kpiChatUnique) el.kpiChatUnique.textContent = data.unique_chatters.toLocaleString();
+    if (el.kpiChatSuperchat) el.kpiChatSuperchat.textContent = `${data.superchats_count} Recorded`;
+    if (el.kpiChatMemberships) el.kpiChatMemberships.textContent = `${data.memberships_count} Sponsors`;
+    if (el.kpiChatJewels) el.kpiChatJewels.textContent = `${data.jewels_count} Gifts`;
 
     // Leaderboard
-    if (data.top_chatters && data.top_chatters.length > 0) {
+    if (data.top_chatters && data.top_chatters.length > 0 && el.leaderboardCard && el.leaderboardChips) {
       el.leaderboardCard.style.display = 'block';
       el.leaderboardChips.innerHTML = data.top_chatters.slice(0, 10).map((c, idx) => {
         const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `#${idx + 1}`));
@@ -951,20 +602,19 @@
           </div>
         `;
       }).join('');
-    } else {
+    } else if (el.leaderboardCard) {
       el.leaderboardCard.style.display = 'none';
     }
 
     // Tab badges
-    el.badgeAllChats.textContent = data.total_messages;
-    el.badgeScOnly.textContent = data.superchats_count;
-    el.badgeMemOnly.textContent = data.memberships_count;
-    el.badgeJewelOnly.textContent = data.jewels_count;
+    if (el.badgeAllChats) el.badgeAllChats.textContent = data.total_messages;
+    if (el.badgeScOnly) el.badgeScOnly.textContent = data.superchats_count;
+    if (el.badgeMemOnly) el.badgeMemOnly.textContent = data.memberships_count;
+    if (el.badgeJewelOnly) el.badgeJewelOnly.textContent = data.jewels_count;
 
     const modCount = data.messages.filter(m => m.badges && (m.badges.includes('MODERATOR') || m.badges.includes('MEMBER'))).length;
-    el.badgeModsOnly.textContent = modCount;
+    if (el.badgeModsOnly) el.badgeModsOnly.textContent = modCount;
 
-    // Apply Filter & Render
     applyChatFiltersAndRender();
   }
 
@@ -972,7 +622,7 @@
     if (!state.liveChatData) return;
     const all = state.liveChatData.messages;
     const filter = state.activeChatFilter;
-    const query = el.chatSearchInput.value.toLowerCase().trim();
+    const query = el.chatSearchInput ? el.chatSearchInput.value.toLowerCase().trim() : '';
 
     let filtered = all.filter(m => {
       // Category filter
@@ -1009,6 +659,8 @@
   }
 
   function renderChatFeedTable(messages) {
+    if (!el.chatFeedTableBody) return;
+
     if (messages.length === 0) {
       el.chatFeedTableBody.innerHTML = `
         <tr>
@@ -1080,23 +732,24 @@
   }
 
   // ─────────────────────────────────────────────
-  // 7. RENDER VIDEO COMMENTS REPORT & TABLE
+  // 6. RENDER VIDEO COMMENTS REPORT & TABLE
   // ─────────────────────────────────────────────
   function renderCommentsReport(data) {
     state.commentsData = data;
-    el.resultsCommentsSection.style.display = 'block';
-    el.resultsCommentsSection.scrollIntoView({ behavior: 'smooth' });
+    if (el.resultsCommentsSection) {
+      el.resultsCommentsSection.style.display = 'block';
+      el.resultsCommentsSection.scrollIntoView({ behavior: 'smooth' });
+    }
 
-    el.kpiCommTotal.textContent = data.total_comments.toLocaleString();
-    el.kpiCommVideoTitle.textContent = data.title || `Video [${data.video_id}]`;
-    el.kpiCommUnique.textContent = data.unique_commenters.toLocaleString();
-    el.kpiCommTotalLikes.textContent = data.total_likes.toLocaleString();
+    if (el.kpiCommTotal) el.kpiCommTotal.textContent = data.total_comments.toLocaleString();
+    if (el.kpiCommVideoTitle) el.kpiCommVideoTitle.textContent = data.title || `Video [${data.video_id}]`;
+    if (el.kpiCommUnique) el.kpiCommUnique.textContent = data.unique_commenters.toLocaleString();
+    if (el.kpiCommTotalLikes) el.kpiCommTotalLikes.textContent = data.total_likes.toLocaleString();
 
-    // Top liked comment
     if (data.comments && data.comments.length > 0) {
       const topLiked = [...data.comments].sort((a, b) => b.likes - a.likes)[0];
-      el.kpiCommTopLikes.textContent = `${topLiked.likes_display || topLiked.likes} Likes`;
-      el.kpiCommTopAuthor = `${topLiked.author}`;
+      if (el.kpiCommTopLikes) el.kpiCommTopLikes.textContent = `${topLiked.likes_display || topLiked.likes} Likes`;
+      if (el.kpiCommTopAuthor) el.kpiCommTopAuthor.textContent = `${topLiked.author}`;
     }
 
     applyCommentsFiltersAndRender();
@@ -1105,7 +758,7 @@
   function applyCommentsFiltersAndRender() {
     if (!state.commentsData) return;
     const all = state.commentsData.comments;
-    const query = el.commSearchInput.value.toLowerCase().trim();
+    const query = el.commSearchInput ? el.commSearchInput.value.toLowerCase().trim() : '';
 
     let filtered = all.filter(c => {
       if (query) {
@@ -1130,6 +783,8 @@
   }
 
   function renderCommentsTable(comments) {
+    if (!el.commentsTableBody) return;
+
     if (comments.length === 0) {
       el.commentsTableBody.innerHTML = `
         <tr>
@@ -1174,46 +829,54 @@
   }
 
   // ─────────────────────────────────────────────
-  // 8. EVENT LISTENERS FOR FILTERS & EXPORTS
+  // 7. FILTER & EXPORT EVENT LISTENERS
   // ─────────────────────────────────────────────
   function initFilterAndExports() {
     // Chat filters
-    el.chatFilterTabs.querySelectorAll('.res-tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        el.chatFilterTabs.querySelectorAll('.res-tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.activeChatFilter = btn.dataset.filter;
+    if (el.chatFilterTabs) {
+      el.chatFilterTabs.querySelectorAll('.res-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          el.chatFilterTabs.querySelectorAll('.res-tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.activeChatFilter = btn.dataset.filter;
+          applyChatFiltersAndRender();
+        });
+      });
+    }
+
+    if (el.chatSearchInput) el.chatSearchInput.addEventListener('input', applyChatFiltersAndRender);
+    if (el.chatSortSelect) {
+      el.chatSortSelect.addEventListener('change', (e) => {
+        state.activeChatSort = e.target.value;
         applyChatFiltersAndRender();
       });
-    });
-
-    el.chatSearchInput.addEventListener('input', applyChatFiltersAndRender);
-    el.chatSortSelect.addEventListener('change', (e) => {
-      state.activeChatSort = e.target.value;
-      applyChatFiltersAndRender();
-    });
+    }
 
     // Comments filters
-    el.commSearchInput.addEventListener('input', applyCommentsFiltersAndRender);
-    el.commSortSelect.addEventListener('change', (e) => {
-      state.activeCommSort = e.target.value;
-      applyCommentsFiltersAndRender();
-    });
+    if (el.commSearchInput) el.commSearchInput.addEventListener('input', applyCommentsFiltersAndRender);
+    if (el.commSortSelect) {
+      el.commSortSelect.addEventListener('change', (e) => {
+        state.activeCommSort = e.target.value;
+        applyCommentsFiltersAndRender();
+      });
+    }
 
     // Chat exports
-    el.exportChatExcelBtn.addEventListener('click', exportChatToExcel);
-    el.exportChatTxtBtn.addEventListener('click', exportChatToTxt);
-    el.exportChatCsvBtn.addEventListener('click', exportChatToCsv);
-    el.exportChatJsonBtn.addEventListener('click', exportChatToJson);
+    if (el.exportChatExcelBtn) el.exportChatExcelBtn.addEventListener('click', exportChatToExcel);
+    if (el.exportChatTxtBtn) el.exportChatTxtBtn.addEventListener('click', exportChatToTxt);
+    if (el.exportChatCsvBtn) el.exportChatCsvBtn.addEventListener('click', exportChatToCsv);
+    if (el.exportChatJsonBtn) el.exportChatJsonBtn.addEventListener('click', exportChatToJson);
 
     // Comments exports
-    el.exportCommExcelBtn.addEventListener('click', exportCommToExcel);
-    el.exportCommTxtBtn.addEventListener('click', exportCommToTxt);
-    el.exportCommCsvBtn.addEventListener('click', exportCommToCsv);
-    el.exportCommJsonBtn.addEventListener('click', exportCommToJson);
+    if (el.exportCommExcelBtn) el.exportCommExcelBtn.addEventListener('click', exportCommToExcel);
+    if (el.exportCommTxtBtn) el.exportCommTxtBtn.addEventListener('click', exportCommToTxt);
+    if (el.exportCommCsvBtn) el.exportCommCsvBtn.addEventListener('click', exportCommToCsv);
+    if (el.exportCommJsonBtn) el.exportCommJsonBtn.addEventListener('click', exportCommToJson);
   }
 
-  // ── EXPORT FUNCTIONS ──
+  // ─────────────────────────────────────────────
+  // 8. EXPORT SUITE IMPLEMENTATIONS
+  // ─────────────────────────────────────────────
   function downloadBlob(content, filename, mimeType) {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -1274,7 +937,7 @@
       `================================================================================`,
       ` STREAMVAULT — YOUTUBE LIVE CHAT REPLAY EXPORT`,
       ` Stream ID: ${title} | Total Exported Messages: ${msgs.length}`,
-      ` Date: ${new Date().toLocaleString()}`,
+      ` Generated: ${new Date().toLocaleString()}`,
       `================================================================================`,
       ''
     ];
@@ -1364,7 +1027,7 @@
       ` STREAMVAULT — YOUTUBE VIDEO COMMENTS EXPORT`,
       ` Video: ${state.commentsData.title || title} (${title})`,
       ` Total Comments: ${comms.length}`,
-      ` Date: ${new Date().toLocaleString()}`,
+      ` Generated: ${new Date().toLocaleString()}`,
       `================================================================================`,
       ''
     ];
@@ -1430,8 +1093,7 @@
   // ─────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     initTheme();
-    initToolSwitcher();
-    initChatModes();
+    initModeTabs();
     initFilterAndExports();
   });
 
