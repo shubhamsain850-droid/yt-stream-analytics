@@ -12,11 +12,14 @@ import os
 import re
 import subprocess
 import time
+import math
+import random
+import urllib.parse
 import http.cookiejar
 import requests
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -1545,8 +1548,17 @@ def get_socialblade_channel_analytics(channel_input: str) -> dict:
     subs = base_meta.get("subscribers_count", 0) or 100_000
     views = base_meta.get("total_views_count", 0) or 10_000_000
     videos = base_meta.get("videos_count", 0) or 100
-    country = base_meta.get("country") or "India"
-    category = "Gaming" if base_meta.get("detected_niche") == "gaming" else "Entertainment"
+    desc = base_meta.get("description", "")
+    country = base_meta.get("country")
+    if not country:
+        if any(w in desc.lower() for w in ["india", "noida", "delhi", "mumbai", "bengaluru", "kolkata", "punjab", "upi:", "@ybl", "@paytm", "hindi"]):
+            country = "India (IN)"
+        else:
+            country = "India (IN)"
+    elif "india" in country.lower() and "(in)" not in country.lower():
+        country = "India (IN)"
+
+    category = "Gaming" if base_meta.get("detected_niche") == "gaming" else (base_meta.get("detected_niche", "Creator").title())
 
     # SocialBlade Grade Calculation
     if subs >= 50_000_000 and views >= 20_000_000_000:
@@ -1589,13 +1601,13 @@ def get_socialblade_channel_analytics(channel_input: str) -> dict:
     # Generate 14-Day Daily Metrics Table (Deterministic seed)
     avg_daily_views = max(1500, int((views * 0.0042) / 30))
     daily_rows = []
-    curr_date = datetime.date.today()
+    curr_date = date.today()
     running_views = views
     running_subs = subs
     rng = random.Random(views)
 
     for i in range(14):
-        d = curr_date - datetime.timedelta(days=i)
+        d = curr_date - timedelta(days=i)
         day_name = d.strftime("%a")
         date_str = d.strftime("%Y-%m-%d")
 

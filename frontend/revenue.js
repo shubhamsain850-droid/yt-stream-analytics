@@ -156,9 +156,9 @@
   function formatViews(n) {
     if (!n || isNaN(n)) return '0';
     const num = Number(n);
-    if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(2) + 'B';
-    if (num >= 1_000_000) return (num / 1_000_000).toFixed(2) + 'M';
-    if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
+    if (num >= 1_000_000_000) return parseFloat((num / 1_000_000_000).toFixed(2)) + 'B';
+    if (num >= 1_000_000) return parseFloat((num / 1_000_000).toFixed(2)) + 'M';
+    if (num >= 1_000) return parseFloat((num / 1_000).toFixed(1)) + 'K';
     return num.toLocaleString();
   }
 
@@ -345,97 +345,104 @@
   }
 
   async function fetchSearchSuggestions(query) {
-    try {
-      // 1. Try Backend Channel Search Endpoint first
-      let channels = [];
-      try {
-        const resp = await fetch(`${API_BASE}/search-channels`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query, max_results: 10 })
-        });
-        if (resp.ok) {
-          const res = await resp.json();
-          if (res.success && Array.isArray(res.channels) && res.channels.length > 0) {
-            channels = res.channels;
-          }
-        }
-      } catch (err) {
-        console.warn('Backend search unavailable, attempting client suggest...', err);
-      }
-
-      // 2. Client fallback heuristic if backend didn't return channels
-      if (!channels || channels.length === 0) {
-        channels = generateFallbackSuggestions(query);
-      }
-
-      renderDropdown(channels, query);
-    } catch (e) {
-      console.error('Search error:', e);
+    const cleanQ = query.trim();
+    if (cleanQ.length < 2) {
+      closeDropdown();
+      return;
     }
-  }
 
-  function generateFallbackSuggestions(q) {
-    const s = q.toLowerCase();
-    const common = [
-      { title: 'PAYAL GAMING', handle: '@PAYALGAMING', subscribers: '4.69M subscribers', avatar: 'https://yt3.googleusercontent.com/BkYkX3sg_NJTNZilCQhObmqDiyJER4_9U8VG7gNOxTnPnd-eXv-AVzJoau-VQQI0JBAaqbP7EA=s900-c-k-c0x00ffffff-no-rj' },
-      { title: 'CarryMinati', handle: '@CarryMinati', subscribers: '44.8M subscribers', avatar: 'https://yt3.googleusercontent.com/7tO6Uu095qR1P3V8R4oKqFpL7Z0m9mG_0qgK=s176-c-k-c0x00ffffff-no-rj' },
-      { title: 'MrBeast', handle: '@MrBeast', subscribers: '330M subscribers', avatar: 'https://yt3.googleusercontent.com/fxGKYucJAVme-YzgnGapYRUrpWGGaO6QkpTXgegnIoOxdY3KG9gIpL8nGeW9NPQ1XdQ1EQ=s176-c-k-c0x00ffffff-no-rj' },
-      { title: 'Techno Gamerz', handle: '@TechnoGamerzOfficial', subscribers: '42.6M subscribers', avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_mQ1s7xM_0x=s176-c-k-c0x00ffffff-no-rj' },
-      { title: 'Total Gaming', handle: '@TotalGamingOfficial', subscribers: '43.1M subscribers', avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_kL=s176-c-k-c0x00ffffff-no-rj' }
-    ];
+    // Show searching spinner in dropdown immediately
+    if (el.searchDropdown && el.dropdownList) {
+      el.dropdownList.innerHTML = `
+        <div class="dropdown-header">
+          <span>SEARCHING YOUTUBE CREATORS</span>
+          <span class="dropdown-hint">Connecting live...</span>
+        </div>
+        <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">
+          <span class="spinner-dot" style="display:inline-block; vertical-align:middle; margin-right:8px;"></span>
+          Searching live YouTube channels for "${cleanQ}"...
+        </div>
+      `;
+      el.searchDropdown.style.display = 'block';
+    }
 
-    const matched = common.filter(c => c.title.toLowerCase().includes(s) || c.handle.toLowerCase().includes(s));
-    if (matched.length > 0) return matched;
+    try {
+      let channels = [];
+      const resp = await fetch(`${API_BASE}/search-channels`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: cleanQ, max_results: 12 })
+      });
 
-    // Generic match
-    return [
-      { title: q, handle: `@${q.replace(/\s+/g, '')}`, subscribers: 'YouTube Creator', avatar: '' }
-    ];
+      if (resp.ok) {
+        const res = await resp.json();
+        if (res.success && Array.isArray(res.channels)) {
+          channels = res.channels;
+        }
+      }
+
+      renderDropdown(channels, cleanQ);
+    } catch (err) {
+      console.warn('Backend search error:', err);
+      renderDropdown([], cleanQ);
+    }
   }
 
   function renderDropdown(channels, query) {
     if (!el.searchDropdown || !el.dropdownList) return;
 
-    if (!channels || channels.length === 0) {
-      el.searchDropdown.style.display = 'none';
-      return;
-    }
-
     el.dropdownList.innerHTML = '';
-    channels.forEach(ch => {
-      const item = document.createElement('div');
-      item.className = 'dropdown-item';
-      
-      const avatarHtml = ch.avatar
-        ? `<img src="${ch.avatar}" class="dropdown-avatar" alt="${ch.title}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%2364748b\'><circle cx=\'12\' cy=\'8\' r=\'4\'/><path d=\'M20 21a8 8 0 1 0-16 0\'/></svg>'">`
-        : `<div class="dropdown-avatar-placeholder">👤</div>`;
 
-      item.innerHTML = `
-        ${avatarHtml}
-        <div class="dropdown-item-info">
-          <div class="dropdown-item-title">${ch.title}</div>
-          <div class="dropdown-item-meta">
-            <span>${ch.handle || ''}</span>
-            ${ch.subscribers ? `<span class="dot-sep">&bull;</span><span>${ch.subscribers}</span>` : ''}
+    const header = document.createElement('div');
+    header.className = 'dropdown-header';
+    header.innerHTML = `
+      <span>RESULTS (${channels.length})</span>
+      <span class="dropdown-hint">Click channel or press Enter</span>
+    `;
+    el.dropdownList.appendChild(header);
+
+    if (!channels || channels.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.padding = '14px 16px';
+      empty.style.color = '#94a3b8';
+      empty.style.fontSize = '12.5px';
+      empty.textContent = `No channels found matching "${query}". Press Enter to search exact URL or @handle.`;
+      el.dropdownList.appendChild(empty);
+    } else {
+      channels.forEach(ch => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        
+        const avatarHtml = ch.avatar
+          ? `<img src="${ch.avatar}" class="dropdown-avatar" alt="${ch.title}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%2364748b\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 1 0-16 0\\'/></svg>'">`
+          : `<div class="dropdown-avatar-placeholder">👤</div>`;
+
+        item.innerHTML = `
+          ${avatarHtml}
+          <div class="dropdown-item-info">
+            <div class="dropdown-item-title">${ch.title}</div>
+            <div class="dropdown-item-meta">
+              <span>${ch.handle || ''}</span>
+              ${ch.subscribers ? `<span class="dot-sep">&bull;</span><span>${ch.subscribers}</span>` : ''}
+            </div>
           </div>
-        </div>
-        <span class="dropdown-item-arrow">&rarr;</span>
-      `;
+          <span class="dropdown-item-arrow">&rarr;</span>
+        `;
 
-      item.addEventListener('click', () => {
-        el.channelSearchInput.value = ch.handle || ch.title;
-        closeDropdown();
-        analyzeChannel(ch.handle || ch.title);
+        item.addEventListener('click', () => {
+          el.channelSearchInput.value = ch.handle || ch.title;
+          closeDropdown();
+          analyzeChannel(ch.handle || ch.title);
+        });
+
+        el.dropdownList.appendChild(item);
       });
-
-      el.dropdownList.appendChild(item);
-    });
+    }
 
     // Bottom "Show results for query" row
     const footer = document.createElement('div');
     footer.className = 'dropdown-footer-item';
-    footer.innerHTML = `<span>Show full analytics for "<strong>${query}</strong>"</span> <kbd>Enter</kbd>`;
+    footer.innerHTML = `<span>Analyze channel for "<strong>${query}</strong>"</span> <kbd>Enter</kbd>`;
     footer.addEventListener('click', () => {
       closeDropdown();
       analyzeChannel(query);
@@ -453,37 +460,36 @@
     if (!channelQuery || !channelQuery.trim()) return;
 
     const query = channelQuery.trim();
-    showLoading(true, `Analyzing @${query.replace('@', '')}...`);
+    showLoading(true, `Analyzing @${query.replace(/^@/, '')}...`);
     hideError();
 
     try {
       let data = null;
 
-      // 1. Try Backend API
-      try {
-        const resp = await fetch(`${API_BASE}/channel-analytics`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ channel: query })
-        });
-        if (resp.ok) {
-          data = await resp.json();
-        }
-      } catch (err) {
-        console.warn('Backend analytics API unavailable, falling back to intelligence engine...', err);
+      // Fetch live channel statistics from backend API
+      const resp = await fetch(`${API_BASE}/channel-analytics`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channel: query })
+      });
+
+      if (resp.ok) {
+        data = await resp.json();
+      } else {
+        const errJson = await resp.json().catch(() => ({}));
+        throw new Error(errJson.detail || errJson.error || `Channel "${query}" could not be found on YouTube.`);
       }
 
-      // 2. Client-side heuristic if backend not ready (e.g. cold start)
       if (!data || !data.success) {
-        data = generateClientSideAnalytics(query);
+        throw new Error(data?.error || `Could not find YouTube channel "${query}".`);
       }
 
       state.activeChannelData = data;
       renderChannelStats(data);
       showToast(`📊 Analyzed ${data.title}!`);
     } catch (e) {
-      console.error(e);
-      showError(`Could not analyze channel "${query}". Please check the name or URL and try again.`);
+      console.error('Channel Analytics Error:', e);
+      showError(`❌ ${e.message || 'Could not analyze channel. Please verify the channel name or paste a direct YouTube channel link.'}`);
     } finally {
       showLoading(false);
     }
@@ -513,187 +519,6 @@
   }
 
   // ─────────────────────────────────────────────
-  // CLIENT-SIDE DETERMINISTIC ANALYTICS GENERATOR
-  // ─────────────────────────────────────────────
-
-  function generateClientSideAnalytics(query) {
-    const qLower = query.toLowerCase();
-
-    // Built-in verified benchmarks (Matching Screenshot 2 & 3 for Payal Gaming)
-    let title = 'PAYAL GAMING';
-    let handle = '@payalgaming';
-    let subs = 4_690_000;
-    let views = 538_607_889;
-    let videos = 1_084;
-    let joined = 'March 1, 2019';
-    let country = 'India (IN)';
-    let category = 'Gaming';
-    let avatar = 'https://yt3.googleusercontent.com/BkYkX3sg_NJTNZilCQhObmqDiyJER4_9U8VG7gNOxTnPnd-eXv-AVzJoau-VQQI0JBAaqbP7EA=s900-c-k-c0x00ffffff-no-rj';
-
-    if (qLower.includes('carry')) {
-      title = 'CarryMinati';
-      handle = '@CarryMinati';
-      subs = 44_800_000;
-      views = 3_750_000_000;
-      videos = 195;
-      joined = 'October 30, 2014';
-      country = 'India (IN)';
-      category = 'Entertainment';
-      avatar = 'https://yt3.googleusercontent.com/7tO6Uu095qR1P3V8R4oKqFpL7Z0m9mG_0qgK=s176-c-k-c0x00ffffff-no-rj';
-    } else if (qLower.includes('mrbeast')) {
-      title = 'MrBeast';
-      handle = '@MrBeast';
-      subs = 330_000_000;
-      views = 62_000_000_000;
-      videos = 820;
-      joined = 'February 20, 2012';
-      country = 'United States (US)';
-      category = 'Entertainment';
-      avatar = 'https://yt3.googleusercontent.com/fxGKYucJAVme-YzgnGapYRUrpWGGaO6QkpTXgegnIoOxdY3KG9gIpL8nGeW9NPQ1XdQ1EQ=s176-c-k-c0x00ffffff-no-rj';
-    } else if (qLower.includes('techno')) {
-      title = 'Techno Gamerz';
-      handle = '@TechnoGamerzOfficial';
-      subs = 42_600_000;
-      views = 11_800_000_000;
-      videos = 1_120;
-      joined = 'August 13, 2017';
-      country = 'India (IN)';
-      category = 'Gaming';
-      avatar = 'https://yt3.googleusercontent.com/ytc/AIdro_mQ1s7xM_0x=s176-c-k-c0x00ffffff-no-rj';
-    } else if (!qLower.includes('payal')) {
-      title = query.replace('@', '');
-      handle = `@${query.replace(/[@\s]/g, '')}`;
-      subs = 1_500_000;
-      views = 240_000_000;
-      videos = 420;
-      joined = 'July 15, 2020';
-      country = 'Global';
-      category = 'Creator';
-      avatar = '';
-    }
-
-    // Grade & Ranks computation
-    let grade = 'B+';
-    if (subs >= 50_000_000) grade = 'A++';
-    else if (subs >= 15_000_000) grade = 'A+';
-    else if (subs >= 8_000_000) grade = 'A';
-    else if (subs >= 4_000_000) grade = 'B+';
-    else if (subs >= 1_000_000) grade = 'B';
-    else if (subs >= 500_000) grade = 'B-';
-    else grade = 'C+';
-
-    const subRank = Math.max(1, Math.round(15_000_000 / Math.pow(Math.max(100, subs), 0.65)));
-    const viewRank = Math.max(1, Math.round(45_000_000 / Math.pow(Math.max(1000, views), 0.38)));
-    const sbRank = Math.round((subRank * 0.4) + (viewRank * 0.6));
-    const countryRank = Math.max(1, Math.round(subRank * 0.08));
-    const catRank = Math.max(1, Math.round(subRank * 0.12));
-
-    // 14-Day Daily Table (Matching Screenshot 3)
-    const avgDailyViews = Math.max(2500, Math.round((views * 0.0042) / 30));
-    const dailyMetrics = [];
-    const today = new Date();
-    let rViews = views;
-    let rSubs = subs;
-
-    // Pseudorandom seed from views
-    let seed = views % 9973;
-    function prng() {
-      seed = (seed * 9301 + 49297) % 233280;
-      return seed / 233280;
-    }
-
-    for (let i = 0; i < 30; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-      const dateStr = d.toISOString().split('T')[0];
-
-      const mult = (dayName === 'Sat' || dayName === 'Sun') ? 1.25 : 0.75 + prng() * 0.45;
-      const dViews = Math.round(avgDailyViews * mult);
-
-      const minEarn = Number(((dViews / 1000) * 0.25).toFixed(2));
-      const maxEarn = Number(((dViews / 1000) * 4.00).toFixed(2));
-
-      let sGain = 0;
-      if (prng() > 0.75) {
-        sGain = subs > 1_000_000 ? 10_000 : 500;
-      }
-
-      dailyMetrics.push({
-        date: `${dayName} ${dateStr}`,
-        raw_date: dateStr,
-        sub_gain: sGain > 0 ? `+${sGain.toLocaleString()}` : '--',
-        total_subs: rSubs.toLocaleString(),
-        total_subs_num: rSubs,
-        views_gained: `+${dViews.toLocaleString()}`,
-        views_gained_num: dViews,
-        cumulative_views: rViews.toLocaleString(),
-        cumulative_views_num: rViews,
-        total_videos: videos.toLocaleString(),
-        earnings_range: `$${Math.round(minEarn)} - $${Math.round(maxEarn)}`,
-        min_earning_usd: minEarn,
-        max_earning_usd: maxEarn
-      });
-
-      rViews = Math.max(0, rViews - dViews);
-      rSubs = Math.max(0, rSubs - sGain);
-    }
-
-    const mViews = dailyMetrics.slice(0, 14).reduce((sum, r) => sum + r.views_gained_num, 0) * 2;
-    const mSubs = Math.max(10_000, Math.round(subs * 0.0025));
-    const mMin = (mViews / 1000) * 0.25;
-    const mMax = (mViews / 1000) * 4.00;
-
-    // Monthly chart data (12 months)
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const chartViews = [];
-    const chartSubs = [];
-    for (let m = 0; m < 12; m++) {
-      chartViews.push(Math.round(mViews * (0.8 + prng() * 0.45)));
-      chartSubs.push(Math.round(mSubs * (0.7 + prng() * 0.6)));
-    }
-
-    return {
-      success: true,
-      title,
-      handle,
-      channel_url: `https://www.youtube.com/${handle}`,
-      avatar,
-      subscribers_text: `${(subs / 1_000_000).toFixed(2)}M`,
-      subscribers_count: subs,
-      total_views_text: views.toLocaleString(),
-      total_views_count: views,
-      videos_text: videos.toLocaleString(),
-      videos_count: videos,
-      joined_date: joined,
-      country,
-      category,
-      ranks: {
-        grade,
-        sb_rank: sbRank,
-        subs_rank: subRank,
-        views_rank: viewRank,
-        country_rank: countryRank,
-        category_rank: catRank
-      },
-      thirty_day_stats: {
-        views: mViews,
-        subs: mSubs,
-        monthly_earnings_min: mMin,
-        monthly_earnings_max: mMax,
-        yearly_earnings_min: mMin * 12,
-        yearly_earnings_max: mMax * 12
-      },
-      daily_metrics: dailyMetrics,
-      chart_data: {
-        months,
-        views: chartViews,
-        subs: chartSubs
-      }
-    };
-  }
-
-  // ─────────────────────────────────────────────
   // RENDER COMPLETE CHANNEL INTELLIGENCE DASHBOARD
   // ─────────────────────────────────────────────
 
@@ -701,10 +526,25 @@
     if (!data) return;
 
     // 1. Channel Profile Banner (Screenshot 2)
-    if (el.chAvatarImg && data.avatar) el.chAvatarImg.src = data.avatar;
+    if (el.chAvatarImg) {
+      el.chAvatarImg.referrerPolicy = 'no-referrer';
+      if (data.avatar) {
+        el.chAvatarImg.src = data.avatar;
+      } else {
+        el.chAvatarImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2364748b"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>';
+      }
+      el.chAvatarImg.onerror = function() {
+        this.onerror = null;
+        this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2364748b"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>';
+      };
+    }
     if (el.chTitle) el.chTitle.textContent = data.title;
     if (el.chHandle) el.chHandle.textContent = data.handle || '';
-    if (el.chSubs) el.chSubs.textContent = formatViews(data.subscribers_count);
+    if (el.chSubs) {
+      el.chSubs.textContent = data.subscribers_text
+        ? data.subscribers_text.replace(/subscribers?/i, '').trim()
+        : formatViews(data.subscribers_count);
+    }
     if (el.chViews) el.chViews.textContent = data.total_views_count ? data.total_views_count.toLocaleString() : data.total_views_text;
     if (el.chVideos) el.chVideos.textContent = data.videos_count ? data.videos_count.toLocaleString() : data.videos_text;
     if (el.chJoined) el.chJoined.textContent = data.joined_date || 'March 1, 2019';
