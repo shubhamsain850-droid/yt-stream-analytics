@@ -2157,8 +2157,15 @@ function initMobileScrollHints() {
         hint.style.display = 'flex';
         hint.style.opacity = '1';
         hint.style.transform = 'translateX(0)';
+        hint.style.pointerEvents = 'auto';
       }
     }
+
+    // Tap on the glass button to smoothly scroll right
+    hint.addEventListener('click', (e) => {
+      e.preventDefault();
+      container.scrollBy({ left: 140, behavior: 'smooth' });
+    });
 
     container.addEventListener('scroll', updateHint, { passive: true });
     window.addEventListener('resize', updateHint, { passive: true });

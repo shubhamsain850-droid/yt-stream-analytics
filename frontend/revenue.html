@@ -34,7 +34,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=5.0">
+  <link rel="stylesheet" href="styles.css?v=5.1">
 </head>
 
 <body>
@@ -93,12 +93,12 @@
             <span class="nav-new-pill">NEW</span>
           </a>
         </nav>
-        <div class="scroll-edge-hint" id="pageNavHint" title="Slide for more options">
-          <div class="hint-pill">
-            <span>Slide</span>
-            <span class="hint-arrow">›</span>
+        <div class="scroll-edge-hint" id="pageNavHint" title="Slide for more options" role="button" aria-label="Slide for more options">
+          <div class="glass-cue-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="cue-chevron"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </div>
         </div>
+      </div>
       </div>
 
       <div class="nav-actions">
@@ -488,7 +488,7 @@
   <div class="toast" id="toast"></div>
 
   <!-- Scripts -->
-  <script src="revenue.js?v=5.0"></script>
+  <script src="revenue.js?v=5.1"></script>
 </body>
 
 </html>
