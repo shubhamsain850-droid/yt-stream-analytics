@@ -7569,3 +7569,13 @@ body.light-mode .glass-cue-btn {
     display: none !important;
   }
 }
+
+
+/* ─────────────────────────────────────────────────────────
+   HIGH PERFORMANCE VIRTUAL RENDERING FOR MASSIVE CHAT LOGS
+   ───────────────────────────────────────────────────────── */
+.vm-table tbody tr,
+.feed-msg-row {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 45px;
+}

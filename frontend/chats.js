@@ -1096,8 +1096,7 @@
       return;
     }
 
-    const slice = messages.slice(0, 500);
-    el.vmTableBody.innerHTML = slice.map(m => {
+    el.vmTableBody.innerHTML = messages.map(m => {
       let rowClass = '';
       let eventPill = `<span class="event-badge badge-chat">💬 Chat</span>`;
 
@@ -1172,8 +1171,7 @@
       return;
     }
 
-    const slice = messages.slice(0, 300);
-    el.vmFeedStream.innerHTML = slice.map(m => {
+    el.vmFeedStream.innerHTML = messages.map(m => {
       let badgesHtml = '';
       if (m.badges && m.badges.length > 0) {
         if (m.badges.includes('OWNER')) badgesHtml += `<span title="Streamer">👑</span>`;
@@ -1371,8 +1369,7 @@
       return;
     }
 
-    const slice = messages.slice(0, 500);
-    el.chatFeedTableBody.innerHTML = slice.map(m => {
+    el.chatFeedTableBody.innerHTML = messages.map(m => {
       let rowClass = '';
       let eventPill = `<span class="event-badge badge-chat">Chat</span>`;
 
@@ -1492,8 +1489,7 @@
       return;
     }
 
-    const slice = comments.slice(0, 500);
-    el.commentsTableBody.innerHTML = slice.map(c => {
+    el.commentsTableBody.innerHTML = comments.map(c => {
       const avatarHtml = c.author_avatar ? `<img src="${c.author_avatar}" class="comment-avatar" alt="${escapeHtml(c.author)}" loading="lazy">` : `<div class="comment-avatar-placeholder">👤</div>`;
       let badges = '';
       if (c.is_pinned) badges += `<span class="comm-badge pinned" title="Pinned by creator">📌 Pinned</span> `;
