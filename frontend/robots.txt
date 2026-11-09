@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://yt-stream-analytics.pages.dev/sitemap.xml
+Sitemap: https://tubemetrix.pages.dev/sitemap.xml
 
 # Disallow admin or private directories (none currently)
 # Disallow: /admin/
