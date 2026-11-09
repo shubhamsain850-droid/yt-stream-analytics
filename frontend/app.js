@@ -1,5 +1,5 @@
-/**
- * StreamVault — YouTube Live Stream Earning, Super Chat, Memberships & Jewels Analytics
+﻿/**
+ * TubeMetrix — YouTube Live Stream Earning, Super Chat, Memberships & Jewels Analytics
  * Connected to live FastAPI backend on Hugging Face: https://shubhamsain858-kickcuttr-api.hf.space
  */
 
@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Theme Engine (YouTube Studio Dark & Light Mode) ──
 function setupTheme() {
-  const saved = localStorage.getItem('streamvault_theme') || 'dark';
+  const saved = localStorage.getItem('TubeMetrix_theme') || 'dark';
   applyTheme(saved);
 
   if (elements.themeToggleBtn) {
@@ -263,7 +263,7 @@ function setupTheme() {
 
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('streamvault_theme', theme);
+  localStorage.setItem('TubeMetrix_theme', theme);
 
   if (elements.themeToggleBtn) {
     const sunIcon = elements.themeToggleBtn.querySelector('.sun-icon');
@@ -283,12 +283,12 @@ function applyTheme(theme) {
 // ── Live Daily Forex Engine & Custom Rate Overrides ──
 function setupForexEngine() {
   try {
-    const savedRates = localStorage.getItem('streamvault_fx_rates');
+    const savedRates = localStorage.getItem('TubeMetrix_fx_rates');
     if (savedRates) {
       const parsed = JSON.parse(savedRates);
       state.exchangeRates = { ...DEFAULT_CURRENCY_RATES, ...parsed };
     }
-    const savedUpdated = localStorage.getItem('streamvault_fx_updated');
+    const savedUpdated = localStorage.getItem('TubeMetrix_fx_updated');
     if (savedUpdated) {
       state.ratesLastUpdated = savedUpdated;
     }
@@ -346,8 +346,8 @@ function setupForexEngine() {
         }
       });
       state.ratesLastUpdated = new Date().toISOString();
-      localStorage.setItem('streamvault_fx_rates', JSON.stringify(state.exchangeRates));
-      localStorage.setItem('streamvault_fx_updated', state.ratesLastUpdated);
+      localStorage.setItem('TubeMetrix_fx_rates', JSON.stringify(state.exchangeRates));
+      localStorage.setItem('TubeMetrix_fx_updated', state.ratesLastUpdated);
       updateForexSummaryPill();
       if (elements.fxModalBackdrop) elements.fxModalBackdrop.classList.remove('active');
       if (state.results) renderAllResults(state.results);
@@ -359,8 +359,8 @@ function setupForexEngine() {
     elements.resetFxRatesBtn.addEventListener('click', () => {
       state.exchangeRates = { ...DEFAULT_CURRENCY_RATES };
       state.ratesLastUpdated = null;
-      localStorage.removeItem('streamvault_fx_rates');
-      localStorage.removeItem('streamvault_fx_updated');
+      localStorage.removeItem('TubeMetrix_fx_rates');
+      localStorage.removeItem('TubeMetrix_fx_updated');
       renderForexInputsGrid();
       updateForexSummaryPill();
       if (state.results) renderAllResults(state.results);
@@ -395,8 +395,8 @@ async function fetchLiveForexRates(showStatus = false) {
         }
       }
       state.ratesLastUpdated = new Date().toISOString();
-      localStorage.setItem('streamvault_fx_rates', JSON.stringify(state.exchangeRates));
-      localStorage.setItem('streamvault_fx_updated', state.ratesLastUpdated);
+      localStorage.setItem('TubeMetrix_fx_rates', JSON.stringify(state.exchangeRates));
+      localStorage.setItem('TubeMetrix_fx_updated', state.ratesLastUpdated);
       updateForexSummaryPill();
       renderForexInputsGrid();
       if (state.results) renderAllResults(state.results);
@@ -1760,7 +1760,7 @@ function exportToExcel() {
       <x:ExcelWorkbook>
         <x:ExcelWorksheets>
           <x:ExcelWorksheet>
-            <x:Name>StreamVault Report</x:Name>
+            <x:Name>TubeMetrix Report</x:Name>
             <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
           </x:ExcelWorksheet>
         </x:ExcelWorksheets>
@@ -1783,7 +1783,7 @@ function exportToExcel() {
   </head>
   <body>
     <table>
-      <tr><td colspan="7" class="header-title">StreamVault — YouTube Live Financial Audit Statement</td></tr>
+      <tr><td colspan="7" class="header-title">TubeMetrix — YouTube Live Financial Audit Statement</td></tr>
       <tr><td colspan="7" class="header-sub">Generated On: ${dateStr} | Zero Fake Data Guarantee</td></tr>
       <tr><td colspan="7"></td></tr>
       <tr><td colspan="7" class="section-banner">1. EXECUTIVE REVENUE OVERVIEW</td></tr>
@@ -1912,7 +1912,7 @@ function exportToNotepad() {
 
   let lines = [];
   lines.push(sep);
-  lines.push(center("STREAMVAULT — YOUTUBE LIVE EARNINGS & AUDIT REPORT"));
+  lines.push(center("TubeMetrix — YOUTUBE LIVE EARNINGS & AUDIT REPORT"));
   lines.push(center("Verified Financial Statement for Creators, Managers & Editors"));
   lines.push(sep);
   lines.push(`Generated On       : ${dateStr}`);
@@ -2016,7 +2016,7 @@ function exportToNotepad() {
   });
 
   lines.push(sep);
-  lines.push(center("END OF STREAMVAULT AUDIT REPORT — VERIFIED GENUINE DATA"));
+  lines.push(center("END OF TubeMetrix AUDIT REPORT — VERIFIED GENUINE DATA"));
   lines.push(sep);
 
   const textContent = lines.join("\r\n");
@@ -2051,3 +2051,4 @@ function downloadFile(content, fileName, contentType) {
   a.click();
   URL.revokeObjectURL(a.href);
 }
+

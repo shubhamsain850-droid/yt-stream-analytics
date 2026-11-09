@@ -1,5 +1,5 @@
-/**
- * StreamVault — YouTube Live Chat & Comments Downloader & Interactive View Engine
+﻿/**
+ * TubeMetrix — YouTube Live Chat & Comments Downloader & Interactive View Engine
  * High-Speed In-Memory Client Engine (100% Client-Side Processing & Offline Viewer)
  */
 
@@ -20,7 +20,7 @@
     commentsData: null,
     filteredComments: [],
     activeCommSort: 'likes-desc',
-    theme: localStorage.getItem('streamvault_theme') || localStorage.getItem('theme') || 'dark',
+    theme: localStorage.getItem('TubeMetrix_theme') || localStorage.getItem('theme') || 'dark',
 
     lastExtractionType: 'chats',
 
@@ -197,7 +197,7 @@
     if (el.themeToggleBtn) {
       el.themeToggleBtn.addEventListener('click', () => {
         state.theme = state.theme === 'light' ? 'dark' : 'light';
-        localStorage.setItem('streamvault_theme', state.theme);
+        localStorage.setItem('TubeMetrix_theme', state.theme);
         localStorage.setItem('theme', state.theme);
         applyTheme(state.theme);
       });
@@ -205,12 +205,12 @@
   }
 
   function initCurrency() {
-    const saved = localStorage.getItem('streamvault_currency') || 'INR';
+    const saved = localStorage.getItem('TubeMetrix_currency') || 'INR';
     const currBtns = document.querySelectorAll('.currency-switch .curr-btn[data-curr]');
     const moreSelect = document.getElementById('moreCurrencySelect');
 
     function setCurr(c) {
-      localStorage.setItem('streamvault_currency', c);
+      localStorage.setItem('TubeMetrix_currency', c);
       currBtns.forEach(b => {
         if (b.dataset.curr === c) b.classList.add('active');
         else b.classList.remove('active');
@@ -1577,7 +1577,7 @@
       filtered: true,
       messages: msgs
     };
-    downloadBlob(JSON.stringify(exportObj, null, 2), `StreamVault_ViewExport_${exportObj.stream_id}.json`, 'application/json');
+    downloadBlob(JSON.stringify(exportObj, null, 2), `TubeMetrix_ViewExport_${exportObj.stream_id}.json`, 'application/json');
   }
 
   // ─────────────────────────────────────────────
@@ -1607,7 +1607,7 @@
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
     <head><meta charset="utf-8"></head>
     <body>
-      <h2>StreamVault — YouTube Live Chat Report</h2>
+      <h2>TubeMetrix — YouTube Live Chat Report</h2>
       <p>Stream: ${title} | Total Messages: ${msgs.length}</p>
       <table border="1">
         <tr style="background:#cc0000; color:#fff; font-weight:bold;">
@@ -1628,7 +1628,7 @@
       </table>
     </body></html>`;
 
-    downloadBlob(html, `StreamVault_Chat_${title}.xls`, 'application/vnd.ms-excel');
+    downloadBlob(html, `TubeMetrix_Chat_${title}.xls`, 'application/vnd.ms-excel');
   }
 
   function exportChatToTxt(messagesList, metaData) {
@@ -1641,7 +1641,7 @@
 
     let lines = [
       `================================================================================`,
-      ` STREAMVAULT — YOUTUBE LIVE CHAT REPLAY EXPORT`,
+      ` TubeMetrix — YOUTUBE LIVE CHAT REPLAY EXPORT`,
       ` Stream ID: ${title} | Total Exported Messages: ${msgs.length}`,
       ` Generated: ${new Date().toLocaleString()}`,
       `================================================================================`,
@@ -1653,7 +1653,7 @@
       lines.push(`[${m.time || '0:00'}] [${m.author}] ${prefix}${m.message}`);
     });
 
-    downloadBlob(lines.join('\n'), `StreamVault_Chat_${title}.txt`, 'text/plain;charset=utf-8');
+    downloadBlob(lines.join('\n'), `TubeMetrix_Chat_${title}.txt`, 'text/plain;charset=utf-8');
   }
 
   function exportChatToCsv(messagesList, metaData) {
@@ -1679,13 +1679,13 @@
       csv.push(row.join(','));
     });
 
-    downloadBlob(csv.join('\n'), `StreamVault_Chat_${title}.csv`, 'text/csv;charset=utf-8');
+    downloadBlob(csv.join('\n'), `TubeMetrix_Chat_${title}.csv`, 'text/csv;charset=utf-8');
   }
 
   function exportChatToJson(dataObj) {
     if (!dataObj) return;
     const jsonStr = JSON.stringify(dataObj, null, 2);
-    downloadBlob(jsonStr, `StreamVault_Chat_${dataObj.stream_id || 'export'}.json`, 'application/json');
+    downloadBlob(jsonStr, `TubeMetrix_Chat_${dataObj.stream_id || 'export'}.json`, 'application/json');
   }
 
   function exportCommToExcel() {
@@ -1700,7 +1700,7 @@
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
     <head><meta charset="utf-8"></head>
     <body>
-      <h2>StreamVault — YouTube Video Comments Export</h2>
+      <h2>TubeMetrix — YouTube Video Comments Export</h2>
       <p>Video: ${escapeHtml(state.commentsData.title || title)} | Total Comments: ${comms.length}</p>
       <table border="1">
         <tr style="background:#cc0000; color:#fff; font-weight:bold;">
@@ -1720,7 +1720,7 @@
       </table>
     </body></html>`;
 
-    downloadBlob(html, `StreamVault_Comments_${title}.xls`, 'application/vnd.ms-excel');
+    downloadBlob(html, `TubeMetrix_Comments_${title}.xls`, 'application/vnd.ms-excel');
   }
 
   function exportCommToTxt() {
@@ -1730,7 +1730,7 @@
 
     let lines = [
       `================================================================================`,
-      ` STREAMVAULT — YOUTUBE VIDEO COMMENTS EXPORT`,
+      ` TubeMetrix — YOUTUBE VIDEO COMMENTS EXPORT`,
       ` Video: ${state.commentsData.title || title} (${title})`,
       ` Total Comments: ${comms.length}`,
       ` Generated: ${new Date().toLocaleString()}`,
@@ -1744,7 +1744,7 @@
       lines.push('--------------------------------------------------------------------------------');
     });
 
-    downloadBlob(lines.join('\n'), `StreamVault_Comments_${title}.txt`, 'text/plain;charset=utf-8');
+    downloadBlob(lines.join('\n'), `TubeMetrix_Comments_${title}.txt`, 'text/plain;charset=utf-8');
   }
 
   function exportCommToCsv() {
@@ -1766,12 +1766,12 @@
       ].join(','));
     });
 
-    downloadBlob(csv.join('\n'), `StreamVault_Comments_${title}.csv`, 'text/csv;charset=utf-8');
+    downloadBlob(csv.join('\n'), `TubeMetrix_Comments_${title}.csv`, 'text/csv;charset=utf-8');
   }
 
   function exportCommToJson() {
     if (!state.commentsData) return;
-    downloadBlob(JSON.stringify(state.commentsData, null, 2), `StreamVault_Comments_${state.commentsData.video_id || 'export'}.json`, 'application/json');
+    downloadBlob(JSON.stringify(state.commentsData, null, 2), `TubeMetrix_Comments_${state.commentsData.video_id || 'export'}.json`, 'application/json');
   }
 
   // ─────────────────────────────────────────────
@@ -2127,3 +2127,4 @@
   });
 
 })();
+

@@ -1,0 +1,17 @@
+{
+  "name": "TubeMetrix — YouTube Analytics & Live Intelligence",
+  "short_name": "TubeMetrix",
+  "description": "YouTube Live Stream Super Chat Calculator, Comments Downloader and Channel Analytics Intelligence.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0f1d",
+  "theme_color": "#ff0033",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "64x64 128x128 256x256 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

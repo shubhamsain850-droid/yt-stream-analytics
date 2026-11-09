@@ -1,5 +1,5 @@
-/**
- * StreamVault — YouTube Channel Statistics & SocialBlade-Grade Intelligence Engine
+﻿/**
+ * TubeMetrix — YouTube Channel Statistics & SocialBlade-Grade Intelligence Engine
  * Fast, accurate, real-time creator analytics, subscriber rankings, 30-day growth, and daily metrics.
  */
 
@@ -38,8 +38,8 @@
   };
 
   const state = {
-    currency: localStorage.getItem('streamvault_currency') || 'INR',
-    theme: localStorage.getItem('streamvault_theme') || localStorage.getItem('theme') || 'dark',
+    currency: localStorage.getItem('TubeMetrix_currency') || 'INR',
+    theme: localStorage.getItem('TubeMetrix_theme') || localStorage.getItem('theme') || 'dark',
     activeChannelData: null,
     searchDebounceTimer: null,
     activeChartTab: 'views', // 'views' | 'subs'
@@ -193,7 +193,7 @@
     if (el.themeToggleBtn) {
       el.themeToggleBtn.addEventListener('click', () => {
         state.theme = state.theme === 'light' ? 'dark' : 'light';
-        localStorage.setItem('streamvault_theme', state.theme);
+        localStorage.setItem('TubeMetrix_theme', state.theme);
         localStorage.setItem('theme', state.theme);
         applyTheme(state.theme);
       });
@@ -222,7 +222,7 @@
     function setCurr(c) {
       if (!CURRENCY_MAP[c]) return;
       state.currency = c;
-      localStorage.setItem('streamvault_currency', c);
+      localStorage.setItem('TubeMetrix_currency', c);
 
       el.currBtns.forEach(btn => {
         if (btn.dataset.curr === c) btn.classList.add('active');
@@ -753,7 +753,7 @@
 
         const st = d.thirty_day_stats || {};
         const r = d.ranks || {};
-        const report = `📊 **StreamVault Channel Statistics: ${d.title}** (${d.handle})\n` +
+        const report = `📊 **TubeMetrix Channel Statistics: ${d.title}** (${d.handle})\n` +
           `• **Subscribers:** ${formatViews(d.subscribers_count)} | **Total Views:** ${d.total_views_text}\n` +
           `• **SocialBlade Grade:** ${r.grade} | **Global SB Rank:** #${r.sb_rank?.toLocaleString()}\n` +
           `• **30-Day Views:** ${formatViews(st.views)} | **30-Day Subs:** +${formatViews(st.subs)}\n` +
@@ -860,3 +860,4 @@
   });
 
 })();
+

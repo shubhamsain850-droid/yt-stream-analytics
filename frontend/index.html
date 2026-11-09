@@ -1,27 +1,50 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>StreamVault — YouTube Live Stream Earning & Chat Analytics</title>
-  <meta name="description" content="Calculate and export YouTube Live Stream Super Chats, Memberships, Jewels Gifts and Earning Reports with single link or bulk channel dates.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <title>TubeMetrix — YouTube Live Stream Earnings &amp; Super Chat Revenue Auditor</title>
+  <meta name="description" content="Calculate exact YouTube live stream earnings — track Super Chat revenue, Memberships &amp; YouTube Jewels to INR/USD. Free live stream earnings auditor for creators worldwide.">
+    <meta name="keywords" content="youtube live stream earnings calculator, super chat revenue tracker, youtube membership earnings calculator, youtube jewels calculator, youtube stream revenue audit, superchat to INR converter, download youtube superchat data">
+  <meta name="author" content="TubeMetrix">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://yt-stream-analytics.pages.dev/">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="manifest" href="manifest.json">
+  <meta property="og:image" content="https://yt-stream-analytics.pages.dev/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:image" content="https://yt-stream-analytics.pages.dev/og-image.png">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yt-stream-analytics.pages.dev/">
+  <meta property="og:title" content="TubeMetrix — YouTube Live Stream Earnings &amp; Super Chat Revenue Auditor">
+  <meta property="og:description" content="Calculate exact YouTube live stream earnings — track Super Chat revenue, Memberships &amp; YouTube Jewels. Free auditor for creators.">
+  <meta property="og:site_name" content="TubeMetrix">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TubeMetrix — YouTube Super Chat &amp; Live Stream Earnings Calculator">
+  <meta name="twitter:description" content="Free tool to audit YouTube live stream revenue: Super Chats, Memberships, YouTube Jewels with multi-currency support. Export to Excel/CSV.">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebApplication","name":"TubeMetrix — YouTube Live Stream Earnings Auditor","url":"https://yt-stream-analytics.pages.dev/","description":"Calculate exact YouTube live stream earnings from Super Chats, Memberships and YouTube Jewels. Export to CSV, Excel and TXT.","applicationCategory":"FinanceApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["YouTube Super Chat Revenue Calculator","YouTube Jewels to INR Converter","YouTube Membership Earnings Tracker","Bulk Live Stream Batch Export","Multi-Currency Forex Conversion","CSV and Excel Export"]}
+  </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much do YouTubers earn from Super Chats?","acceptedAnswer":{"@type":"Answer","text":"YouTubers keep approximately 70% of Super Chat revenue after YouTube's 30% cut. TubeMetrix calculates exact net creator earnings for every stream."}},{"@type":"Question","name":"How to calculate YouTube live stream revenue?","acceptedAnswer":{"@type":"Answer","text":"Paste your YouTube live stream URL into TubeMetrix. The tool fetches all Super Chats, Memberships, and YouTube Jewels gifts and calculates total gross and net creator earnings."}},{"@type":"Question","name":"What are YouTube Jewels and how much are they worth?","acceptedAnswer":{"@type":"Answer","text":"YouTube Jewels are virtual gifts sent during live streams in India. The creator rate is approximately ₹1.20 per jewel. TubeMetrix automatically converts all jewel gifts to INR/USD."}},{"@type":"Question","name":"Can I export YouTube Super Chat data to Excel?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix exports full Super Chat logs, Membership records, and Jewels data to Excel (.xls), CSV, and Notepad (.txt) with one click."}},{"@type":"Question","name":"Does TubeMetrix support bulk export for multiple streams?","acceptedAnswer":{"@type":"Answer","text":"Yes, three modes: Single Stream, Channel & Date Range, and Multi-URL Batch (up to 25 streams simultaneously)."}}]}
+  </script><link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=3.1">
+  <link rel="stylesheet" href="styles.css?v=4.0">
 </head>
 <body>
   <!-- Top Navigation Bar -->
   <header class="top-nav">
     <div class="nav-container">
-      <a href="index.html" class="logo" title="StreamVault Home">
+      <a href="index.html" class="logo" title="TubeMetrix Home">
         <div class="logo-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="23 7 16 12 23 17 23 7"></polygon>
             <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
           </svg>
         </div>
-        <span class="logo-text">Stream<span>Vault</span></span>
+        <span class="logo-text">Tube<span>Metrix</span></span>
         <span class="badge-beta">Beta</span>
       </a>
 
@@ -543,6 +566,35 @@
         </div>
       </div>
     </section>
+
+    <!-- FAQ Section for SEO -->
+    <section class="info-section" style="margin-top: 0;">
+      <div style="max-width: 860px; margin: 0 auto; padding: 0 16px;">
+        <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; text-align: center;">Frequently Asked Questions</h2>
+        <div class="faq-accordion">
+          <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">How much do YouTubers earn from Super Chats? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">YouTubers keep approximately 70% of Super Chat revenue after YouTube's 30% platform cut. For example, a ₹100 Super Chat earns the creator roughly ₹70. TubeMetrix calculates exact net creator earnings after all fees for every stream automatically.</p>
+          </details>
+          <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">How to calculate YouTube live stream revenue? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Simply paste your YouTube live stream URL or Video ID into TubeMetrix. The tool fetches all Super Chats, Memberships, and YouTube Jewels gifts and calculates total gross and net creator earnings with live forex conversion to your chosen currency.</p>
+          </details>
+          <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">What are YouTube Jewels and how much are they worth? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">YouTube Jewels (also called YouTube Gifts) are virtual items sent during live streams, primarily in India. The gross rate is ₹1.20 per jewel, and after YouTube's cut the creator receives approximately ₹0.42 per jewel. TubeMetrix automatically converts all jewel gifts to INR, USD, EUR or any currency.</p>
+          </details>
+          <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">Can I export Super Chat data to Excel or CSV? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Yes! TubeMetrix lets you export full Super Chat logs, Membership records, and Jewels data to Excel (.xls), CSV, and formatted Notepad (.txt) with one click. The exported files are formatted for accountants, tax records, and YouTube editors.</p>
+          </details>
+          <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">Does TubeMetrix support bulk export for multiple live streams? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Yes! TubeMetrix has three modes: (A) Single Stream — paste one URL, (B) Channel & Date Range — automatically fetches all streams from a channel within a date window, and (C) Multi-URL Batch — add up to 25 stream links for simultaneous batch processing.</p>
+          </details>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Live Forex & Exchange Rates Modal -->
@@ -583,20 +635,35 @@
   </div>
 
   <!-- Footer -->
+    <!-- Footer -->
   <footer class="footer">
     <div class="footer-container">
-      <p>© 2026 StreamVault — YouTube Stream Earnings &amp; Chat Intelligence. Made for Content Creators.</p>
-      <div class="footer-links">
-        <span>Privacy Friendly</span>
-        <span>•</span>
-        <span>Client-side Streaming</span>
-        <span>•</span>
-        <span>Fast Processing</span>
+      <div class="footer-brand-col">
+        <div class="logo-text" style="font-size: 1.15rem; font-weight: 800;">Tube<span style="color: var(--accent-red, #ff0033);">Metrix</span></div>
+        <p class="footer-desc">Professional YouTube creator analytics, live stream Super Chat auditor, comments downloader &amp; channel revenue intelligence.</p>
       </div>
+      <div class="footer-links-group">
+        <div class="footer-link-col">
+          <span class="footer-col-title">Tools &amp; Calculators</span>
+          <a href="index.html" class="footer-link">Live Stream Earnings Calculator</a>
+          <a href="chats.html" class="footer-link">Live Chat &amp; Comments Downloader</a>
+          <a href="revenue.html" class="footer-link">Channel Statistics &amp; Analytics</a>
+        </div>
+        <div class="footer-link-col">
+          <span class="footer-col-title">Resources</span>
+          <a href="sitemap.xml" class="footer-link">XML Sitemap</a>
+          <a href="robots.txt" class="footer-link">Robots.txt</a>
+          <span class="footer-link-static">100% Free &amp; Client-Side</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom-bar">
+      <p>© 2026 TubeMetrix. All YouTube data sourced publicly. Made for Creators, MCNs &amp; Channel Managers.</p>
     </div>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=4.0"></script>
 </body>
 </html>
+
 

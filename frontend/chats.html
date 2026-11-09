@@ -1,14 +1,37 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>StreamVault — YouTube Live Chat &amp; Comments Downloader</title>
-  <meta name="description" content="Download YouTube Live Stream chat replays with timestamps and highlighted Superchats, or download all comments from any video.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <title>TubeMetrix — Download YouTube Live Chat &amp; Comments | Bulk Export Tool</title>
+  <meta name="description" content="Download complete YouTube live stream chat logs with timestamps, Superchats &amp; Memberships. Bulk export YouTube comments to CSV, Excel or view in-browser. Free tool.">
+    <meta name="keywords" content="download youtube live chat replay, export youtube live chat to csv, youtube comments downloader, youtube live chat export tool, bulk youtube live chat download, youtube chat log extractor, youtube live stream transcript download">
+  <meta name="author" content="TubeMetrix">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://yt-stream-analytics.pages.dev/chats.html">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="manifest" href="manifest.json">
+  <meta property="og:image" content="https://yt-stream-analytics.pages.dev/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:image" content="https://yt-stream-analytics.pages.dev/og-image.png">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yt-stream-analytics.pages.dev/chats.html">
+  <meta property="og:title" content="TubeMetrix — Download YouTube Live Chat &amp; Comments | Bulk Export Tool">
+  <meta property="og:description" content="Download complete YouTube live stream chat logs with timestamps, Superchats &amp; Memberships. Bulk export YouTube comments to CSV or Excel.">
+  <meta property="og:site_name" content="TubeMetrix">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TubeMetrix — YouTube Live Chat Downloader &amp; Comment Export Tool">
+  <meta name="twitter:description" content="Bulk download YouTube live chat replays, filter Superchats, export comments to Excel/CSV. Free tool for creators and researchers.">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebApplication","name":"TubeMetrix — YouTube Live Chat & Comments Downloader","url":"https://yt-stream-analytics.pages.dev/chats.html","description":"Download YouTube live stream chat replays with timestamps, Superchats and Memberships. Bulk export comments from any YouTube video to CSV or Excel.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["YouTube Live Chat Replay Downloader","YouTube Comments Bulk Export","Superchat Filter & Export","Multi-Stream Batch Download","In-Browser Chat Viewer","CSV and Excel Export"]}
+  </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How to download YouTube live chat replay?","acceptedAnswer":{"@type":"Answer","text":"Paste your YouTube live stream URL into TubeMetrix Live Chat Downloader. The tool fetches the complete chat replay with timestamps, Superchats, and Memberships. Export to CSV, Excel, or TXT instantly."}},{"@type":"Question","name":"Can I export YouTube comments to Excel or CSV?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix supports one-click export of all YouTube video comments to Excel (.xls), CSV, TXT, and JSON. Use Option D (Video Comments) to download comments from any public YouTube video."}},{"@type":"Question","name":"What is the maximum number of live streams I can batch export?","acceptedAnswer":{"@type":"Answer","text":"TubeMetrix supports bulk batch export of up to 25 live streams simultaneously using the Multi-URL Batch mode."}},{"@type":"Question","name":"How to filter Superchats from live chat logs?","acceptedAnswer":{"@type":"Answer","text":"After downloading, open the in-browser Chat Viewer and use the Event Type filter to show only Superchats. Set a minimum Superchat amount filter and sort by highest value."}},{"@type":"Question","name":"Does TubeMetrix work with YouTube Shorts comments?","acceptedAnswer":{"@type":"Answer","text":"Yes, TubeMetrix can download comments from YouTube Shorts, regular videos, and live stream replays. Simply paste the YouTube Shorts URL into the Video Comments tab."}}]}
+  </script><link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=3.1">
+  <link rel="stylesheet" href="styles.css?v=4.0">
 </head>
 <body>
   <!-- Top Navigation Bar -->
@@ -21,7 +44,7 @@
             <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
           </svg>
         </div>
-        <span class="logo-text">Stream<span>Vault</span></span>
+        <span class="logo-text">Tube<span>Metrix</span></span>
         <span class="badge-beta">Beta</span>
       </div>
 
@@ -569,19 +592,62 @@
         </div>
       </div>
     </section>
+
+    <!-- FAQ Section for SEO -->
+    <section class="info-section" style="margin-top: 0;">
+      <div style="max-width: 860px; margin: 0 auto; padding: 0 16px;">
+        <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; text-align: center;">Frequently Asked Questions</h2>
+        <div class="faq-accordion">
+          <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">How to download YouTube live chat replay? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Paste your YouTube live stream URL or Video ID into the Single Live Chat Mode tab. TubeMetrix fetches the complete chat replay with timestamps, Superchats, Memberships, and regular messages — then export to CSV, Excel, or TXT.</p>
+          </details>
+          <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">Can I export YouTube comments to Excel or CSV? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Yes! Use Option D (Video Comments) to fetch all comments from any YouTube video. Export to Excel (.xls), CSV, TXT, or JSON with one click. Works with regular videos, Shorts, and live stream replays.</p>
+          </details>
+          <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">What is the maximum number of live streams I can batch export? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">TubeMetrix supports batch export of up to 25 live streams simultaneously using the Multi-URL Batch mode. You can also use Channel & Date Range mode to fetch all streams from an entire channel within a custom date range.</p>
+          </details>
+          <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">How to filter Superchats from live chat logs? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">After downloading, open the in-browser Chat Viewer and use the Event Type filter to show only Superchats. Set a minimum Superchat amount filter (e.g. ₹100+, ₹1000+) and sort by highest value to find your top supporters.</p>
+          </details>
+          <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">Does TubeMetrix work with YouTube Shorts comments? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Yes! TubeMetrix can download comments from YouTube Shorts, regular long-form videos, and live stream replays. Just paste the YouTube Shorts URL or video ID into the Video Comments (Option D) tab.</p>
+          </details>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Footer -->
+    <!-- Footer -->
   <footer class="footer">
     <div class="footer-container">
-      <p>© 2026 StreamVault — YouTube Stream Earnings, Live Chat &amp; Comments Intelligence. Made for Content Creators.</p>
-      <div class="footer-links">
-        <span>Privacy Friendly</span>
-        <span>•</span>
-        <span>Client-side Streaming</span>
-        <span>•</span>
-        <span>Fast Processing</span>
+      <div class="footer-brand-col">
+        <div class="logo-text" style="font-size: 1.15rem; font-weight: 800;">Tube<span style="color: var(--accent-red, #ff0033);">Metrix</span></div>
+        <p class="footer-desc">Professional YouTube creator analytics, live stream Super Chat auditor, comments downloader &amp; channel revenue intelligence.</p>
       </div>
+      <div class="footer-links-group">
+        <div class="footer-link-col">
+          <span class="footer-col-title">Tools &amp; Calculators</span>
+          <a href="index.html" class="footer-link">Live Stream Earnings Calculator</a>
+          <a href="chats.html" class="footer-link">Live Chat &amp; Comments Downloader</a>
+          <a href="revenue.html" class="footer-link">Channel Statistics &amp; Analytics</a>
+        </div>
+        <div class="footer-link-col">
+          <span class="footer-col-title">Resources</span>
+          <a href="sitemap.xml" class="footer-link">XML Sitemap</a>
+          <a href="robots.txt" class="footer-link">Robots.txt</a>
+          <span class="footer-link-static">100% Free &amp; Client-Side</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom-bar">
+      <p>© 2026 TubeMetrix. All YouTube data sourced publicly. Made for Creators, MCNs &amp; Channel Managers.</p>
     </div>
   </footer>
 
@@ -743,6 +809,7 @@
     </div>
   </div>
 
-  <script src="chats.js?v=3.1"></script>
+  <script src="chats.js?v=4.0"></script>
 </body>
 </html>
+
