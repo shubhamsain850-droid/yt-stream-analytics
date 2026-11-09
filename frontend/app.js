@@ -236,6 +236,7 @@ const elements = {
 
 // ── Initialization ──
 document.addEventListener('DOMContentLoaded', () => {
+  initMobileScrollHints();
   setupTheme();
   setupForexEngine();
   setupCurrencySwitcher();
@@ -2051,3 +2052,49 @@ function downloadFile(content, fileName, contentType) {
   URL.revokeObjectURL(a.href);
 }
 
+
+// ── Mobile Horizontal Scroll Hint & Micro-Nudge Engine ──
+function initMobileScrollHints() {
+  const configs = [
+    { containerId: 'mainPageNav', hintId: 'pageNavHint' },
+    { containerId: 'toolModeTabs', hintId: 'modeTabsHint' }
+  ];
+
+  configs.forEach(({ containerId, hintId }) => {
+    const container = document.getElementById(containerId);
+    const hint = document.getElementById(hintId);
+    if (!container || !hint) return;
+
+    function updateHint() {
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      if (maxScroll <= 8) {
+        hint.style.display = 'none';
+      } else if (container.scrollLeft >= 20) {
+        hint.style.opacity = '0';
+        hint.style.transform = 'translateX(6px)';
+        hint.style.pointerEvents = 'none';
+      } else {
+        hint.style.display = 'flex';
+        hint.style.opacity = '1';
+        hint.style.transform = 'translateX(0)';
+      }
+    }
+
+    container.addEventListener('scroll', updateHint, { passive: true });
+    window.addEventListener('resize', updateHint, { passive: true });
+    updateHint();
+
+    // Subtle micro-nudge after page load to demonstrate swiping to the user
+    if (window.innerWidth <= 640) {
+      setTimeout(() => {
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        if (maxScroll > 15 && container.scrollLeft === 0) {
+          container.scrollTo({ left: 35, behavior: 'smooth' });
+          setTimeout(() => {
+            container.scrollTo({ left: 0, behavior: 'smooth' });
+          }, 500);
+        }
+      }, 600);
+    }
+  });
+}

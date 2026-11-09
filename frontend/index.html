@@ -31,7 +31,7 @@
   </script><link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4.6">
+  <link rel="stylesheet" href="styles.css?v=5.0">
 </head>
 <body>
   <!-- Top Navigation Bar -->
@@ -70,21 +70,32 @@
       </a>
 
       <!-- Main Page Switcher Tabs -->
-      <nav class="page-nav">
-        <a href="/" class="nav-tab-link active">
-          <span class="nav-tab-icon">💰</span>
-          <span>Earnings Auditor</span>
-        </a>
-        <a href="/chats" class="nav-tab-link">
-          <span class="nav-tab-icon">💬</span>
-          <span>Live Chat &amp; Comments</span>
-        </a>
-        <a href="/revenue" class="nav-tab-link">
-          <span class="nav-tab-icon">📊</span>
-          <span>Channel Analytics</span>
-          <span class="nav-new-pill">NEW</span>
-        </a>
-      </nav>
+      <div class="page-nav-wrapper">
+        <nav class="page-nav" id="mainPageNav">
+          <a href="/" class="nav-tab-link active">
+            <span class="nav-tab-icon">💰</span>
+            <span class="nav-text-full">Earnings Auditor</span>
+            <span class="nav-text-short">Earnings</span>
+          </a>
+          <a href="/chats" class="nav-tab-link ">
+            <span class="nav-tab-icon">💬</span>
+            <span class="nav-text-full">Live Chat &amp; Comments</span>
+            <span class="nav-text-short">Live Chat</span>
+          </a>
+          <a href="/revenue" class="nav-tab-link ">
+            <span class="nav-tab-icon">📊</span>
+            <span class="nav-text-full">Channel Analytics</span>
+            <span class="nav-text-short">Analytics</span>
+            <span class="nav-new-pill">NEW</span>
+          </a>
+        </nav>
+        <div class="scroll-edge-hint" id="pageNavHint" title="Slide for more options">
+          <div class="hint-pill">
+            <span>Slide</span>
+            <span class="hint-arrow">›</span>
+          </div>
+        </div>
+      </div>
 
       <div class="nav-actions">
                 <button class="theme-toggle-btn" id="themeToggleBtn" type="button" title="Switch Theme (Light / Dark)">
@@ -141,8 +152,9 @@
     <!-- Main Tool Container -->
     <div class="tool-card">
       <!-- Input Mode Switcher (Option A, B, C) -->
-      <div class="mode-tabs">
-        <button class="tab-btn active" data-mode="single">
+      <div class="mode-tabs-wrapper">
+        <div class="mode-tabs" id="toolModeTabs">
+          <button class="tab-btn active" data-mode="single">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
           <span>Single Stream</span>
         </button>
@@ -155,6 +167,13 @@
           <span>Multi-URL Batch</span>
           <span class="tab-counter-badge" id="multiTabBadge">0/25 Added</span>
         </button>
+        </div>
+        <div class="scroll-edge-hint" id="modeTabsHint" title="Slide for more modes">
+          <div class="hint-pill">
+            <span>Slide</span>
+            <span class="hint-arrow">›</span>
+          </div>
+        </div>
       </div>
 
       <!-- Mode A: Single Stream Input -->
@@ -692,7 +711,7 @@
     </div>
   </footer>
 
-  <script src="app.js?v=4.5"></script>
+  <script src="app.js?v=5.0"></script>
 </body>
 </html>
 

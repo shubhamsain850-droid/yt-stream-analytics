@@ -7256,3 +7256,153 @@ body.light-mode .curr-select option {
   font-size: 0.82rem !important;
   gap: 6px !important;
 }
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE HORIZONTAL SCROLL DISCOVERY & SWIPE INDICATORS
+   ══════════════════════════════════════════════════════════ */
+.page-nav-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: 18px;
+}
+.page-nav-wrapper .page-nav {
+  margin-left: 0;
+}
+
+.mode-tabs-wrapper {
+  position: relative;
+  width: 100%;
+  display: block;
+  margin-bottom: 24px !important;
+}
+.mode-tabs-wrapper .mode-tabs {
+  margin-bottom: 0 !important;
+}
+
+.scroll-edge-hint {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 68px;
+  pointer-events: none;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+  border-radius: 0 12px 12px 0;
+  z-index: 5;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page-nav-wrapper .scroll-edge-hint {
+  background: linear-gradient(to right, transparent 0%, rgba(31, 31, 31, 0.85) 40%, rgba(31, 31, 31, 0.98) 100%);
+}
+.mode-tabs-wrapper .scroll-edge-hint {
+  background: linear-gradient(to right, transparent 0%, rgba(18, 18, 18, 0.85) 40%, rgba(18, 18, 18, 0.98) 100%);
+}
+
+[data-theme="light"] .page-nav-wrapper .scroll-edge-hint,
+body.light-mode .page-nav-wrapper .scroll-edge-hint {
+  background: linear-gradient(to right, transparent 0%, rgba(241, 243, 245, 0.85) 40%, rgba(241, 243, 245, 0.98) 100%);
+}
+[data-theme="light"] .mode-tabs-wrapper .scroll-edge-hint,
+body.light-mode .mode-tabs-wrapper .scroll-edge-hint {
+  background: linear-gradient(to right, transparent 0%, rgba(235, 235, 235, 0.85) 40%, rgba(235, 235, 235, 0.98) 100%);
+}
+
+.hint-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(255, 0, 51, 0.16);
+  border: 1px solid rgba(255, 0, 51, 0.55);
+  color: #ff3355;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 3px 7px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(255, 0, 51, 0.3);
+  animation: hintPillPulse 1.5s infinite ease-in-out;
+}
+
+[data-theme="light"] .hint-pill,
+body.light-mode .hint-pill {
+  background: rgba(255, 0, 51, 0.08);
+  border-color: rgba(255, 0, 51, 0.45);
+  color: #c40026;
+  box-shadow: 0 2px 8px rgba(255, 0, 51, 0.15);
+}
+
+.hint-pill .hint-arrow {
+  font-size: 0.95rem;
+  line-height: 1;
+  font-weight: 900;
+  display: inline-block;
+  transform: translateY(-0.5px);
+}
+
+@keyframes hintPillPulse {
+  0%, 100% {
+    transform: translateX(0);
+    box-shadow: 0 2px 8px rgba(255, 0, 51, 0.3);
+  }
+  50% {
+    transform: translateX(3px);
+    box-shadow: 0 3px 12px rgba(255, 0, 51, 0.6);
+  }
+}
+
+.nav-text-short {
+  display: none;
+}
+.nav-text-full {
+  display: inline;
+}
+
+@media (max-width: 640px) {
+  .scroll-edge-hint {
+    display: flex !important;
+  }
+
+  .page-nav-wrapper {
+    order: 3 !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-top: 4px !important;
+    display: block !important;
+  }
+
+  .page-nav {
+    width: 100% !important;
+    overflow-x: auto !important;
+    scroll-behavior: smooth !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  .page-nav::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .mode-tabs {
+    overflow-x: auto !important;
+    scroll-behavior: smooth !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  .mode-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Compact text on small mobile screens */
+  .nav-text-short {
+    display: inline !important;
+  }
+  .nav-text-full {
+    display: none !important;
+  }
+}

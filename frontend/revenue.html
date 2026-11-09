@@ -34,7 +34,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4.6">
+  <link rel="stylesheet" href="styles.css?v=5.0">
 </head>
 
 <body>
@@ -74,21 +74,32 @@
       </a>
 
       <!-- Main Page Switcher -->
-      <nav class="page-nav">
-        <a href="/" class="nav-tab-link">
-          <span class="nav-tab-icon">💰</span>
-          <span>Earnings Auditor</span>
-        </a>
-        <a href="/chats" class="nav-tab-link">
-          <span class="nav-tab-icon">💬</span>
-          <span>Live Chat &amp; Comments</span>
-        </a>
-        <a href="/revenue" class="nav-tab-link active">
-          <span class="nav-tab-icon">📊</span>
-          <span>Channel Analytics</span>
-          <span class="nav-new-pill">NEW</span>
-        </a>
-      </nav>
+      <div class="page-nav-wrapper">
+        <nav class="page-nav" id="mainPageNav">
+          <a href="/" class="nav-tab-link ">
+            <span class="nav-tab-icon">💰</span>
+            <span class="nav-text-full">Earnings Auditor</span>
+            <span class="nav-text-short">Earnings</span>
+          </a>
+          <a href="/chats" class="nav-tab-link ">
+            <span class="nav-tab-icon">💬</span>
+            <span class="nav-text-full">Live Chat &amp; Comments</span>
+            <span class="nav-text-short">Live Chat</span>
+          </a>
+          <a href="/revenue" class="nav-tab-link active">
+            <span class="nav-tab-icon">📊</span>
+            <span class="nav-text-full">Channel Analytics</span>
+            <span class="nav-text-short">Analytics</span>
+            <span class="nav-new-pill">NEW</span>
+          </a>
+        </nav>
+        <div class="scroll-edge-hint" id="pageNavHint" title="Slide for more options">
+          <div class="hint-pill">
+            <span>Slide</span>
+            <span class="hint-arrow">›</span>
+          </div>
+        </div>
+      </div>
 
       <div class="nav-actions">
                 <button class="theme-toggle-btn" id="themeToggleBtn" type="button" title="Switch Theme (Light / Dark)">
@@ -477,7 +488,7 @@
   <div class="toast" id="toast"></div>
 
   <!-- Scripts -->
-  <script src="revenue.js?v=4.5"></script>
+  <script src="revenue.js?v=5.0"></script>
 </body>
 
 </html>
