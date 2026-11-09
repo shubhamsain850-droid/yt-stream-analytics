@@ -14,7 +14,7 @@
 
   <!-- Page 2: YouTube Live Chat & Comments Downloader -->
   <url>
-    <loc>https://yt-stream-analytics.pages.dev/chats.html</loc>
+    <loc>https://yt-stream-analytics.pages.dev/chats</loc>
     <lastmod>2026-11-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -22,11 +22,10 @@
 
   <!-- Page 3: YouTube Channel Statistics & Analytics -->
   <url>
-    <loc>https://yt-stream-analytics.pages.dev/revenue.html</loc>
+    <loc>https://yt-stream-analytics.pages.dev/revenue</loc>
     <lastmod>2026-11-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
 </urlset>
-
