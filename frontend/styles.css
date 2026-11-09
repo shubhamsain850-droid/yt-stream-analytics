@@ -6954,3 +6954,217 @@ body.light-mode .logo-icon,
   border-color: rgba(255, 0, 51, 0.5) !important;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2) !important;
 }
+
+/* ══════════════════════════════════════════════════════════
+   PREMIUM REFINED NAV ACTIONS (THEME TOGGLE & CURRENCY SWITCH)
+   ══════════════════════════════════════════════════════════ */
+.nav-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+/* 1. Theme Toggle Button */
+.theme-toggle-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  height: 36px !important;
+  padding: 0 14px !important;
+  border-radius: 9999px !important;
+  background: var(--bg-card, #0e1526) !important;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)) !important;
+  color: var(--text-primary, #ffffff) !important;
+  font-family: var(--font-main) !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  user-select: none !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+.theme-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 0, 51, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+.theme-icon {
+  font-size: 0.95rem !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.theme-text {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.2px !important;
+  white-space: nowrap !important;
+}
+
+/* 2. Currency Switcher Segmented Control */
+.currency-switch {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  height: 36px !important;
+  padding: 3px 5px !important;
+  border-radius: 9999px !important;
+  background: var(--bg-card, #0e1526) !important;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)) !important;
+  white-space: nowrap !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+.currency-label {
+  font-size: 0.76rem !important;
+  font-weight: 600 !important;
+  color: var(--text-muted, #94a3b8) !important;
+  padding: 0 4px 0 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  user-select: none !important;
+}
+
+.curr-btn {
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-secondary, #94a3b8) !important;
+  font-family: var(--font-main) !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  height: 28px !important;
+  padding: 0 10px !important;
+  border-radius: 9999px !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.curr-btn:hover:not(.active) {
+  color: var(--text-primary, #ffffff) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.curr-btn.active {
+  background: #ff0033 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(255, 0, 51, 0.35) !important;
+}
+
+.curr-select {
+  background: transparent !important;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12)) !important;
+  color: var(--text-secondary, #94a3b8) !important;
+  font-family: var(--font-main) !important;
+  font-size: 0.76rem !important;
+  font-weight: 600 !important;
+  height: 28px !important;
+  padding: 0 8px !important;
+  border-radius: 9999px !important;
+  cursor: pointer !important;
+  outline: none !important;
+  white-space: nowrap !important;
+  transition: all 0.18s ease !important;
+}
+
+.curr-select:hover,
+.curr-select:focus {
+  border-color: rgba(255, 0, 51, 0.45) !important;
+  color: var(--text-primary, #ffffff) !important;
+}
+
+/* ─────────────────────────────────────────────────────────
+   LIGHT MODE PERFECTION FOR NAV ACTIONS
+   ───────────────────────────────────────────────────────── */
+[data-theme="light"] .theme-toggle-btn,
+body.light-mode .theme-toggle-btn {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #1e293b !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .theme-toggle-btn:hover,
+body.light-mode .theme-toggle-btn:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .currency-switch,
+body.light-mode .currency-switch {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .currency-label,
+body.light-mode .currency-label {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .curr-btn,
+body.light-mode .curr-btn {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .curr-btn:hover:not(.active),
+body.light-mode .curr-btn:hover:not(.active) {
+  color: #0f172a !important;
+  background: #f1f5f9 !important;
+}
+
+[data-theme="light"] .curr-btn.active,
+body.light-mode .curr-btn.active {
+  background: #ff0033 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(255, 0, 51, 0.25) !important;
+}
+
+[data-theme="light"] .curr-select,
+body.light-mode .curr-select {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+[data-theme="light"] .curr-select:hover,
+body.light-mode .curr-select:hover {
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Mobile Nav Actions Refinements */
+@media (max-width: 640px) {
+  .theme-toggle-btn {
+    height: 32px !important;
+    padding: 0 8px !important;
+  }
+  .currency-switch {
+    height: 32px !important;
+    padding: 2px 4px !important;
+    gap: 2px !important;
+  }
+  .currency-label {
+    display: none !important;
+  }
+  .curr-btn {
+    height: 26px !important;
+    padding: 0 7px !important;
+    font-size: 0.72rem !important;
+  }
+  .curr-select {
+    height: 26px !important;
+    padding: 0 5px !important;
+    font-size: 0.72rem !important;
+  }
+}
