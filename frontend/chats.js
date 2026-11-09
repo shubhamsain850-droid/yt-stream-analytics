@@ -532,7 +532,7 @@
   async function startChannelChatExtraction() {
     const channelUrl = el.chatChannelUrlInput.value.trim();
     if (!channelUrl) {
-      alert('Please enter a YouTube Channel URL or handle (e.g. @CarryMinati or https://www.youtube.com/@Aashiislive/streams)');
+      alert('Please enter a YouTube Channel URL or handle (e.g. @channel or https://www.youtube.com/@channel/streams)');
       return;
     }
 
@@ -2028,26 +2028,26 @@
   // ─────────────────────────────────────────────
   function generateSampleLiveChatData() {
     const rawSample = [
-      { time: '00:01:10', author: 'Aashi Is Live', badges: ['OWNER'], event: 'CHAT', text: 'Welcome everyone to today’s BGMI Finals stream! Drop a like!' },
+      { time: '00:01:10', author: 'Stream Host', badges: ['OWNER'], event: 'CHAT', text: 'Welcome everyone to today’s BGMI Finals stream! Drop a like!' },
       { time: '00:01:25', author: 'GamerRohit_99', badges: ['MODERATOR'], event: 'CHAT', text: 'Please maintain chat decorum guys, no spamming or links!' },
-      { time: '00:02:14', author: 'Rahul Sharma', badges: ['MEMBER'], event: 'CHAT', text: 'Aashi bhai big fan, match 1 clutch was insane! 🔥' },
+      { time: '00:02:14', author: 'Rahul Sharma', badges: ['MEMBER'], event: 'CHAT', text: 'Bro big fan, match 1 clutch was insane! 🔥' },
       { time: '00:03:00', author: 'ViperGaming', badges: [], event: 'SUPERCHAT', amount: '₹100.00', text: 'Chai paani for the stream! Keep grinding brother!' },
-      { time: '00:04:15', author: 'Pooja Verma', badges: [], event: 'MEMBERSHIP', details: 'Aashi Squad', text: 'Joined Aashi Squad membership! Excited for the tournament!' },
+      { time: '00:04:15', author: 'Pooja Verma', badges: [], event: 'MEMBERSHIP', details: 'VIP Club', text: 'Joined VIP Club membership! Excited for the tournament!' },
       { time: '00:05:30', author: 'ProClutcher_IND', badges: [], event: 'CHAT', text: 'Sens setup video kab aayegi bro?' },
       { time: '00:06:45', author: 'Aryan OP', badges: [], event: 'SUPERCHAT', amount: '₹500.00', text: 'Bhai shoutout de do please, birthday today!' },
-      { time: '00:07:20', author: 'Aashi Is Live', badges: ['OWNER'], event: 'CHAT', text: 'Happy Birthday Aryan bhai! God bless you!' },
-      { time: '00:08:10', author: 'MortalFanClub', badges: ['VERIFIED'], event: 'CHAT', text: 'Good luck Aashi, kill count 20 cross karo aaj!' },
+      { time: '00:07:20', author: 'Stream Host', badges: ['OWNER'], event: 'CHAT', text: 'Happy Birthday Aryan bhai! God bless you!' },
+      { time: '00:08:10', author: 'MortalFanClub', badges: ['VERIFIED'], event: 'CHAT', text: 'Good luck host, kill count 20 cross karo aaj!' },
       { time: '00:09:50', author: 'Simran Kaur', badges: ['MEMBER'], event: 'JEWELS', details: '100 Jewels', text: 'Sent 100 YouTube Jewels gift!' },
-      { time: '00:11:30', author: 'GamerRohit_99', badges: ['MODERATOR'], event: 'CHAT', text: 'Use code AASHI in store guys for discounts!' },
+      { time: '00:11:30', author: 'GamerRohit_99', badges: ['MODERATOR'], event: 'CHAT', text: 'Use code STREAM in store guys for discounts!' },
       { time: '00:13:05', author: 'Soham Esports', badges: [], event: 'SUPERCHAT', amount: '₹2,000.00', text: 'For the next chicken dinner! Best team in finals!' },
-      { time: '00:14:40', author: 'Karan Mehra', badges: [], event: 'GIFT', details: '5 Memberships', text: 'Gifted 5 Aashi Squad Memberships to community!' },
+      { time: '00:14:40', author: 'Karan Mehra', badges: [], event: 'GIFT', details: '5 Memberships', text: 'Gifted 5 VIP Club Memberships to community!' },
       { time: '00:16:15', author: 'Aman Deep', badges: [], event: 'CHAT', text: 'OP gameplay! Zone shift favours your drop!' },
       { time: '00:18:22', author: 'Neha Gupta', badges: ['MEMBER'], event: 'CHAT', text: 'Nice spray transfer through the smoke!' },
       { time: '00:20:00', author: 'SpeedyKing', badges: [], event: 'SUPERCHAT', amount: '₹40.00', text: 'OP bolte public!' },
       { time: '00:22:45', author: 'Rohan Joshi', badges: [], event: 'CHAT', text: 'Watch the flank from left ridge!' },
       { time: '00:25:30', author: 'TechieGamer', badges: ['MODERATOR'], event: 'CHAT', text: 'Top 3 alive! Let us get that chicken dinner!' },
       { time: '00:27:10', author: 'Aditya Raj', badges: [], event: 'SUPERCHAT', amount: '₹1,000.00', text: 'WHAT A GRENADE! That was legendary!' },
-      { time: '00:29:40', author: 'Aashi Is Live', badges: ['OWNER'], event: 'CHAT', text: 'GGs in the chat! Thank you everyone for 15k live!' }
+      { time: '00:29:40', author: 'Stream Host', badges: ['OWNER'], event: 'CHAT', text: 'GGs in the chat! Thank you everyone for 15k live!' }
     ];
 
     const messages = rawSample.map((m, idx) => ({
@@ -2076,7 +2076,7 @@
       jewels_count: 1,
       events_count: 8,
       top_chatters: [
-        { author: 'Aashi Is Live', count: 3 },
+        { author: 'Stream Host', count: 3 },
         { author: 'GamerRohit_99', count: 3 },
         { author: 'Rahul Sharma', count: 1 }
       ],

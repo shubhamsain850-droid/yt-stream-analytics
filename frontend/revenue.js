@@ -514,6 +514,8 @@
       el.loadingCard.style.display = show ? 'block' : 'none';
       if (show && el.loadingTitle) el.loadingTitle.textContent = title;
     }
+    const emptyState = document.getElementById('emptySearchState');
+    if (emptyState && show) emptyState.style.display = 'none';
     if (el.channelDashboard && show) {
       el.channelDashboard.style.opacity = '0.4';
     } else if (el.channelDashboard) {
@@ -538,6 +540,9 @@
 
   function renderChannelStats(data) {
     if (!data) return;
+    const emptyState = document.getElementById('emptySearchState');
+    if (emptyState) emptyState.style.display = 'none';
+    if (el.channelDashboard) el.channelDashboard.style.display = 'block';
 
     // 1. Channel Profile Banner (Screenshot 2)
     if (el.chAvatarImg) {
@@ -855,8 +860,7 @@
     initSearch();
     bindEvents();
 
-    // Auto-analyze initial channel on launch (@PAYALGAMING from user screenshots)
-    analyzeChannel('@PAYALGAMING');
+    // Waiting for user search (no channel pre-analyzed)
   });
 
 })();
