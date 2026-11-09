@@ -31,17 +31,32 @@
   </script><link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4.1">
+  <link rel="stylesheet" href="styles.css?v=4.2">
 </head>
 <body>
   <!-- Top Navigation Bar -->
   <header class="top-nav">
     <div class="nav-container">
       <div class="logo">
-        <div class="logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="23 7 16 12 23 17 23 7"></polygon>
-            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                <div class="logo-icon" title="TubeMetrix">
+          <svg viewBox="0 0 100 100" fill="none" style="width: 100%; height: 100%;">
+            <defs>
+              <linearGradient id="navTmRed" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff1744"/>
+                <stop offset="100%" stop-color="#ff3366"/>
+              </linearGradient>
+              <linearGradient id="navCyanArrow" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#00f2fe"/>
+                <stop offset="100%" stop-color="#4facfe"/>
+              </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="44" fill="none" stroke="url(#navTmRed)" stroke-width="2" stroke-opacity="0.35"/>
+            <path d="M 22 25 L 78 25 L 78 36 L 65 36 L 65 36 L 35 36 L 22 36 Z" fill="none" stroke="url(#navTmRed)" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="M 39 52 L 39 71 L 44 74 L 44 49 Z" fill="none" stroke="url(#navTmRed)" stroke-width="3" stroke-linejoin="round" opacity="0.75"/>
+            <path d="M 48 44 L 48 76 L 53 79 L 53 40 Z" fill="none" stroke="url(#navTmRed)" stroke-width="3" stroke-linejoin="round" opacity="0.95"/>
+            <path d="M 57 36 L 57 72 L 62 69 L 62 36 Z" fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
+            <line x1="28" y1="70" x2="74" y2="28" stroke="url(#navCyanArrow)" stroke-width="4.2" stroke-linecap="round"/>
+            <polyline points="60 28, 75 28, 75 43" fill="none" stroke="url(#navCyanArrow)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <span class="logo-text">Tube<span>Metrix</span></span>
