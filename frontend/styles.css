@@ -7168,3 +7168,61 @@ body.light-mode .curr-select:hover {
     font-size: 0.72rem !important;
   }
 }
+
+
+/* ─────────────────────────────────────────────────────────
+   STREAMLINED HEADER SPACING & OVERFLOW PREVENTION
+   ───────────────────────────────────────────────────────── */
+.nav-container {
+  max-width: 1260px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  padding: 0 4px !important;
+}
+
+.nav-actions {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+/* Hide redundant "View In:" label to give 60px breathing room */
+.currency-label {
+  display: none !important;
+}
+
+.currency-switch {
+  gap: 2px !important;
+  padding: 3px 4px !important;
+  height: 34px !important;
+}
+
+.curr-btn {
+  height: 26px !important;
+  padding: 0 8px !important;
+  font-size: 0.75rem !important;
+}
+
+.curr-select {
+  height: 26px !important;
+  padding: 0 6px !important;
+  font-size: 0.74rem !important;
+}
+
+.theme-toggle-btn {
+  height: 34px !important;
+  padding: 0 11px !important;
+  font-size: 0.78rem !important;
+}
+
+.page-nav {
+  gap: 3px !important;
+  padding: 3px 5px !important;
+}
+
+.nav-tab-link {
+  padding: 6px 13px !important;
+  font-size: 0.82rem !important;
+  gap: 6px !important;
+}
