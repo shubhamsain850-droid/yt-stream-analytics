@@ -113,6 +113,7 @@
     vmFilterMinAmount: document.getElementById('vmFilterMinAmount'),
     vmFilterSort: document.getElementById('vmFilterSort'),
     vmSearchInput: document.getElementById('vmSearchInput'),
+    vmSearchClearBtn: document.getElementById('vmSearchClearBtn'),
     vmResetFiltersBtn: document.getElementById('vmResetFiltersBtn'),
 
     vmTableContainer: document.getElementById('vmTableContainer'),
@@ -781,10 +782,26 @@
       });
     }
 
-    // Live Search Input
+        // Live Search Input
     if (el.vmSearchInput) {
       el.vmSearchInput.addEventListener('input', (e) => {
-        state.viewer.filters.searchQuery = e.target.value.toLowerCase().trim();
+        const val = e.target.value;
+        state.viewer.filters.searchQuery = val.toLowerCase().trim();
+        if (el.vmSearchClearBtn) {
+          el.vmSearchClearBtn.style.display = val.length > 0 ? 'flex' : 'none';
+        }
+        applyViewerFilters();
+      });
+    }
+
+    if (el.vmSearchClearBtn) {
+      el.vmSearchClearBtn.addEventListener('click', () => {
+        if (el.vmSearchInput) {
+          el.vmSearchInput.value = '';
+          el.vmSearchInput.focus();
+        }
+        el.vmSearchClearBtn.style.display = 'none';
+        state.viewer.filters.searchQuery = '';
         applyViewerFilters();
       });
     }
@@ -987,6 +1004,7 @@
     if (el.vmFilterMinAmount) el.vmFilterMinAmount.value = '0';
     if (el.vmFilterSort) el.vmFilterSort.value = 'time-asc';
     if (el.vmSearchInput) el.vmSearchInput.value = '';
+    if (el.vmSearchClearBtn) el.vmSearchClearBtn.style.display = 'none';
 
     applyViewerFilters();
   }
