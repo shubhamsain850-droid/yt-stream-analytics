@@ -31,7 +31,7 @@
   </script><link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4.4">
+  <link rel="stylesheet" href="styles.css?v=4.5">
 </head>
 <body>
   <!-- Top Navigation Bar -->
@@ -81,9 +81,8 @@
       </nav>
 
       <div class="nav-actions">
-        <button class="theme-toggle-btn" id="themeToggleBtn" type="button" title="Switch Theme (Light / Dark)">
-          <span class="theme-icon sun-icon">☀️</span>
-          <span class="theme-icon moon-icon" style="display:none;">🌙</span>
+                <button class="theme-toggle-btn" id="themeToggleBtn" type="button" title="Switch Theme (Light / Dark)">
+          <span class="theme-icon" id="themeIcon">☀️</span>
           <span class="theme-text" id="themeText">Light</span>
         </button>
 
@@ -93,7 +92,7 @@
           <button class="curr-btn active" data-curr="INR">₹ INR</button>
           <button class="curr-btn" data-curr="USD">$ USD</button>
           <button class="curr-btn" data-curr="EUR">€ EUR</button>
-          <select class="curr-select" id="moreCurrencySelect" title="Select more currencies">
+                    <select class="curr-select" id="moreCurrencySelect" title="Select more currencies">
             <option value="" disabled selected>More...</option>
             <option value="GBP">🇬🇧 GBP (£)</option>
             <option value="CAD">🇨🇦 CAD (C$)</option>
@@ -824,7 +823,7 @@
     </div>
   </div>
 
-  <script src="chats.js?v=4.0"></script>
+  <script src="chats.js?v=4.5"></script>
 </body>
 </html>
 

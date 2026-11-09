@@ -53,8 +53,7 @@
   const el = {
     // Theme & Currency
     themeToggleBtn: document.getElementById('themeToggleBtn'),
-    sunIcon: document.querySelector('.sun-icon'),
-    moonIcon: document.querySelector('.moon-icon'),
+    themeIcon: document.getElementById('themeIcon'),
     themeText: document.getElementById('themeText'),
     currBtns: document.querySelectorAll('.curr-btn[data-curr]'),
     moreCurrSelect: document.getElementById('moreCurrencySelect'),
@@ -203,14 +202,17 @@
   function applyTheme(t) {
     document.documentElement.setAttribute('data-theme', t);
     document.body.className = t === 'light' ? 'light-mode' : '';
+    localStorage.setItem('TubeMetrix_theme', t);
+    localStorage.setItem('theme', t);
+
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
     if (t === 'light') {
-      if (el.sunIcon) el.sunIcon.style.display = 'none';
-      if (el.moonIcon) el.moonIcon.style.display = 'inline-block';
-      if (el.themeText) el.themeText.textContent = 'Dark';
+      if (themeIcon) themeIcon.textContent = '🌙';
+      if (themeText) themeText.textContent = 'Dark';
     } else {
-      if (el.sunIcon) el.sunIcon.style.display = 'inline-block';
-      if (el.moonIcon) el.moonIcon.style.display = 'none';
-      if (el.themeText) el.themeText.textContent = 'Light';
+      if (themeIcon) themeIcon.textContent = '☀️';
+      if (themeText) themeText.textContent = 'Light';
     }
   }
 

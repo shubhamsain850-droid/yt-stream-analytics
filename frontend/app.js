@@ -218,6 +218,7 @@ const elements = {
 
   // Theme Switcher
   themeToggleBtn: document.getElementById('themeToggleBtn'),
+  themeIcon: document.getElementById('themeIcon'),
   themeText: document.getElementById('themeText'),
 
   // Forex Modal
@@ -263,20 +264,18 @@ function setupTheme() {
 
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
+  document.body.className = theme === 'light' ? 'light-mode' : '';
   localStorage.setItem('TubeMetrix_theme', theme);
+  localStorage.setItem('theme', theme);
 
-  if (elements.themeToggleBtn) {
-    const sunIcon = elements.themeToggleBtn.querySelector('.sun-icon');
-    const moonIcon = elements.themeToggleBtn.querySelector('.moon-icon');
-    if (theme === 'light') {
-      if (sunIcon) sunIcon.style.display = 'none';
-      if (moonIcon) moonIcon.style.display = 'inline';
-      if (elements.themeText) elements.themeText.textContent = 'Dark';
-    } else {
-      if (sunIcon) sunIcon.style.display = 'inline';
-      if (moonIcon) moonIcon.style.display = 'none';
-      if (elements.themeText) elements.themeText.textContent = 'Light';
-    }
+  const themeIcon = document.getElementById('themeIcon');
+  const themeText = document.getElementById('themeText');
+  if (theme === 'light') {
+    if (themeIcon) themeIcon.textContent = '🌙';
+    if (themeText) themeText.textContent = 'Dark';
+  } else {
+    if (themeIcon) themeIcon.textContent = '☀️';
+    if (themeText) themeText.textContent = 'Light';
   }
 }
 

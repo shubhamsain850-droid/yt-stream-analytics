@@ -1,4 +1,5 @@
 ﻿:root {
+  color-scheme: dark;
   --bg-primary: #0f0f0f;
   --bg-card: #1f1f1f;
   --bg-card-hover: #282828;
@@ -34,6 +35,7 @@
 }
 
 [data-theme="light"] {
+  color-scheme: light;
   --bg-primary: #f9f9f9;
   --bg-card: #ffffff;
   --bg-card-hover: #f2f2f2;
@@ -6969,16 +6971,16 @@ body.light-mode .logo-icon,
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 6px !important;
+  gap: 7px !important;
   height: 36px !important;
-  padding: 0 14px !important;
+  padding: 0 13px !important;
   border-radius: 9999px !important;
-  background: var(--bg-card, #0e1526) !important;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)) !important;
-  color: var(--text-primary, #ffffff) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: #f1f5f9 !important;
   font-family: var(--font-main) !important;
   font-size: 0.8rem !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   cursor: pointer !important;
   white-space: nowrap !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -6987,8 +6989,8 @@ body.light-mode .logo-icon,
 }
 
 .theme-toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 0, 51, 0.4) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 0, 51, 0.5) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -7001,7 +7003,7 @@ body.light-mode .logo-icon,
 
 .theme-text {
   font-size: 0.8rem !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   letter-spacing: -0.2px !important;
   white-space: nowrap !important;
 }
@@ -7014,8 +7016,8 @@ body.light-mode .logo-icon,
   height: 36px !important;
   padding: 3px 5px !important;
   border-radius: 9999px !important;
-  background: var(--bg-card, #0e1526) !important;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)) !important;
+  background: #111827 !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
   white-space: nowrap !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
 }
@@ -7023,7 +7025,7 @@ body.light-mode .logo-icon,
 .currency-label {
   font-size: 0.76rem !important;
   font-weight: 600 !important;
-  color: var(--text-muted, #94a3b8) !important;
+  color: #94a3b8 !important;
   padding: 0 4px 0 8px !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -7034,7 +7036,7 @@ body.light-mode .logo-icon,
 .curr-btn {
   background: transparent !important;
   border: none !important;
-  color: var(--text-secondary, #94a3b8) !important;
+  color: #e2e8f0 !important;
   font-family: var(--font-main) !important;
   font-size: 0.78rem !important;
   font-weight: 700 !important;
@@ -7051,23 +7053,24 @@ body.light-mode .logo-icon,
 }
 
 .curr-btn:hover:not(.active) {
-  color: var(--text-primary, #ffffff) !important;
-  background: rgba(255, 255, 255, 0.06) !important;
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.12) !important;
 }
 
 .curr-btn.active {
   background: #ff0033 !important;
   color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(255, 0, 51, 0.35) !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px rgba(255, 0, 51, 0.4) !important;
 }
 
 .curr-select {
-  background: transparent !important;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12)) !important;
-  color: var(--text-secondary, #94a3b8) !important;
+  background: #1e293b !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #f1f5f9 !important;
   font-family: var(--font-main) !important;
   font-size: 0.76rem !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   height: 28px !important;
   padding: 0 8px !important;
   border-radius: 9999px !important;
@@ -7079,8 +7082,17 @@ body.light-mode .logo-icon,
 
 .curr-select:hover,
 .curr-select:focus {
-  border-color: rgba(255, 0, 51, 0.45) !important;
-  color: var(--text-primary, #ffffff) !important;
+  background: #334155 !important;
+  border-color: #ff0033 !important;
+  color: #ffffff !important;
+}
+
+.curr-select option {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  padding: 8px 12px !important;
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -7089,7 +7101,7 @@ body.light-mode .logo-icon,
 [data-theme="light"] .theme-toggle-btn,
 body.light-mode .theme-toggle-btn {
   background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid #cbd5e1 !important;
   color: #1e293b !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
@@ -7097,13 +7109,13 @@ body.light-mode .theme-toggle-btn {
 [data-theme="light"] .theme-toggle-btn:hover,
 body.light-mode .theme-toggle-btn:hover {
   background: #f8fafc !important;
-  border-color: #cbd5e1 !important;
+  border-color: #94a3b8 !important;
 }
 
 [data-theme="light"] .currency-switch,
 body.light-mode .currency-switch {
   background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid #cbd5e1 !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -7114,7 +7126,8 @@ body.light-mode .currency-label {
 
 [data-theme="light"] .curr-btn,
 body.light-mode .curr-btn {
-  color: #475569 !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
 }
 
 [data-theme="light"] .curr-btn:hover:not(.active),
@@ -7133,13 +7146,21 @@ body.light-mode .curr-btn.active {
 [data-theme="light"] .curr-select,
 body.light-mode .curr-select {
   background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
 }
 
 [data-theme="light"] .curr-select:hover,
 body.light-mode .curr-select:hover {
-  border-color: #cbd5e1 !important;
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .curr-select option,
+body.light-mode .curr-select option {
+  background-color: #ffffff !important;
   color: #0f172a !important;
 }
 

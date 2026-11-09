@@ -31,7 +31,7 @@
   </script><link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4.4">
+  <link rel="stylesheet" href="styles.css?v=4.5">
 </head>
 <body>
   <!-- Top Navigation Bar -->
@@ -81,9 +81,8 @@
       </nav>
 
       <div class="nav-actions">
-        <button class="theme-toggle-btn" id="themeToggleBtn" type="button" title="Switch Theme (Light / Dark)">
-          <span class="theme-icon sun-icon">☀️</span>
-          <span class="theme-icon moon-icon" style="display:none;">🌙</span>
+                <button class="theme-toggle-btn" id="themeToggleBtn" type="button" title="Switch Theme (Light / Dark)">
+          <span class="theme-icon" id="themeIcon">☀️</span>
           <span class="theme-text" id="themeText">Light</span>
         </button>
 
@@ -93,17 +92,27 @@
           <button class="curr-btn active" data-curr="INR">₹ INR</button>
           <button class="curr-btn" data-curr="USD">$ USD</button>
           <button class="curr-btn" data-curr="EUR">€ EUR</button>
-          <select class="curr-select" id="moreCurrencySelect" title="Select more currencies">
+                    <select class="curr-select" id="moreCurrencySelect" title="Select more currencies">
             <option value="" disabled selected>More...</option>
             <option value="GBP">🇬🇧 GBP (£)</option>
             <option value="CAD">🇨🇦 CAD (C$)</option>
             <option value="AUD">🇦🇺 AUD (A$)</option>
             <option value="SGD">🇸🇬 SGD (S$)</option>
             <option value="AED">🇦🇪 AED (د.إ)</option>
-            <option value="JPY">🇯🇵 JPY (¥)</option>
+            <option value="SAR">🇸🇦 SAR (SR)</option>
             <option value="BRL">🇧🇷 BRL (R$)</option>
+            <option value="JPY">🇯🇵 JPY (¥)</option>
+            <option value="KRW">🇰🇷 KRW (₩)</option>
+            <option value="PHP">🇵🇭 PHP (₱)</option>
             <option value="PKR">🇵🇰 PKR (Rs)</option>
             <option value="BDT">🇧🇩 BDT (৳)</option>
+            <option value="RUB">🇷🇺 RUB (₽)</option>
+            <option value="TRY">🇹🇷 TRY (₺)</option>
+            <option value="PLN">🇵🇱 PLN (zł)</option>
+            <option value="MXN">🇲🇽 MXN (Mex$)</option>
+            <option value="IDR">🇮🇩 IDR (Rp)</option>
+            <option value="THB">🇹🇭 THB (฿)</option>
+            <option value="VND">🇻🇳 VND (₫)</option>
           </select>
         </div>
       </div>
@@ -677,7 +686,7 @@
     </div>
   </footer>
 
-  <script src="app.js?v=4.0"></script>
+  <script src="app.js?v=4.5"></script>
 </body>
 </html>
 
