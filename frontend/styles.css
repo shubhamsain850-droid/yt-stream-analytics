@@ -6617,18 +6617,23 @@ body.light-mode .styled-select-compact option,
     justify-content: space-between !important;
   }
   .logo {
-    gap: 7px !important;
+    gap: 9px !important;
   }
   .logo-icon {
-    width: 30px !important;
-    height: 30px !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
   }
   .logo-icon svg {
-    width: 17px !important;
-    height: 17px !important;
+    width: 100% !important;
+    height: 100% !important;
   }
   .logo-text {
-    font-size: 1.15rem !important;
+    font-size: 1.22rem !important;
+    font-weight: 800 !important;
   }
   .badge-beta {
     font-size: 0.62rem !important;
@@ -6933,28 +6938,32 @@ body.light-mode .styled-select-compact option,
 }
 /* Metrix T Branded Logo Icon */
 .logo-icon {
-  width: 38px !important;
-  height: 38px !important;
-  border-radius: 11px !important;
-  background: #080c18 !important;
-  border: 1px solid rgba(255, 0, 51, 0.4) !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 3px !important;
-  box-shadow: 0 4px 14px rgba(255, 0, 51, 0.25) !important;
-  transition: all 0.2s ease !important;
+  box-shadow: 0 4px 16px rgba(255, 0, 51, 0.35) !important;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease !important;
+  flex-shrink: 0 !important;
+}
+.logo-icon svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
 }
 .logo-icon:hover {
-  border-color: #ff0033 !important;
-  box-shadow: 0 4px 20px rgba(255, 0, 51, 0.45) !important;
-  transform: scale(1.05) !important;
+  transform: scale(1.06) !important;
+  box-shadow: 0 6px 22px rgba(255, 0, 51, 0.55) !important;
 }
 body.light-mode .logo-icon,
 [data-theme="light"] .logo-icon {
-  background: #0b1120 !important;
-  border-color: rgba(255, 0, 51, 0.5) !important;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2) !important;
+  background: transparent !important;
+  box-shadow: 0 3px 12px rgba(255, 0, 51, 0.25) !important;
 }
 
 /* ══════════════════════════════════════════════════════════

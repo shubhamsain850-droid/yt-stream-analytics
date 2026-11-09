@@ -10,7 +10,7 @@
   <meta name="author" content="TubeMetrix">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://tubemetrix.pages.dev/revenue">
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=4.6">
   <link rel="manifest" href="manifest.json">
   <meta property="og:image" content="https://tubemetrix.pages.dev/og-image.png">
   <meta property="og:image:width" content="1200">
@@ -34,7 +34,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4.5">
+  <link rel="stylesheet" href="styles.css?v=4.6">
 </head>
 
 <body>
@@ -47,20 +47,26 @@
             <defs>
               <linearGradient id="navTmRed" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stop-color="#ff1744"/>
-                <stop offset="100%" stop-color="#ff3366"/>
+                <stop offset="50%" stop-color="#ff0033"/>
+                <stop offset="100%" stop-color="#c40026"/>
               </linearGradient>
               <linearGradient id="navCyanArrow" x1="0%" y1="100%" x2="100%" y2="0%">
                 <stop offset="0%" stop-color="#00f2fe"/>
                 <stop offset="100%" stop-color="#4facfe"/>
               </linearGradient>
+              <linearGradient id="navSheen" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+              </linearGradient>
             </defs>
-            <circle cx="50" cy="50" r="44" fill="none" stroke="url(#navTmRed)" stroke-width="2" stroke-opacity="0.35"/>
-            <path d="M 22 25 L 78 25 L 78 36 L 65 36 L 65 36 L 35 36 L 22 36 Z" fill="none" stroke="url(#navTmRed)" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
-            <path d="M 39 52 L 39 71 L 44 74 L 44 49 Z" fill="none" stroke="url(#navTmRed)" stroke-width="3" stroke-linejoin="round" opacity="0.75"/>
-            <path d="M 48 44 L 48 76 L 53 79 L 53 40 Z" fill="none" stroke="url(#navTmRed)" stroke-width="3" stroke-linejoin="round" opacity="0.95"/>
-            <path d="M 57 36 L 57 72 L 62 69 L 62 36 Z" fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
-            <line x1="28" y1="70" x2="74" y2="28" stroke="url(#navCyanArrow)" stroke-width="4.2" stroke-linecap="round"/>
-            <polyline points="60 28, 75 28, 75 43" fill="none" stroke="url(#navCyanArrow)" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="2" y="2" width="96" height="96" rx="26" fill="url(#navTmRed)"/>
+            <path d="M 4 28 C 4 14, 14 4, 28 4 L 72 4 C 86 4, 96 14, 96 28 C 96 36, 62 42, 4 36 Z" fill="url(#navSheen)"/>
+            <rect x="18" y="22" width="64" height="15" rx="7.5" fill="#ffffff"/>
+            <rect x="33.5" y="48" width="9" height="28" rx="4.5" fill="#ffffff" opacity="0.82"/>
+            <rect x="45.5" y="40" width="9" height="36" rx="4.5" fill="#ffffff" opacity="0.96"/>
+            <rect x="57.5" y="32" width="9" height="44" rx="4.5" fill="url(#navCyanArrow)"/>
+            <path d="M 22 74 L 75 24" stroke="url(#navCyanArrow)" stroke-width="5.5" stroke-linecap="round"/>
+            <path d="M 57 24 L 75 24 L 75 42" fill="none" stroke="url(#navCyanArrow)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <span class="logo-text">Tube<span>Metrix</span></span>
