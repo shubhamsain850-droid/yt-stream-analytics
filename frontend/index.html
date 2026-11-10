@@ -173,6 +173,7 @@
         <button class="tab-btn" data-mode="channel">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
           <span>Channel &amp; Date Range</span>
+          <span class="tab-pro-pill" id="channelTabProPill">👑 PRO</span>
         </button>
         <button class="tab-btn" data-mode="multi">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
@@ -206,7 +207,36 @@
 
       <!-- Mode B: Bulk Channel & Date Range Input -->
       <div class="mode-panel" id="panel-channel">
-        <div class="form-grid">
+        <!-- PRO Feature Lock Banner -->
+        <div class="pro-panel-lock-banner" id="channelProLock">
+          <div class="pro-lock-content">
+            <div class="pro-lock-icon-wrap">
+              <span class="pro-lock-crown">👑</span>
+              <span class="pro-lock-badge">PRO FEATURE</span>
+            </div>
+            <h3 class="pro-lock-title">Unlock Bulk Channel Stream Auditing</h3>
+            <p class="pro-lock-desc">
+              Audit all 100, 200, 500+ streams of any YouTube channel, filter by custom date ranges, and export complete consolidated Superchat earnings &amp; metrics.
+            </p>
+            <div class="pro-lock-perks">
+              <span class="pro-perk-item">✓ Unlimited Bulk Streams</span>
+              <span class="pro-perk-item">✓ Custom Date Range Filtering</span>
+              <span class="pro-perk-item">✓ 100% Ad-Free Experience</span>
+              <span class="pro-perk-item">✓ One-Click Excel / CSV Export</span>
+            </div>
+            <div class="pro-lock-actions">
+              <button class="btn-unlock-pro" type="button" id="unlockChannelProBtn">
+                <span>⚡ Unlock with Day Pass ($0.99 / ₹49)</span>
+              </button>
+              <button class="btn-lock-free-switch" type="button" id="switchSingleStreamBtn">
+                Try 1 Single Stream for Free →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="channel-form-controls panel-pro-locked" id="channelFormControls">
+          <div class="form-grid">
           <div class="form-group full-width">
             <label class="input-label" for="channelUrlInput">YouTube Channel URL, Handle or Stream Tab</label>
             <div class="input-wrapper">
@@ -240,6 +270,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </button>
         </div>
+        </div> <!-- /channelFormControls -->
       </div>
 
       <!-- Mode C: Custom Multi-URL Batch Input -->

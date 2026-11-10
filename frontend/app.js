@@ -749,6 +749,11 @@ function setupChannelMode() {
   });
 
   elements.startChannelBtn.addEventListener('click', async () => {
+    // PRO Gatekeeper for Bulk Channel Auditing
+    if (window.TubeMetrixAuth && !window.TubeMetrixAuth.isPro()) {
+      window.TubeMetrixAuth.openProModal();
+      return;
+    }
     const channel = elements.channelUrlInput.value.trim();
     if (!channel) {
       alert('Please enter a YouTube Channel URL, handle (@username), or stream tab URL.');

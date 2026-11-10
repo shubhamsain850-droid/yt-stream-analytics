@@ -540,6 +540,11 @@
 
   // Option B: Channel Live Streams
   async function startChannelChatExtraction() {
+    // PRO Gatekeeper for Bulk Channel Auditing
+    if (window.TubeMetrixAuth && !window.TubeMetrixAuth.isPro()) {
+      window.TubeMetrixAuth.openProModal();
+      return;
+    }
     const channelUrl = el.chatChannelUrlInput.value.trim();
     if (!channelUrl) {
       alert('Please enter a YouTube Channel URL or handle (e.g. @channel or https://www.youtube.com/@channel/streams)');

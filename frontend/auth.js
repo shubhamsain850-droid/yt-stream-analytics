@@ -317,6 +317,7 @@
 
     // Ad Suppression for PRO Members
     checkAdSuppression();
+    updateProLocks();
   }
 
   function checkAdSuppression() {
@@ -593,6 +594,82 @@
     return true;
   }
 
+
+  // ── Pro Feature Locks for Bulk Channel Audits ──
+  function updateProLocks() {
+    const isPro = currentUser && currentUser.tier === 'pro';
+
+    // 1. Tab Badges
+    const pills = [
+      document.getElementById('channelTabProPill'),
+      document.getElementById('channelChatTabProPill')
+    ];
+    pills.forEach(pill => {
+      if (pill) {
+        if (isPro) {
+          pill.className = 'tab-pro-pill unlocked';
+          pill.innerHTML = '👑 UNLOCKED';
+        } else {
+          pill.className = 'tab-pro-pill';
+          pill.innerHTML = '👑 PRO';
+        }
+      }
+    });
+
+    // 2. Lock Banners & Form Controls
+    const lockBanners = [
+      document.getElementById('channelProLock'),
+      document.getElementById('channelChatProLock')
+    ];
+    const formControls = [
+      document.getElementById('channelFormControls'),
+      document.getElementById('channelChatFormControls')
+    ];
+
+    lockBanners.forEach(banner => {
+      if (banner) banner.style.display = isPro ? 'none' : 'block';
+    });
+
+    formControls.forEach(ctrl => {
+      if (ctrl) {
+        if (isPro) {
+          ctrl.classList.remove('panel-pro-locked');
+        } else {
+          ctrl.classList.add('panel-pro-locked');
+        }
+      }
+    });
+
+    // 3. Attach listeners to Unlock Buttons
+    const unlockBtns = [
+      document.getElementById('unlockChannelProBtn'),
+      document.getElementById('unlockChatChannelProBtn')
+    ];
+    unlockBtns.forEach(btn => {
+      if (btn && !btn.dataset.wired) {
+        btn.dataset.wired = 'true';
+        btn.addEventListener('click', () => {
+          openProModal();
+        });
+      }
+    });
+
+    // 4. Attach listeners to "Try 1 Single Stream for Free"
+    const switchBtns = [
+      document.getElementById('switchSingleStreamBtn'),
+      document.getElementById('switchChatSingleStreamBtn')
+    ];
+    switchBtns.forEach(btn => {
+      if (btn && !btn.dataset.wired) {
+        btn.dataset.wired = 'true';
+        btn.addEventListener('click', () => {
+          const singleTab = document.querySelector('.tab-btn[data-mode="single"]');
+          if (singleTab) singleTab.click();
+        });
+      }
+    });
+  }
+
   // ── Public Global API ──
   window.TubeMetrixAuth = {
     getUser: () => currentUser,
@@ -603,7 +680,8 @@
     incrementUsage: incrementUsage,
     openAuthModal: openAuthModal,
     openProModal: openProModal,
-    signOut: clearUserSession
+    signOut: clearUserSession,
+    updateProLocks: updateProLocks
   };
 
   // ── Init on DOM Ready ──
@@ -611,6 +689,7 @@
     loadUserSession();
     renderAuthNav();
     initGoogleIdentity();
+    updateProLocks();
   });
 
 })();

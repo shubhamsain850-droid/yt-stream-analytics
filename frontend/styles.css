@@ -8318,3 +8318,161 @@ body.light-mode .glass-cue-btn {
   opacity: 1;
   transform: translateY(0);
 }
+
+
+/* ========================================================
+   PRO FEATURE LOCK OVERLAY & BADGES
+   ======================================================== */
+.tab-pro-pill {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.25), rgba(245, 158, 11, 0.15));
+  color: #fbbf24;
+  border: 1px solid rgba(234, 179, 8, 0.45);
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+  transition: all 0.2s ease;
+  margin-left: 4px;
+}
+
+.tab-pro-pill.unlocked {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.15));
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.pro-panel-lock-banner {
+  position: relative;
+  background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.18) 0%, rgba(15, 23, 42, 0.95) 70%);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 16px;
+  padding: 28px 24px;
+  text-align: center;
+  margin-bottom: 24px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), 0 0 24px rgba(245, 158, 11, 0.12);
+  animation: fadeInLock 0.3s ease;
+}
+
+@keyframes fadeInLock {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pro-lock-content {
+  max-width: 580px;
+  margin: 0 auto;
+}
+
+.pro-lock-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 14px;
+}
+
+.pro-lock-crown {
+  font-size: 1.1rem;
+}
+
+.pro-lock-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fbbf24;
+  letter-spacing: 0.08em;
+}
+
+.pro-lock-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.pro-lock-desc {
+  font-size: 0.92rem;
+  color: #94a3b8;
+  line-height: 1.6;
+  margin: 0 0 18px;
+}
+
+.pro-lock-perks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 14px;
+  margin-bottom: 22px;
+}
+
+.pro-perk-item {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.pro-lock-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-unlock-pro {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+}
+
+.btn-unlock-pro:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(245, 158, 11, 0.6);
+  filter: brightness(1.1);
+}
+
+.btn-lock-free-switch {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 11px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-lock-free-switch:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.panel-pro-locked {
+  filter: blur(2.5px);
+  opacity: 0.45;
+  pointer-events: none;
+  user-select: none;
+  transition: all 0.3s ease;
+}
