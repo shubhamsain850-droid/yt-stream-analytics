@@ -770,16 +770,16 @@ function setupChannelMode() {
           channel_url: channel,
           from_date: fromDate,
           to_date: toDate,
-          max_results: 30
+          max_results: 100
         })
       });
 
       const resJson = await resp.json();
       if (resJson.success && resJson.streams && resJson.streams.length > 0) {
         let urls = resJson.streams.map(s => s.url);
-        if (urls.length > 25) {
-          urls = urls.slice(0, 25);
-          alert(`Channel returned ${resJson.streams.length} streams. Capped to the latest 25 streams to ensure fast and stable analysis.`);
+        if (urls.length > 100) {
+          urls = urls.slice(0, 100);
+          alert(`Channel returned ${resJson.streams.length} streams. Analyzing the latest 100 streams to ensure fast and stable analysis.`);
         }
         startProcessing(urls, `Channel: ${channel} (${urls.length} Streams Found)`);
         return;
@@ -796,7 +796,7 @@ function setupChannelMode() {
 }
 
 // ── Option C (Multi-URL Batch - Max 25 Streams) ──
-const MAX_MULTI_STREAMS = 25;
+const MAX_MULTI_STREAMS = 50;
 
 function setupMultiMode() {
   function updateMultiBadgeAndUI() {
@@ -824,7 +824,7 @@ function setupMultiMode() {
       elements.urlQueueList.innerHTML = `
         <div class="empty-queue-hint">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (up to 25 streams per batch).</span>
+          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (up to 50 streams per batch).</span>
         </div>`;
       return;
     }
@@ -1284,10 +1284,10 @@ async function startProcessing(urls, label = null) {
   updateMetricsDisplay();
 
   const numWorkers = Math.min(CONCURRENCY_LIMIT, urls.length);
-  elements.statusTitle.textContent = label || (urls.length > 1 ? `Auditing ${urls.length} Streams (${numWorkers} Parallel Safe Workers)...` : 'Analyzing Stream...');
+  elements.statusTitle.textContent = urls.length > 1 ? `Auditing Streams: 0 of ${urls.length} Checked (0%)` : (label || 'Analyzing Stream...');
   elements.progressBarFill.style.width = '3%';
-  elements.progressPercent.textContent = '3%';
-  elements.statusTicker.textContent = urls.length > 1 ? `Initializing ${numWorkers} parallel workers with human traffic jitter...` : 'Connecting to YouTube streaming sockets...';
+  elements.progressPercent.textContent = '0%';
+  elements.statusTicker.textContent = urls.length > 1 ? `Initializing ${numWorkers} parallel workers... (0/${urls.length} checked)` : 'Connecting to YouTube streaming sockets...';
 
   const resultsAccumulator = {
     streams: [],
@@ -1398,8 +1398,9 @@ async function startProcessing(urls, label = null) {
         const stepPct = Math.round((completedCount / urls.length) * 100);
         elements.progressBarFill.style.width = `${stepPct}%`;
         elements.progressPercent.textContent = `${stepPct}%`;
+        elements.statusTitle.textContent = `Auditing Streams: ${completedCount} of ${urls.length} Checked (${stepPct}%)`;
         const currentGross = resultsAccumulator.streams.reduce((acc, s) => acc + (s.grossInr || 0), 0);
-        elements.statusTicker.textContent = `[Safe Worker ${workerId}] Audited ${completedCount}/${urls.length} streams. Current Gross: ${formatCurrency(currentGross)}`;
+        elements.statusTicker.textContent = `[Safe Worker ${workerId}] Audited ${completedCount}/${urls.length} streams (${stepPct}%) — Current Gross: ${formatCurrency(currentGross)}`;
       }
     }
   }
@@ -1433,7 +1434,7 @@ async function startProcessing(urls, label = null) {
 
   if (state.metrics.success > 0) {
     elements.statusTicker.textContent = `Audit Complete! Successfully parsed ${state.metrics.success} stream(s) via 3 Safe Workers.`;
-    elements.statusTitle.textContent = `Audit Finished (${state.metrics.success} Streams Succeeded)`;
+    elements.statusTitle.textContent = `Audit Finished: ${state.metrics.success} of ${urls.length} Streams Completed (100%)`;
     renderAllResults(resultsAccumulator);
     renderTiersBar();
     elements.resultsSection.style.display = 'block';

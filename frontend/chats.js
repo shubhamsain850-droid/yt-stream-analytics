@@ -7,7 +7,7 @@
   'use strict';
 
   const API_BASE = 'https://shubhamsain858-kickcuttr-api.hf.space/api/youtube';
-  const MAX_MULTI_STREAMS = 25;
+  const MAX_MULTI_STREAMS = 50;
 
   // Application State
   const state = {
@@ -619,7 +619,7 @@
     for (let i = 0; i < total; i++) {
       const vid = vids[i];
       const pct = Math.round(((i + 1) / total) * 100);
-      setProgress(pct, `Processing Stream ${i + 1} of ${total} [${vid}]`, `Streaming live chat for ${vid}...`, allMessages.length, uniqueChatters.size, totalSc + totalMem + totalJewels);
+      setProgress(pct, `Processing Streams: ${i + 1} of ${total} (${pct}%)`, `[Stream ${i + 1}/${total}] Extracting live chat for ${vid}...`, allMessages.length, uniqueChatters.size, totalSc + totalMem + totalJewels);
 
       try {
         const resp = await fetch(`${API_BASE}/fetch-chat`, {
