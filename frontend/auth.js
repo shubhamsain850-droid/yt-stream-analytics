@@ -314,6 +314,18 @@
         });
       }
     }
+
+    // Ad Suppression for PRO Members
+    checkAdSuppression();
+  }
+
+  function checkAdSuppression() {
+    if (currentUser && currentUser.tier === 'pro') {
+      const adScript = document.querySelector('script[src*="bauval.org"]');
+      if (adScript) adScript.remove();
+      const adElements = document.querySelectorAll('iframe[src*="bauval"], div[id*="at-cv-lightbox"], div[class*="adsterra"], div[class*="social-bar"]');
+      adElements.forEach(el => el.remove());
+    }
   }
 
   // ── Auth Modal (Guest Limit Reached / Sign In) ──
