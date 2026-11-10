@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TubeMetrix — YouTube Live Chat & Comments Downloader & Interactive View Engine
  * High-Speed In-Memory Client Engine (100% Client-Side Processing & Offline Viewer)
  */
@@ -7,7 +7,7 @@
   'use strict';
 
   const API_BASE = 'https://shubhamsain858-kickcuttr-api.hf.space/api/youtube';
-  const MAX_MULTI_STREAMS = 50;
+  const MAX_MULTI_STREAMS = 500;
 
   // Application State
   const state = {
@@ -412,8 +412,8 @@
 
   function updateMultiChatQueueUI() {
     const count = state.multiUrlQueue.length;
-    if (el.chatQueueCount) el.chatQueueCount.textContent = `${count} / ${MAX_MULTI_STREAMS}`;
-    if (el.multiTabBadge) el.multiTabBadge.textContent = `${count}/${MAX_MULTI_STREAMS} Added`;
+    if (el.chatQueueCount) el.chatQueueCount.textContent = `${count} Added`;
+    if (el.multiTabBadge) el.multiTabBadge.textContent = `${count} Added`;
     if (el.startChatMultiBtn) el.startChatMultiBtn.disabled = count === 0;
     if (el.clearAllChatUrlsBtn) el.clearAllChatUrlsBtn.style.display = count > 0 ? 'inline-block' : 'none';
 

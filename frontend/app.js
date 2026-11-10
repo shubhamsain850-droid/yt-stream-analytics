@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TubeMetrix — YouTube Live Stream Earning, Super Chat, Memberships & Jewels Analytics
  * Connected to live FastAPI backend on Hugging Face: https://shubhamsain858-kickcuttr-api.hf.space
  */
@@ -792,13 +792,13 @@ function setupChannelMode() {
 }
 
 // ── Option C (Multi-URL Batch - Max 25 Streams) ──
-const MAX_MULTI_STREAMS = 50;
+const MAX_MULTI_STREAMS = 500;
 
 function setupMultiMode() {
   function updateMultiBadgeAndUI() {
     const count = state.multiUrlQueue.length;
-    elements.multiTabBadge.textContent = `${count}/${MAX_MULTI_STREAMS} Added`;
-    elements.queueCount.textContent = `${count} / ${MAX_MULTI_STREAMS}`;
+    elements.multiTabBadge.textContent = `${count} Added`;
+    elements.queueCount.textContent = `${count} Added`;
     elements.startMultiBtn.disabled = count === 0;
     elements.clearAllUrlsBtn.style.display = count > 0 ? 'inline-block' : 'none';
 
