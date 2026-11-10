@@ -770,17 +770,13 @@ function setupChannelMode() {
           channel_url: channel,
           from_date: fromDate,
           to_date: toDate,
-          max_results: 100
+          max_results: null
         })
       });
 
       const resJson = await resp.json();
       if (resJson.success && resJson.streams && resJson.streams.length > 0) {
         let urls = resJson.streams.map(s => s.url);
-        if (urls.length > 100) {
-          urls = urls.slice(0, 100);
-          alert(`Channel returned ${resJson.streams.length} streams. Analyzing the latest 100 streams to ensure fast and stable analysis.`);
-        }
         startProcessing(urls, `Channel: ${channel} (${urls.length} Streams Found)`);
         return;
       } else {

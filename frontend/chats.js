@@ -556,7 +556,7 @@
           channel_url: channelUrl,
           from_date: fromDate || null,
           to_date: toDate || null,
-          max_results: 100
+          max_results: null
         })
       });
 
