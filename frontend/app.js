@@ -800,32 +800,39 @@ function setupChannelMode() {
 const MAX_MULTI_STREAMS = 500;
 
 function setupMultiMode() {
+  const FREE_CUSTOM_URL_LIMIT = 3;
+
   function updateMultiBadgeAndUI() {
+    const isPro = window.TubeMetrixAuth && window.TubeMetrixAuth.isPro();
     const count = state.multiUrlQueue.length;
     elements.multiTabBadge.textContent = `${count} Added`;
     elements.queueCount.textContent = `${count} Added`;
     elements.startMultiBtn.disabled = count === 0;
     elements.clearAllUrlsBtn.style.display = count > 0 ? 'inline-block' : 'none';
 
-    if (count >= MAX_MULTI_STREAMS) {
-      elements.addUrlBtn.disabled = true;
-      elements.addUrlBtn.style.opacity = '0.5';
-      elements.addUrlBtn.style.cursor = 'not-allowed';
-      elements.addUrlBtn.title = `Maximum batch limit of ${MAX_MULTI_STREAMS} streams reached`;
-      elements.multiUrlInput.placeholder = `Limit of ${MAX_MULTI_STREAMS} reached. Click 'Start Batch Processing' below.`;
-    } else {
-      elements.addUrlBtn.disabled = false;
-      elements.addUrlBtn.style.opacity = '1';
-      elements.addUrlBtn.style.cursor = 'pointer';
-      elements.addUrlBtn.title = 'Add stream to batch list';
-      elements.multiUrlInput.placeholder = 'Paste YouTube stream URL here...';
+    // Dynamic Pill for Free vs PRO
+    if (elements.batchLimitNotice) {
+      if (isPro) {
+        elements.batchLimitNotice.className = 'batch-limit-pill pro-pill';
+        elements.batchLimitNotice.innerHTML = '👑 Unlimited Batch Queue (PRO)';
+      } else {
+        elements.batchLimitNotice.className = 'batch-limit-pill';
+        elements.batchLimitNotice.innerHTML = `Free Tier: ${count}/${FREE_CUSTOM_URL_LIMIT} Streams Limit (<a href="javascript:void(0)" id="upgradeBatchLnk" style="color: #fbbf24; text-decoration: underline; font-weight: 700;">👑 Upgrade for Unlimited</a>)`;
+        const upBtn = document.getElementById('upgradeBatchLnk');
+        if (upBtn) {
+          upBtn.onclick = (e) => {
+            e.preventDefault();
+            if (window.TubeMetrixAuth) window.TubeMetrixAuth.openProModal("Unlock unlimited custom stream queueing with PRO or Day Pass!");
+          };
+        }
+      }
     }
 
     if (count === 0) {
       elements.urlQueueList.innerHTML = `
         <div class="empty-queue-hint">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (up to 50 streams per batch).</span>
+          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (Free: 3 streams, PRO: Unlimited).</span>
         </div>`;
       return;
     }
@@ -836,16 +843,14 @@ function setupMultiMode() {
           <span class="queue-item-num">#${idx + 1}</span>
           <span class="queue-item-url" title="${item}">${item}</span>
         </div>
-        <button class="queue-item-remove" data-index="${idx}" title="Remove stream">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
+        <button class="queue-item-remove" data-idx="${idx}" type="button" title="Remove stream">&times;</button>
       </div>
     `).join('');
 
-    document.querySelectorAll('.queue-item-remove').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const i = parseInt(btn.dataset.index, 10);
-        state.multiUrlQueue.splice(i, 1);
+    elements.urlQueueList.querySelectorAll('.queue-item-remove').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.currentTarget.dataset.idx, 10);
+        state.multiUrlQueue.splice(idx, 1);
         updateMultiBadgeAndUI();
       });
     });
@@ -855,17 +860,28 @@ function setupMultiMode() {
     const rawVal = elements.multiUrlInput.value.trim();
     if (!rawVal) return;
 
-    if (state.multiUrlQueue.length >= MAX_MULTI_STREAMS) {
-      alert(`Maximum batch limit reached (${MAX_MULTI_STREAMS} streams max). Please remove some streams or start processing.`);
+    const isPro = window.TubeMetrixAuth && window.TubeMetrixAuth.isPro();
+    const currentCount = state.multiUrlQueue.length;
+
+    // Check if free user is already at the limit
+    if (!isPro && currentCount >= FREE_CUSTOM_URL_LIMIT) {
+      if (window.TubeMetrixAuth) {
+        window.TubeMetrixAuth.openProModal("Free Batch Limit Reached! You have added 3 streams. Upgrade to PRO or get a $0.99 Day Pass to queue unlimited custom streams!");
+      } else {
+        alert("Free limit reached (3 streams). Upgrade to PRO for unlimited custom streams!");
+      }
       return;
     }
 
-    // Support single URL or multiple pasted URLs (split by newline, comma, space)
+    // Support single URL or multiple pasted URLs
     const items = rawVal.split(/[\r\n,\s]+/).map(u => u.trim()).filter(Boolean);
     let addedCount = 0;
     let duplicateCount = 0;
 
     for (const url of items) {
+      if (!isPro && state.multiUrlQueue.length >= FREE_CUSTOM_URL_LIMIT) {
+        break;
+      }
       if (state.multiUrlQueue.length >= MAX_MULTI_STREAMS) {
         break;
       }
@@ -881,8 +897,10 @@ function setupMultiMode() {
     elements.multiUrlInput.focus();
     updateMultiBadgeAndUI();
 
-    if (state.multiUrlQueue.length >= MAX_MULTI_STREAMS && items.length > addedCount) {
-      alert(`Batch limit reached! Added ${addedCount} stream(s). Maximum ${MAX_MULTI_STREAMS} streams allowed per batch for fast and reliable audit.`);
+    if (!isPro && state.multiUrlQueue.length >= FREE_CUSTOM_URL_LIMIT && items.length > addedCount) {
+      if (window.TubeMetrixAuth) {
+        window.TubeMetrixAuth.openProModal(`Added ${addedCount} stream(s) (Free limit: 3 streams reached). Upgrade to PRO to add all streams simultaneously!`);
+      }
     } else if (addedCount === 0 && duplicateCount > 0) {
       alert('The entered stream URL is already in your batch list.');
     }
@@ -899,6 +917,9 @@ function setupMultiMode() {
       updateMultiBadgeAndUI();
     }
   });
+
+  // Expose to window for auth refresh
+  window.refreshMultiBatchUI = updateMultiBadgeAndUI;
 
   elements.startMultiBtn.addEventListener('click', () => {
     if (state.multiUrlQueue.length === 0) return;

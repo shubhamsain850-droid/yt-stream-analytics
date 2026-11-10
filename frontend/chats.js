@@ -383,11 +383,27 @@
   function updateViewerSessionButton() {}
 
   // ─────────────────────────────────────────────
-  // 3. MULTI-URL BATCH QUEUE
+  // 3. CUSTOM URL BATCH QUEUE (Free: 3, PRO: Unlimited)
   // ─────────────────────────────────────────────
+  const FREE_CUSTOM_URL_LIMIT = 3;
+
   function addUrlToChatQueue() {
     const raw = el.chatMultiUrlInput.value.trim();
     if (!raw) return;
+
+    const isPro = window.TubeMetrixAuth && window.TubeMetrixAuth.isPro();
+    const currentCount = state.multiUrlQueue.length;
+
+    // Gatekeeper: Max 3 streams for Free / Guest users
+    if (!isPro && currentCount >= FREE_CUSTOM_URL_LIMIT) {
+      if (window.TubeMetrixAuth) {
+        window.TubeMetrixAuth.openProModal("Free Batch Limit Reached! You have queued 3 streams. Upgrade to PRO or get a $0.99 Day Pass to download unlimited stream chats!");
+      } else {
+        alert("Free limit reached (3 streams). Upgrade to PRO for unlimited custom stream chat downloads!");
+      }
+      return;
+    }
+
     const vid = extractVideoId(raw);
     if (!vid) {
       alert('Please enter a valid YouTube stream URL or 11-character Video ID.');
@@ -400,22 +416,44 @@
       return;
     }
 
-    if (state.multiUrlQueue.length >= MAX_MULTI_STREAMS) {
-      alert(`Maximum batch limit of ${MAX_MULTI_STREAMS} streams reached.`);
-      return;
-    }
-
     state.multiUrlQueue.push(vid);
     el.chatMultiUrlInput.value = '';
+    el.chatMultiUrlInput.focus();
     updateMultiChatQueueUI();
+
+    if (!isPro && state.multiUrlQueue.length >= FREE_CUSTOM_URL_LIMIT) {
+      if (window.TubeMetrixAuth) {
+        window.TubeMetrixAuth.openProModal("You have reached the free batch limit of 3 streams. Upgrade to PRO to add unlimited streams!");
+      }
+    }
   }
 
   function updateMultiChatQueueUI() {
+    const isPro = window.TubeMetrixAuth && window.TubeMetrixAuth.isPro();
     const count = state.multiUrlQueue.length;
     if (el.chatQueueCount) el.chatQueueCount.textContent = `${count} Added`;
     if (el.multiTabBadge) el.multiTabBadge.textContent = `${count} Added`;
     if (el.startChatMultiBtn) el.startChatMultiBtn.disabled = count === 0;
     if (el.clearAllChatUrlsBtn) el.clearAllChatUrlsBtn.style.display = count > 0 ? 'inline-block' : 'none';
+
+    // Dynamic Pill for Free vs PRO
+    const batchNotice = document.querySelector('.mode-panel#panel-multi .batch-limit-pill');
+    if (batchNotice) {
+      if (isPro) {
+        batchNotice.className = 'batch-limit-pill pro-pill';
+        batchNotice.innerHTML = '👑 Unlimited Batch Queue (PRO)';
+      } else {
+        batchNotice.className = 'batch-limit-pill';
+        batchNotice.innerHTML = `Free Tier: ${count}/${FREE_CUSTOM_URL_LIMIT} Streams Limit (<a href="javascript:void(0)" id="upgradeChatBatchLnk" style="color: #fbbf24; text-decoration: underline; font-weight: 700;">👑 Upgrade for Unlimited</a>)`;
+        const upBtn = document.getElementById('upgradeChatBatchLnk');
+        if (upBtn) {
+          upBtn.onclick = (e) => {
+            e.preventDefault();
+            if (window.TubeMetrixAuth) window.TubeMetrixAuth.openProModal("Unlock unlimited custom stream chat downloads with PRO or Day Pass!");
+          };
+        }
+      }
+    }
 
     if (!el.chatUrlQueueList) return;
 
@@ -423,7 +461,7 @@
       el.chatUrlQueueList.innerHTML = `
         <div class="empty-queue-hint">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong>.</span>
+          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (Free: 3 streams, PRO: Unlimited).</span>
         </div>`;
       return;
     }
@@ -444,6 +482,8 @@
       });
     });
   }
+
+  window.refreshMultiBatchUI = updateMultiChatQueueUI;
 
   // ─────────────────────────────────────────────
   // 4. API CALLS & EXTRACTION ENGINES

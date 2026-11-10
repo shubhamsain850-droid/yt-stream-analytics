@@ -668,6 +668,11 @@
         });
       }
     });
+
+    // 5. Refresh Custom URL Batch limits UI
+    if (typeof window.refreshMultiBatchUI === 'function') {
+      try { window.refreshMultiBatchUI(); } catch (e) {}
+    }
   }
 
   // ── Public Global API ──
