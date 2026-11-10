@@ -167,7 +167,8 @@
         client_id: GOOGLE_CLIENT_ID,
         callback: window.handleGoogleCredentialResponse,
         auto_select: false,
-        cancel_on_tap_outside: true
+        cancel_on_tap_outside: true,
+        use_fedcm_for_prompt: true
       });
 
       // Show Google One Tap if user is not logged in
