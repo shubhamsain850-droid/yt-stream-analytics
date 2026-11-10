@@ -45,6 +45,7 @@
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=5.1">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
@@ -111,6 +112,8 @@
       </div>
 
       <div class="nav-actions">
+        <!-- Google Auth & Profile Widget -->
+        <div id="authNavContainer"></div>
                 <button class="theme-toggle-btn" id="themeToggleBtn" type="button" title="Switch Theme (Light / Dark)">
           <span class="theme-icon" id="themeIcon">☀️</span>
           <span class="theme-text" id="themeText">Light</span>
@@ -497,6 +500,7 @@
   <div class="toast" id="toast"></div>
 
   <!-- Scripts -->
+  <script src="auth.js?v=1.0"></script>
   <script src="revenue.js?v=5.1"></script>
 </body>
 

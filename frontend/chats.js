@@ -479,6 +479,9 @@
 
   // Option A: Single Stream Live Chat
   async function startSingleChatExtraction() {
+    if (window.TubeMetrixAuth && typeof window.TubeMetrixAuth.checkQuota === 'function') {
+      if (!window.TubeMetrixAuth.checkQuota(1)) return;
+    }
     const raw = el.chatSingleUrlInput.value.trim();
     const vid = extractVideoId(raw);
     if (!vid) {
@@ -515,6 +518,9 @@
         });
       }
       state.lastExtractionType = 'chats';
+      if (window.TubeMetrixAuth && typeof window.TubeMetrixAuth.incrementUsage === 'function') {
+        window.TubeMetrixAuth.incrementUsage(1);
+      }
 
       setProgress(100, `Complete!`, `Processed ${res.data.total_messages} messages in ${res.elapsed_sec || 0.5}s`, res.data.total_messages, res.data.unique_chatters, res.data.events_count);
 
@@ -585,6 +591,9 @@
 
   // Option C: Multi-URL Batch
   async function startMultiChatExtraction() {
+    if (window.TubeMetrixAuth && typeof window.TubeMetrixAuth.checkQuota === 'function') {
+      if (!window.TubeMetrixAuth.checkQuota(state.multiUrlQueue.length)) return;
+    }
     if (state.multiUrlQueue.length === 0) {
       alert('Please add at least 1 stream to the batch list.');
       return;
@@ -645,6 +654,10 @@
         }
       } catch (e) {
         console.warn(`Failed to process stream ${vid}:`, e);
+      } finally {
+        if (window.TubeMetrixAuth && typeof window.TubeMetrixAuth.incrementUsage === 'function') {
+          window.TubeMetrixAuth.incrementUsage(1);
+        }
       }
     }
 

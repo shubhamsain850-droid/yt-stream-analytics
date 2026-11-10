@@ -1257,6 +1257,12 @@ function stopProgressSimulation() {
 const CONCURRENCY_LIMIT = 3;
 
 async function startProcessing(urls, label = null) {
+  // Auth Quota Gatekeeper
+  if (window.TubeMetrixAuth && typeof window.TubeMetrixAuth.checkQuota === 'function') {
+    if (!window.TubeMetrixAuth.checkQuota(urls.length)) {
+      return;
+    }
+  }
   // 1. Session Isolation Reset (Zero cross-session pollution)
   state.discoveredTiers.clear();
   state.results = null;
@@ -1388,6 +1394,9 @@ async function startProcessing(urls, label = null) {
       elements.statusTicker.textContent = `[ERROR] Network error for ${vid}`;
     } finally {
       completedCount++;
+      if (window.TubeMetrixAuth && typeof window.TubeMetrixAuth.incrementUsage === 'function') {
+        window.TubeMetrixAuth.incrementUsage(1);
+      }
       updateMetricsDisplay();
 
       if (urls.length > 1) {
