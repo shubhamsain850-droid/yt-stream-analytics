@@ -20,9 +20,9 @@
       region: 'USD',
       dayPass: {
         symbol: '$',
-        amount: '0.99',
+        amount: '2.50',
         sub: 'One-time 24h access • Global USD',
-        cta: 'Get 24h Pass ($0.99)',
+        cta: 'Get 24h Pass ($2.50)',
       },
       monthlyPro: {
         symbol: '$',
@@ -32,8 +32,8 @@
         ctaModal: 'Subscribe for $8.99 / mo',
         ctaPublic: 'Upgrade to PRO ($8.99/mo)',
       },
-      bannerLabel: '⚡ Unlock with Day Pass ($0.99)',
-      limitHint: '$0.99 Day Pass',
+      bannerLabel: '⚡ Unlock with Day Pass ($2.50)',
+      limitHint: '$2.50 Day Pass',
     },
     INR: {
       region: 'INR',
