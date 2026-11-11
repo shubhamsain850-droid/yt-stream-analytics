@@ -25,13 +25,17 @@ function matchesUser(entity, user) {
   return false;
 }
 
-function resolvePackId(env, productId, metaPack, pendingPack, bodyPack) {
-  const fromProd = resolvePackFromProductId(env, productId);
+function resolvePackId(env, productId, metaPack, pendingPack, bodyPack, payment = null) {
+  const fromProd = resolvePackFromProductId(env, productId, {
+    metaPack,
+    pendingPlan: pendingPack,
+    payment,
+  });
   if (fromProd) return fromProd;
-  for (const candidate of [metaPack, pendingPack, bodyPack]) {
+  for (const candidate of [pendingPack, metaPack, bodyPack]) {
     if (getCreditPack(candidate)) return candidate;
   }
-  return 'credits_10';
+  return 'in_10';
 }
 
 export async function onRequestPost({ request, env }) {
@@ -76,7 +80,8 @@ export async function onRequestPost({ request, env }) {
             prodId,
             sess?.metadata?.pack_id,
             latestCheckout?.plan,
-            requestedPack
+            requestedPack,
+            sess
           );
           const granted = await grantCreditPurchase(env.DB, {
             userId: user.id,
@@ -117,7 +122,8 @@ export async function onRequestPost({ request, env }) {
           prodId,
           payment?.metadata?.pack_id,
           latestCheckout?.plan,
-          requestedPack
+          requestedPack,
+          payment
         );
         const granted = await grantCreditPurchase(env.DB, {
           userId: user.id,

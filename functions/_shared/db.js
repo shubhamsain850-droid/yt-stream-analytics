@@ -485,8 +485,26 @@ export async function revokeCreditPurchase(
   }
   if (!target) return null;
 
-  const pack = getCreditPack(paymentRow?.plan || 'credits_10');
-  const clawbackCredits = pack ? pack.credits : 10;
+  const ledgerKeys = [];
+  if (paymentId) ledgerKeys.push(`purchase:${paymentId}`);
+  if (sessionId) ledgerKeys.push(`purchase:${sessionId}`);
+  if (paymentRow?.payment_id) ledgerKeys.push(`purchase:${paymentRow.payment_id}`);
+  if (paymentRow?.session_id) ledgerKeys.push(`purchase:${paymentRow.session_id}`);
+
+  let grantedLedgerDelta = 0;
+  for (const refKey of ledgerKeys) {
+    const row = await db
+      .prepare('SELECT delta FROM credit_ledger WHERE ref_id = ?1 AND delta > 0 LIMIT 1')
+      .bind(refKey)
+      .first();
+    if (row && Number(row.delta) > 0) {
+      grantedLedgerDelta = Number(row.delta);
+      break;
+    }
+  }
+
+  const pack = getCreditPack(paymentRow?.plan || 'in_10');
+  const clawbackCredits = grantedLedgerDelta > 0 ? grantedLedgerDelta : pack ? pack.credits : 10;
   const refundRef = `refund:${paymentId || sessionId || crypto.randomUUID()}`;
 
   const ledgerRes = await db

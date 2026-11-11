@@ -5,49 +5,152 @@
 
 import { timingSafeEqualBytes } from './security.js';
 
-export const CREDIT_UNIT_MESSAGES = 1000; // 1 Credit = 1,000 chats/comments ($0.30/1k = $0.60 per 2,000 chats)
+export const CREDIT_UNIT_MESSAGES = 1000; // 1 Credit = 1,000 chats/comments
 
 export const CREDIT_PACKS = {
-  credits_10: {
-    id: 'credits_10',
+  // Global USD Packs ($19.99 / 200k • $29 / 500k • $49 / 1M)
+  credits_200: {
+    id: 'credits_200',
+    tier: 'starter',
+    market: 'USD',
     name: 'Starter Pack',
+    credits: 200,
+    chatsAllowance: 200000,
+    usdPrice: 19.99,
+    usdLabel: '$19.99',
+    unitLabel: '$0.10 / 1k chats',
+    minUsdCents: 1500,
+  },
+  credits_500: {
+    id: 'credits_500',
+    tier: 'growth',
+    market: 'USD',
+    name: 'Growth Pack',
+    credits: 500,
+    chatsAllowance: 500000,
+    usdPrice: 29.0,
+    usdLabel: '$29.00',
+    unitLabel: '$0.058 / 1k chats',
+    minUsdCents: 2400,
+  },
+  credits_1000: {
+    id: 'credits_1000',
+    tier: 'agency',
+    market: 'USD',
+    name: 'Agency Pack',
+    credits: 1000,
+    chatsAllowance: 1000000,
+    usdPrice: 49.0,
+    usdLabel: '$49.00',
+    unitLabel: '$0.049 / 1k chats',
+    minUsdCents: 4000,
+  },
+  // India INR Packs (₹49-99 / 10k • ₹149-249 / 30k • ₹499-699 / 100k)
+  in_10: {
+    id: 'in_10',
+    tier: 'starter',
+    market: 'INR',
+    name: 'Starter Pack (India)',
     credits: 10,
     chatsAllowance: 10000,
-    usdPrice: 2.99,
-    usdLabel: '$2.99',
-    per2kUsd: '$0.60 / 2k chats',
     inrRegular: 99,
     inrFirst: 49,
     inrDiscountBadge: '50% OFF 1st Order',
+    unitLabel: '₹4.90 / 1k (1st)',
   },
-  credits_30: {
-    id: 'credits_30',
-    name: 'Creator Pack',
+  in_30: {
+    id: 'in_30',
+    tier: 'growth',
+    market: 'INR',
+    name: 'Creator Pack (India)',
     credits: 30,
     chatsAllowance: 30000,
-    usdPrice: 6.99,
-    usdLabel: '$6.99',
-    per2kUsd: '$0.47 / 2k chats',
     inrRegular: 249,
     inrFirst: 149,
     inrDiscountBadge: '40% OFF 1st Order',
+    unitLabel: '₹4.97 / 1k (1st)',
   },
-  credits_100: {
-    id: 'credits_100',
-    name: 'Agency Pack',
+  in_100: {
+    id: 'in_100',
+    tier: 'agency',
+    market: 'INR',
+    name: 'Agency Pack (India)',
     credits: 100,
     chatsAllowance: 100000,
-    usdPrice: 19.99,
-    usdLabel: '$19.99',
-    per2kUsd: '$0.40 / 2k chats',
     inrRegular: 699,
     inrFirst: 499,
     inrDiscountBadge: '29% OFF 1st Order',
+    unitLabel: '₹4.99 / 1k (1st)',
+  },
+  // Backward-compatible keys for legacy payment records
+  credits_10: {
+    id: 'credits_10',
+    tier: 'starter',
+    market: 'INR',
+    name: 'Starter Pack',
+    credits: 10,
+    chatsAllowance: 10000,
+    inrRegular: 99,
+    inrFirst: 49,
+    usdPrice: 2.99,
+    usdLabel: '$2.99',
+  },
+  credits_30: {
+    id: 'credits_30',
+    tier: 'growth',
+    market: 'INR',
+    name: 'Creator Pack',
+    credits: 30,
+    chatsAllowance: 30000,
+    inrRegular: 249,
+    inrFirst: 149,
+    usdPrice: 6.99,
+    usdLabel: '$6.99',
+  },
+  credits_100: {
+    id: 'credits_100',
+    tier: 'agency',
+    market: 'INR',
+    name: 'Agency Pack',
+    credits: 100,
+    chatsAllowance: 100000,
+    inrRegular: 699,
+    inrFirst: 499,
+    usdPrice: 19.99,
+    usdLabel: '$19.99',
+  },
+};
+
+export const PUBLIC_CREDIT_PACKS = {
+  USD: {
+    starter: CREDIT_PACKS.credits_200,
+    growth: CREDIT_PACKS.credits_500,
+    agency: CREDIT_PACKS.credits_1000,
+  },
+  INR: {
+    starter: CREDIT_PACKS.in_10,
+    growth: CREDIT_PACKS.in_30,
+    agency: CREDIT_PACKS.in_100,
   },
 };
 
 export function getCreditPack(packId) {
   return packId && CREDIT_PACKS[packId] ? CREDIT_PACKS[packId] : null;
+}
+
+export function normalizePackForCountry(requestedPackId, country) {
+  const isIndia = String(country || '').toUpperCase() === 'IN';
+  const raw = String(requestedPackId || '').trim().toLowerCase();
+  let tier = 'starter';
+  if (raw.includes('500') || raw.includes('30') || raw === 'growth' || raw === 'creator') {
+    tier = 'growth';
+  } else if (raw.includes('1000') || raw.includes('100') || raw === 'agency') {
+    tier = 'agency';
+  }
+  if (isIndia) {
+    return tier === 'growth' ? 'in_30' : tier === 'agency' ? 'in_100' : 'in_10';
+  }
+  return tier === 'growth' ? 'credits_500' : tier === 'agency' ? 'credits_1000' : 'credits_200';
 }
 
 export function getDodoConfig(env) {
@@ -57,28 +160,59 @@ export function getDodoConfig(env) {
   const baseUrl =
     envMode === 'test' ? 'https://test.dodopayments.com' : 'https://live.dodopayments.com';
 
-  const products = {
-    credits_10: (env.DODO_PRODUCT_CREDITS_10 || '').trim(),
-    credits_30: (env.DODO_PRODUCT_CREDITS_30 || '').trim(),
-    credits_100: (env.DODO_PRODUCT_CREDITS_100 || '').trim(),
+  const legacyShared = {
+    starter: (env.DODO_PRODUCT_CREDITS_10 || '').trim(),
+    growth: (env.DODO_PRODUCT_CREDITS_30 || '').trim(),
+    agency: (env.DODO_PRODUCT_CREDITS_100 || '').trim(),
   };
 
-  // Optional dedicated India 1st-purchase product IDs OR Dodo promo codes
+  const usdDedicatedProducts = {
+    credits_200: (env.DODO_PRODUCT_USD_200 || env.DODO_PRODUCT_CREDITS_200 || '').trim(),
+    credits_500: (env.DODO_PRODUCT_USD_500 || env.DODO_PRODUCT_CREDITS_500 || '').trim(),
+    credits_1000: (env.DODO_PRODUCT_USD_1000 || env.DODO_PRODUCT_CREDITS_1000 || '').trim(),
+  };
+
+  const inrDedicatedProducts = {
+    in_10: (env.DODO_PRODUCT_IN_10 || '').trim(),
+    in_30: (env.DODO_PRODUCT_IN_30 || '').trim(),
+    in_100: (env.DODO_PRODUCT_IN_100 || '').trim(),
+  };
+
+  const usdProducts = {
+    credits_200: usdDedicatedProducts.credits_200 || legacyShared.starter,
+    credits_500: usdDedicatedProducts.credits_500 || legacyShared.growth,
+    credits_1000: usdDedicatedProducts.credits_1000 || legacyShared.agency,
+  };
+
+  const inrProducts = {
+    in_10: inrDedicatedProducts.in_10 || legacyShared.starter,
+    in_30: inrDedicatedProducts.in_30 || legacyShared.growth,
+    in_100: inrDedicatedProducts.in_100 || legacyShared.agency,
+  };
+
   const indiaFirstProducts = {
-    credits_10: (env.DODO_PRODUCT_IN_FIRST_10 || '').trim(),
-    credits_30: (env.DODO_PRODUCT_IN_FIRST_30 || '').trim(),
-    credits_100: (env.DODO_PRODUCT_IN_FIRST_100 || '').trim(),
+    in_10: (env.DODO_PRODUCT_IN_FIRST_10 || '').trim(),
+    in_30: (env.DODO_PRODUCT_IN_FIRST_30 || '').trim(),
+    in_100: (env.DODO_PRODUCT_IN_FIRST_100 || '').trim(),
   };
 
   const sharedFirstCode = (env.DODO_INDIA_FIRST_DISCOUNT_CODE || '').trim();
   const indiaFirstDiscountCodes = {
-    credits_10: (env.DODO_INDIA_FIRST_CODE_10 || sharedFirstCode).trim(),
-    credits_30: (env.DODO_INDIA_FIRST_CODE_30 || sharedFirstCode).trim(),
-    credits_100: (env.DODO_INDIA_FIRST_CODE_100 || sharedFirstCode).trim(),
+    in_10: (env.DODO_INDIA_FIRST_CODE_10 || sharedFirstCode).trim(),
+    in_30: (env.DODO_INDIA_FIRST_CODE_30 || sharedFirstCode).trim(),
+    in_100: (env.DODO_INDIA_FIRST_CODE_100 || sharedFirstCode).trim(),
+  };
+
+  const products = {
+    ...usdProducts,
+    ...inrProducts,
+    credits_10: legacyShared.starter,
+    credits_30: legacyShared.growth,
+    credits_100: legacyShared.agency,
   };
 
   const configured = Boolean(
-    apiKey && (products.credits_10 || products.credits_30 || products.credits_100)
+    apiKey && (usdProducts.credits_200 || usdProducts.credits_500 || usdProducts.credits_1000)
   );
 
   return {
@@ -86,6 +220,11 @@ export function getDodoConfig(env) {
     baseUrl,
     apiKey,
     webhookSecret,
+    legacyShared,
+    usdProducts,
+    usdDedicatedProducts,
+    inrProducts,
+    inrDedicatedProducts,
     products,
     indiaFirstProducts,
     indiaFirstDiscountCodes,
@@ -93,15 +232,79 @@ export function getDodoConfig(env) {
   };
 }
 
-export function resolvePackFromProductId(env, productId) {
-  if (!productId) return null;
+export function resolvePackFromProductId(env, productId, context = {}) {
   const cfg = getDodoConfig(env);
-  for (const packId of Object.keys(CREDIT_PACKS)) {
-    if (cfg.products[packId] && cfg.products[packId] === productId) {
-      return packId;
+  const { metaPack = '', pendingPlan = '', payment = null } = context || {};
+
+  if (productId) {
+    // 1. Strict India 1st-purchase or dedicated India regular products -> ALWAYS 10 / 30 / 100 CR
+    for (const inPackId of ['in_10', 'in_30', 'in_100']) {
+      if (
+        (cfg.indiaFirstProducts[inPackId] && cfg.indiaFirstProducts[inPackId] === productId) ||
+        (cfg.inrDedicatedProducts[inPackId] && cfg.inrDedicatedProducts[inPackId] === productId)
+      ) {
+        return inPackId;
+      }
     }
-    if (cfg.indiaFirstProducts[packId] && cfg.indiaFirstProducts[packId] === productId) {
-      return packId;
+
+    // 2. Dedicated Global USD products -> ALWAYS 200 / 500 / 1,000 CR
+    for (const usdPackId of ['credits_200', 'credits_500', 'credits_1000']) {
+      if (cfg.usdDedicatedProducts[usdPackId] && cfg.usdDedicatedProducts[usdPackId] === productId) {
+        return usdPackId;
+      }
+    }
+
+    // 3. Shared DODO_PRODUCT_CREDITS_{10,30,100}: guard against INR/low-amount arbitrage
+    const tierPair =
+      productId === cfg.legacyShared.starter
+        ? { inPack: 'in_10', usdPack: 'credits_200' }
+        : productId === cfg.legacyShared.growth
+          ? { inPack: 'in_30', usdPack: 'credits_500' }
+          : productId === cfg.legacyShared.agency
+            ? { inPack: 'in_100', usdPack: 'credits_1000' }
+            : null;
+
+    if (tierPair) {
+      const payCurrency = String(payment?.currency || '').toUpperCase();
+      const rawTotal = payment?.total_amount ?? payment?.settlement_amount;
+      const totalAmount = rawTotal !== undefined && rawTotal !== null ? Number(rawTotal) : null;
+
+      if (payCurrency === 'INR' && (totalAmount === null || totalAmount < 120000)) {
+        return tierPair.inPack;
+      }
+
+      const candidate = [pendingPlan, metaPack].find((c) => getCreditPack(c));
+      if (candidate === tierPair.usdPack) {
+        const minCents = CREDIT_PACKS[tierPair.usdPack].minUsdCents || 1500;
+        if (cfg.envMode === 'live' && totalAmount !== null && payCurrency === 'USD' && totalAmount < minCents) {
+          return tierPair.inPack;
+        }
+        return tierPair.usdPack;
+      }
+
+      if (
+        candidate === tierPair.inPack ||
+        candidate === 'credits_10' ||
+        candidate === 'credits_30' ||
+        candidate === 'credits_100'
+      ) {
+        return tierPair.inPack;
+      }
+
+      return payCurrency === 'INR' ? tierPair.inPack : tierPair.usdPack;
+    }
+  }
+
+  const payCurrency = String(payment?.currency || '').toUpperCase();
+  const rawTotal = payment?.total_amount ?? payment?.settlement_amount;
+  const totalAmount = rawTotal !== undefined && rawTotal !== null ? Number(rawTotal) : null;
+
+  for (const fallback of [pendingPlan, metaPack]) {
+    if (getCreditPack(fallback)) {
+      if (payCurrency === 'INR' && (totalAmount === null || totalAmount < 120000)) {
+        return normalizePackForCountry(fallback, 'IN');
+      }
+      return fallback;
     }
   }
   return null;
@@ -117,8 +320,9 @@ export async function createDodoCheckoutSession(
     throw new Error('Unknown credit pack.');
   }
 
-  const dedicatedInProduct = indiaFirstPurchase ? cfg.indiaFirstProducts[packId] : '';
-  const productId = dedicatedInProduct || cfg.products[packId];
+  const dedicatedFirstIn = indiaFirstPurchase ? cfg.indiaFirstProducts[packId] : '';
+  const dedicatedRepeatIn = countryCode === 'IN' ? cfg.inrDedicatedProducts[packId] : '';
+  const productId = dedicatedFirstIn || dedicatedRepeatIn || cfg.products[packId];
 
   if (!cfg.apiKey || !productId) {
     throw new Error('Dodo Payments credentials or Credit Pack Product ID not configured.');
@@ -135,16 +339,17 @@ export async function createDodoCheckoutSession(
       email: String(user.email),
       pack_id: String(pack.id),
       credits: String(pack.credits),
+      market: String(pack.market || (countryCode === 'IN' ? 'INR' : 'USD')),
       india_first_purchase: indiaFirstPurchase ? 'true' : 'false',
       country: String(countryCode || 'XX'),
     },
     return_url: returnUrl,
   };
 
-  if (indiaFirstPurchase && !dedicatedInProduct && cfg.indiaFirstDiscountCodes[packId]) {
+  if (indiaFirstPurchase && !dedicatedFirstIn && cfg.indiaFirstDiscountCodes[packId]) {
     payload.discount_codes = [cfg.indiaFirstDiscountCodes[packId]];
     payload.billing_currency = 'INR';
-  } else if (countryCode === 'IN' && dedicatedInProduct) {
+  } else if (countryCode === 'IN' && (dedicatedFirstIn || dedicatedRepeatIn)) {
     payload.billing_currency = 'INR';
   }
 

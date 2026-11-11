@@ -4,8 +4,25 @@ import {
   createDodoCheckoutSession,
   getCreditPack,
   getDodoConfig,
+  normalizePackForCountry,
 } from '../../_shared/dodo.js';
 import { resolveRequestIdentity } from '../../_shared/context.js';
+
+const ALLOWED_PACK_INPUTS = new Set([
+  'credits_10',
+  'credits_30',
+  'credits_100',
+  'credits_200',
+  'credits_500',
+  'credits_1000',
+  'in_10',
+  'in_30',
+  'in_100',
+  'starter',
+  'growth',
+  'creator',
+  'agency',
+]);
 
 function buildSafeReturnUrl(requestUrl, rawReturnPath, packId) {
   const origin = new URL(requestUrl).origin;
@@ -39,18 +56,26 @@ export async function onRequestPost({ request, env }) {
       return jsonResponse({ error: 'Invalid JSON body.' }, 400);
     }
 
-    const rawPack = String(body?.packId || body?.plan || '').trim();
-    const pack = getCreditPack(rawPack);
-    if (!pack) {
+    const rawPack = String(body?.packId || body?.plan || '').trim().toLowerCase();
+    if (!ALLOWED_PACK_INPUTS.has(rawPack)) {
       return jsonResponse({ error: 'Invalid credit pack selected.' }, 400);
     }
 
     const countryCode = getRequestCountry(request);
+    // Strict server-side geo enforcement: India uses 10/30/100 INR packs, Global uses 200/500/1,000 USD packs
+    const canonicalPackId = normalizePackForCountry(rawPack, countryCode);
+    const pack = getCreditPack(canonicalPackId);
+    if (!pack) {
+      return jsonResponse({ error: 'Invalid credit pack selected.' }, 400);
+    }
+
     const indiaFirstPurchase = await isIndiaFirstPurchaseEligible(env.DB, user, countryCode);
 
     const cfg = getDodoConfig(env);
     const targetProductId =
-      (indiaFirstPurchase && cfg.indiaFirstProducts[pack.id]) || cfg.products[pack.id];
+      (indiaFirstPurchase && cfg.indiaFirstProducts[pack.id]) ||
+      (countryCode === 'IN' ? cfg.inrDedicatedProducts[pack.id] : cfg.usdDedicatedProducts[pack.id]) ||
+      cfg.products[pack.id];
 
     if (!cfg.apiKey || !targetProductId) {
       return jsonResponse(

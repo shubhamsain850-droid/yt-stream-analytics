@@ -26,22 +26,22 @@ export async function onRequestPost({ request, env }) {
     const rawMode = String(body?.mode || '').trim().toLowerCase();
     const requireProLegacy = Boolean(body?.requirePro);
     const mode =
-      rawMode === 'channel' || rawMode === 'batch' || rawMode === 'single'
+      rawMode === 'channel' || rawMode === 'batch' || rawMode === 'comments' || rawMode === 'single'
         ? rawMode
         : requireProLegacy
           ? 'channel'
           : 'single';
 
     const rawCount = Number(body?.count ?? 1);
-    const count = Number.isFinite(rawCount) ? Math.max(0, Math.min(500, Math.floor(rawCount))) : 1;
+    const count = Number.isFinite(rawCount) ? Math.max(0, Math.min(2000, Math.floor(rawCount))) : 1;
     const rawCredits = Number(body?.credits ?? Math.max(1, count));
     const creditsNeeded = Number.isFinite(rawCredits)
-      ? Math.max(1, Math.min(500, Math.floor(rawCredits)))
+      ? Math.max(1, Math.min(2000, Math.floor(rawCredits)))
       : Math.max(1, count || 1);
     const checkOnly = Boolean(body?.checkOnly);
 
-    // ── Mode B/C: Custom URLs Batch & Channel Date Range (Credits-Only, ZERO Weekly Free) ──
-    if (mode === 'channel' || mode === 'batch') {
+    // ── Mode B/C/High-Volume Comments: Credits-Only, ZERO Weekly Free ──
+    if (mode === 'channel' || mode === 'batch' || mode === 'comments') {
       if (!user) {
         const quota = await buildQuotaSnapshot(env.DB, null, guestSubjectKey);
         return jsonResponse(
@@ -52,7 +52,7 @@ export async function onRequestPost({ request, env }) {
             creditsNeeded,
             user: null,
             quota,
-            message: 'Sign in with Google and use Credits for Custom URL Batch & Channel Date Range.',
+            message: 'Sign in with Google and use Credits for Bulk & High-Volume modes.',
           },
           403
         );
@@ -87,7 +87,12 @@ export async function onRequestPost({ request, env }) {
       }
 
       const deductRes = await consumeUserCredits(env.DB, user.id, creditsNeeded, {
-        reason: mode === 'channel' ? 'channel_date_range' : 'custom_url_batch',
+        reason:
+          mode === 'channel'
+            ? 'channel_date_range'
+            : mode === 'comments'
+              ? 'video_comments_base'
+              : 'custom_url_batch',
         meta: { count, creditsNeeded },
       });
 
@@ -136,6 +141,32 @@ export async function onRequestPost({ request, env }) {
           },
           403
         );
+      }
+      if (checkOnly) {
+        const quota = await buildQuotaSnapshot(env.DB, user, guestSubjectKey);
+        if (user.creditsBalance < creditsNeeded) {
+          return jsonResponse(
+            {
+              allowed: false,
+              reason: 'credits_required',
+              mode: 'single',
+              creditsNeeded,
+              creditsBalance: user.creditsBalance,
+              user,
+              quota,
+            },
+            403
+          );
+        }
+        return jsonResponse({
+          allowed: true,
+          reason: 'credits_preview',
+          mode: 'single',
+          creditsNeeded,
+          creditsDeducted: 0,
+          user,
+          quota,
+        });
       }
       const deductRes = await consumeUserCredits(env.DB, user.id, creditsNeeded, {
         reason: 'single_high_volume',

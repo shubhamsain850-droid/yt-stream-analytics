@@ -37,11 +37,11 @@ export async function onRequestPost({ request, env }) {
       const maxForRemaining = totalMessages > 0
         ? Math.ceil(remainingMessages / CREDIT_UNIT_MESSAGES)
         : requested;
-      targetCredits = Math.min(500, Math.max(0, Math.min(requested, maxForRemaining)));
+      targetCredits = Math.min(2000, Math.max(0, Math.min(requested, maxForRemaining)));
     } else {
       // 1 base credit (or 1,000-chat free cap) already covers first 1,000 messages
       const requiredCredits = Math.max(1, Math.ceil(totalMessages / CREDIT_UNIT_MESSAGES));
-      targetCredits = Math.min(500, Math.max(0, requiredCredits - 1));
+      targetCredits = Math.min(2000, Math.max(0, requiredCredits - 1));
     }
 
     if (targetCredits === 0) {

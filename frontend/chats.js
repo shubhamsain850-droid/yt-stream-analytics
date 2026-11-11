@@ -7,7 +7,56 @@
   'use strict';
 
   const API_BASE = 'https://shubhamsain858-kickcuttr-api.hf.space/api/youtube';
-  const MAX_MULTI_STREAMS = 500;
+  const MAX_MULTI_STREAMS = 1000;
+
+  async function fetchJsonWithRetry(url, payload, maxRetries = 1) {
+    let lastErr = null;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const resp = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!resp.ok) {
+          if (attempt < maxRetries && [429, 502, 503, 504].includes(resp.status)) {
+            await new Promise((r) => setTimeout(r, 1200 + attempt * 600));
+            continue;
+          }
+          throw new Error(`HTTP error ${resp.status}`);
+        }
+        return await resp.json();
+      } catch (err) {
+        lastErr = err;
+        if (attempt < maxRetries) {
+          await new Promise((r) => setTimeout(r, 1200 + attempt * 600));
+          continue;
+        }
+        throw lastErr;
+      }
+    }
+    throw lastErr || new Error('Network error');
+  }
+
+  function buildCommentsStatsFromList(commentsList, vid, title) {
+    const authors = new Set();
+    let likesTotal = 0;
+    const normalized = (commentsList || []).map((c, idx) => {
+      const a = c.author || 'Commenter';
+      authors.add(a);
+      likesTotal += Number(c.likes || 0);
+      return { ...c, idx: idx + 1, stream_id: c.stream_id || vid };
+    });
+    return {
+      success: true,
+      video_id: vid,
+      title: title || `Video [${vid}]`,
+      total_comments: normalized.length,
+      unique_commenters: authors.size,
+      total_likes: likesTotal,
+      comments: normalized,
+    };
+  }
 
   // Application State
   const state = {
@@ -399,7 +448,7 @@
   // ─────────────────────────────────────────────
   // 3. CUSTOM URL BATCH QUEUE (Credits System Only)
   // ─────────────────────────────────────────────
-  const MAX_CUSTOM_URLS = 500;
+  const MAX_CUSTOM_URLS = 1000;
 
   function addUrlToChatQueue() {
     const raw = el.chatMultiUrlInput.value.trim();
@@ -520,6 +569,7 @@
   let activeChatPauseRequested = false;
   let isChatExtractionRunning = false;
   let currentChatCheckpoint = null;
+  let chatCheckpointEpoch = 0;
 
   function aggregateMessagesIntoStats(messagesList, streamIdHint = 'stream_chat') {
     const msgs = Array.isArray(messagesList) ? messagesList : [];
@@ -584,6 +634,7 @@
   }
 
   async function saveChatCheckpoint(ckpt, { allowGuest = false } = {}) {
+    chatCheckpointEpoch++;
     currentChatCheckpoint = ckpt || null;
     if (!ckpt || !window.TubeMetrixAuth?.checkpoints) {
       renderChatLimitAndResumeBanners();
@@ -594,6 +645,7 @@
   }
 
   async function clearChatCheckpoint() {
+    chatCheckpointEpoch++;
     currentChatCheckpoint = null;
     if (window.TubeMetrixAuth?.checkpoints) {
       await window.TubeMetrixAuth.checkpoints.clear(CHAT_PAUSE_CKPT_KEY);
@@ -603,14 +655,22 @@
 
   async function restoreSavedChatCheckpoint() {
     if (!window.TubeMetrixAuth?.checkpoints) return;
+    const startEpoch = chatCheckpointEpoch;
     const saved = await window.TubeMetrixAuth.checkpoints.load(CHAT_PAUSE_CKPT_KEY);
+    if (startEpoch !== chatCheckpointEpoch || isChatExtractionRunning) {
+      return;
+    }
     if (!saved) {
       currentChatCheckpoint = null;
       renderChatLimitAndResumeBanners();
       return;
     }
     currentChatCheckpoint = saved;
-    if (Array.isArray(saved.unlockedMessages) && saved.unlockedMessages.length > 0 && !state.liveChatData) {
+    if (saved.kind === 'comments_overflow' && Array.isArray(saved.unlockedMessages) && saved.unlockedMessages.length > 0 && !state.commentsData) {
+      state.lastExtractionType = 'comments';
+      renderCommentsReport(buildCommentsStatsFromList(saved.unlockedMessages, saved.streamId, saved.title));
+      renderChatLimitAndResumeBanners();
+    } else if (Array.isArray(saved.unlockedMessages) && saved.unlockedMessages.length > 0 && !state.liveChatData) {
       const aggregated = aggregateMessagesIntoStats(saved.unlockedMessages, saved.streamId || 'saved_stream');
       renderLiveChatReport(aggregated, saved.title || 'Saved Session');
     } else {
@@ -621,9 +681,10 @@
   function renderChatLimitAndResumeBanners() {
     const ckpt = currentChatCheckpoint;
     const hasLockedTail = Boolean(ckpt && Array.isArray(ckpt.lockedTail) && ckpt.lockedTail.length > 0);
+    const hasContinuation = Boolean(ckpt && ckpt.hasMoreOnServer && ckpt.continuationToken);
     const hasRemainingStreams = Boolean(ckpt && Array.isArray(ckpt.remainingVids) && ckpt.remainingVids.length > 0);
 
-    if (!ckpt || (!hasLockedTail && !hasRemainingStreams)) {
+    if (!ckpt || (!hasLockedTail && !hasContinuation && !hasRemainingStreams)) {
       if (el.chatResumeBanner) el.chatResumeBanner.style.display = 'none';
       if (el.chatCreditLimitBanner) el.chatCreditLimitBanner.style.display = 'none';
       return;
@@ -634,18 +695,27 @@
     const lockedCount = hasLockedTail ? ckpt.lockedTail.length : 0;
     const remStreamsCount = hasRemainingStreams ? ckpt.remainingVids.length : 0;
     const creditsForLocked = Math.ceil(lockedCount / 1000);
-    const totalEstimatedCredits = creditsForLocked + remStreamsCount;
+    const totalEstimatedCredits = Math.max(hasContinuation ? 1 : 0, creditsForLocked + remStreamsCount);
+    const unitNoun = ckpt.kind === 'comments_overflow' ? 'comments' : 'chats';
 
     let headline = '';
     let subtext = '';
     let primaryLabel = '';
 
-    if (hasLockedTail && hasRemainingStreams) {
-      headline = `⏸ Paused Mid-Stream (${ckpt.unlockedOnStream?.toLocaleString() || 0} of ${ckpt.lockedStreamTotal?.toLocaleString() || 0} chats shown • ${remStreamsCount} stream(s) waiting)`;
-      subtext = `${lockedCount.toLocaleString()} chat(s) locked on current stream + ${remStreamsCount} queued stream(s) remaining. Already unlocked data stays safely saved below.`;
+    if ((hasLockedTail || hasContinuation) && hasRemainingStreams) {
+      headline = hasLockedTail
+        ? `⏸ Paused Mid-Stream (${ckpt.unlockedOnStream?.toLocaleString() || 0} of ${ckpt.lockedStreamTotal?.toLocaleString() || 0} chats shown • ${remStreamsCount} stream(s) waiting)`
+        : `⏸ Paused Mid-Stream (${ckpt.unlockedOnStream?.toLocaleString() || 0} chats unlocked • More on stream + ${remStreamsCount} stream(s) waiting)`;
+      subtext = hasLockedTail
+        ? `${lockedCount.toLocaleString()} chat(s) locked on current stream + ${remStreamsCount} queued stream(s) remaining. Already unlocked data stays safely saved below.`
+        : `Stopped cleanly at your available credit balance without wasting extra scraping time. Add credits or click Resume to continue.`;
     } else if (hasLockedTail) {
-      headline = `🔒 Credit Limit Reached — Showing ${ckpt.unlockedOnStream?.toLocaleString() || 0} of ${ckpt.lockedStreamTotal?.toLocaleString() || 0} Chats`;
-      subtext = `${lockedCount.toLocaleString()} extra messages are safely held and need up to ${creditsForLocked} Credit(s) to unlock & export (1 Credit = 1,000 chats).`;
+      headline = `🔒 Credit Limit Reached — Showing ${ckpt.unlockedOnStream?.toLocaleString() || 0} of ${ckpt.lockedStreamTotal?.toLocaleString() || 0} ${ckpt.kind === 'comments_overflow' ? 'Comments' : 'Chats'}`;
+      subtext = `${lockedCount.toLocaleString()} extra ${unitNoun} are safely held and need up to ${creditsForLocked} Credit(s) to unlock & export (1 Credit = 1,000 ${unitNoun}).`;
+    } else if (hasContinuation) {
+      const capTag = ckpt.pauseReason === 'free_limit' ? 'Free Tier Limit (1,000)' : 'Credit Limit Reached';
+      headline = `🔒 ${capTag} — Showing ${(ckpt.unlockedOnStream || 0).toLocaleString()} ${ckpt.kind === 'comments_overflow' ? 'Comments' : 'Chats'} (More Available)`;
+      subtext = `Stopped early at your current allowance so zero extra ${unitNoun} were wasted. Buy credits or click Unlock Next Chunk to continue seamlessly.`;
     } else {
       const doneCount = ckpt.completedVids?.length || 0;
       const totalPlanned = ckpt.totalPlannedStreams || (doneCount + remStreamsCount);
@@ -660,11 +730,15 @@
       primaryLabel = '💎 Buy Credits to Continue';
     } else if (hasLockedTail && creditsForLocked > bal) {
       const unlockNowCount = bal * 1000;
-      primaryLabel = `▶ Unlock +${unlockNowCount.toLocaleString()} More Chats (${bal} CR)`;
+      primaryLabel = `▶ Unlock +${unlockNowCount.toLocaleString()} More (${bal} CR)`;
     } else if (hasLockedTail) {
       primaryLabel = hasRemainingStreams
-        ? `▶ Unlock ${lockedCount.toLocaleString()} Chats & Resume (${totalEstimatedCredits} CR)`
-        : `▶ Unlock Remaining ${lockedCount.toLocaleString()} Chats (${creditsForLocked} CR)`;
+        ? `▶ Unlock ${lockedCount.toLocaleString()} & Resume (${totalEstimatedCredits} CR)`
+        : `▶ Unlock Remaining ${lockedCount.toLocaleString()} (${creditsForLocked} CR)`;
+    } else if (hasContinuation) {
+      primaryLabel = hasRemainingStreams
+        ? `▶ Unlock More & Resume Batch (${bal} CR available)`
+        : `▶ Unlock Next Chunk (${bal} CR available)`;
     } else {
       primaryLabel = `▶ Resume from Stream #${(ckpt.completedVids?.length || 0) + 1} (${remStreamsCount} left • ${bal} CR available)`;
     }
@@ -676,7 +750,8 @@
           <div class="tm-limit-sub">${escapeHtml(subtext)}</div>
           <div class="tm-limit-meta">
             <span>💎 Balance: <strong>${bal} CR</strong></span>
-            ${lockedCount > 0 ? `<span>🔒 Locked Messages: <strong>${lockedCount.toLocaleString()}</strong></span>` : ''}
+            ${lockedCount > 0 ? `<span>🔒 Locked: <strong>${lockedCount.toLocaleString()}</strong></span>` : ''}
+            ${!lockedCount && hasContinuation ? '<span>⚡ Server Resume Ready</span>' : ''}
             ${remStreamsCount > 0 ? `<span>⏳ Queued Streams: <strong>${remStreamsCount}</strong></span>` : ''}
           </div>
         </div>
@@ -690,10 +765,13 @@
 
     [el.chatCreditLimitBanner, el.chatResumeBanner].forEach((bannerEl, idx) => {
       if (!bannerEl) return;
-      // Show compact resume banner at top only when results aren't already visible right on screen, or keep both synced cleanly
-      const showBanner = idx === 0
-        ? Boolean(state.liveChatData && el.resultsChatSection && el.resultsChatSection.style.display !== 'none')
-        : Boolean(!state.liveChatData || !el.resultsChatSection || el.resultsChatSection.style.display === 'none');
+      const showingChatResults = Boolean(
+        ckpt.kind !== 'comments_overflow' &&
+          state.liveChatData &&
+          el.resultsChatSection &&
+          el.resultsChatSection.style.display !== 'none'
+      );
+      const showBanner = idx === 0 ? showingChatResults : !showingChatResults;
       if (!showBanner) {
         bannerEl.style.display = 'none';
         return;
@@ -726,17 +804,17 @@
       return;
     }
 
-    const bal = window.TubeMetrixAuth.getCreditsBalance();
+    let bal = window.TubeMetrixAuth.getCreditsBalance();
     if (bal < 1) {
       const remCount = (Array.isArray(ckpt.remainingVids) ? ckpt.remainingVids.length : 0) +
-        Math.ceil((ckpt.lockedTail?.length || 0) / 1000);
+        Math.max(ckpt.hasMoreOnServer ? 1 : 0, Math.ceil((ckpt.lockedTail?.length || 0) / 1000));
       window.TubeMetrixAuth?.openCreditsModal?.(
-        `Your saved task needs up to ${Math.max(1, remCount)} Credit(s) to finish cleanly. Buy credits below — your unlocked progress is safely saved!`
+        `Your saved task needs at least ${Math.max(1, remCount)} Credit(s) to continue cleanly. Buy credits below — your unlocked progress is safely saved!`
       );
       return;
     }
 
-    // Step 1: Unlock locked tail messages from current stream first (if any)
+    // Step 1A: Unlock any already-buffered in-memory tail first
     if (Array.isArray(ckpt.lockedTail) && ckpt.lockedTail.length > 0) {
       const creditsNeeded = Math.ceil(ckpt.lockedTail.length / 1000);
       const unlockRes = await window.TubeMetrixAuth.unlockRemainingChatCredits({
@@ -753,29 +831,145 @@
       }
 
       const newlyUnlocked = ckpt.lockedTail.slice(0, added);
-      const updatedMessages = [...(ckpt.unlockedMessages || []), ...newlyUnlocked];
+      const updatedMessages = [...(ckpt.unlockedMessages || []), ...newlyUnlocked].map((m, idx) => ({
+        ...m,
+        idx: idx + 1,
+      }));
       const remainingTail = ckpt.lockedTail.slice(added);
 
       ckpt.unlockedMessages = updatedMessages;
       ckpt.lockedTail = remainingTail;
       ckpt.unlockedOnStream = (ckpt.unlockedOnStream || 0) + newlyUnlocked.length;
+      bal = window.TubeMetrixAuth.getCreditsBalance();
 
-      if (remainingTail.length > 0 || !ckpt.remainingVids || ckpt.remainingVids.length === 0) {
-        if (remainingTail.length === 0 && (!ckpt.remainingVids || ckpt.remainingVids.length === 0)) {
+      const hasWorkLeft = remainingTail.length > 0 || ckpt.hasMoreOnServer || (ckpt.remainingVids && ckpt.remainingVids.length > 0);
+      if (!hasWorkLeft) {
+        await clearChatCheckpoint();
+      } else {
+        await saveChatCheckpoint(ckpt, { allowGuest: false });
+      }
+
+      if (ckpt.kind === 'comments_overflow') {
+        renderCommentsReport(buildCommentsStatsFromList(updatedMessages, ckpt.streamId, ckpt.title));
+        return;
+      }
+      const refreshedReport = aggregateMessagesIntoStats(updatedMessages, ckpt.streamId || 'stream_chat');
+      renderLiveChatReport(refreshedReport, ckpt.title || 'Live Chat Report');
+      if (remainingTail.length > 0 || (!ckpt.hasMoreOnServer && (!ckpt.remainingVids || ckpt.remainingVids.length === 0)) || bal < 1) {
+        return;
+      }
+    }
+
+    // Step 1B: Level B Server Continuation Unlock (fetch ONLY next affordable slice via cursor!)
+    if (ckpt.hasMoreOnServer && ckpt.continuationToken && bal >= 1) {
+      const isComments = ckpt.kind === 'comments_overflow';
+      const maxSlice = Math.min(100000, bal * 1000);
+      setProgress(25, `Unlocking Next ${isComments ? 'Comments' : 'Live Chat'} Chunk...`, `Streaming next up to ${maxSlice.toLocaleString()} items via cursor...`);
+
+      try {
+        if (isComments) {
+          const reqMax = ckpt.requestedLimit
+            ? Math.min(maxSlice, Math.max(1, ckpt.requestedLimit - (ckpt.unlockedOnStream || 0)))
+            : maxSlice;
+          const res = await fetchJsonWithRetry(`${API_BASE}/fetch-comments`, {
+            url: ckpt.streamId,
+            max_comments: reqMax,
+            continuation_token: ckpt.continuationToken,
+          });
+          if (!res.success) {
+            throw new Error(res.error || 'Failed to continue comments extraction.');
+          }
+          const newItems = res.comments || [];
+          let allowedNew = newItems.length;
+          if (newItems.length > 0 && window.TubeMetrixAuth?.unlockRemainingChatCredits) {
+            const needCr = Math.ceil(newItems.length / 1000);
+            const uRes = await window.TubeMetrixAuth.unlockRemainingChatCredits({
+              streamId: ckpt.streamId,
+              totalMessages: newItems.length,
+              unlockedCount: 0,
+              creditsNeeded: needCr,
+              silent: true,
+            });
+            allowedNew = Math.min(newItems.length, Number(uRes?.addedMessageAllowance || 0));
+          }
+          const revealed = newItems.slice(0, allowedNew);
+          const unrevealedTail = newItems.slice(allowedNew);
+          const merged = [...(ckpt.unlockedMessages || []), ...revealed];
+          ckpt.unlockedMessages = merged;
+          ckpt.lockedTail = unrevealedTail;
+          ckpt.unlockedOnStream = (ckpt.unlockedOnStream || 0) + revealed.length;
+          ckpt.continuationToken = res.continuation_token || '';
+          const reachedRequested = ckpt.requestedLimit ? ckpt.unlockedOnStream >= ckpt.requestedLimit : false;
+          ckpt.hasMoreOnServer = Boolean(!reachedRequested && res.has_more && res.continuation_token && unrevealedTail.length === 0);
+          if (!ckpt.hasMoreOnServer && unrevealedTail.length === 0) {
+            await clearChatCheckpoint();
+          } else {
+            await saveChatCheckpoint(ckpt, { allowGuest: false });
+          }
+          hideProgress();
+          renderCommentsReport(buildCommentsStatsFromList(merged, ckpt.streamId, ckpt.title));
+          return;
+        }
+
+        const res = await fetchJsonWithRetry(`${API_BASE}/fetch-chat`, {
+          url: ckpt.streamId,
+          max_messages: maxSlice,
+          continuation_token: ckpt.continuationToken,
+        });
+        if (!res.success || !res.data) {
+          throw new Error(res.message || 'Could not continue stream extraction.');
+        }
+
+        const newMsgs = (res.data.messages || []).map((m) => ({
+          ...m,
+          stream_id: m.stream_id || ckpt.streamId,
+        }));
+        let allowedNew = newMsgs.length;
+        if (newMsgs.length > 0 && window.TubeMetrixAuth?.unlockRemainingChatCredits) {
+          const needCr = Math.ceil(newMsgs.length / 1000);
+          const uRes = await window.TubeMetrixAuth.unlockRemainingChatCredits({
+            streamId: ckpt.streamId,
+            totalMessages: newMsgs.length,
+            unlockedCount: 0,
+            creditsNeeded: needCr,
+            silent: true,
+          });
+          allowedNew = Math.min(newMsgs.length, Number(uRes?.addedMessageAllowance || 0));
+        }
+
+        const revealed = newMsgs.slice(0, allowedNew);
+        const unrevealedTail = newMsgs.slice(allowedNew);
+        const merged = [...(ckpt.unlockedMessages || []), ...revealed].map((m, idx) => ({
+          ...m,
+          idx: idx + 1,
+        }));
+
+        ckpt.unlockedMessages = merged;
+        ckpt.lockedTail = unrevealedTail;
+        ckpt.unlockedOnStream = (ckpt.unlockedOnStream || 0) + revealed.length;
+        ckpt.continuationToken = res.continuation_token || '';
+        ckpt.hasMoreOnServer = Boolean(res.has_more && res.continuation_token && unrevealedTail.length === 0);
+
+        const stillHasCurrentStream = ckpt.lockedTail.length > 0 || ckpt.hasMoreOnServer;
+        bal = window.TubeMetrixAuth.getCreditsBalance();
+        if (!stillHasCurrentStream && (!ckpt.remainingVids || ckpt.remainingVids.length === 0)) {
           await clearChatCheckpoint();
         } else {
           await saveChatCheckpoint(ckpt, { allowGuest: false });
         }
-        const refreshedReport = aggregateMessagesIntoStats(updatedMessages, ckpt.streamId || 'stream_chat');
-        renderLiveChatReport(refreshedReport, ckpt.title || 'Live Chat Report');
-        return;
-      }
 
-      // Tail is now 100% unlocked AND remaining streams exist
-      await saveChatCheckpoint(ckpt, { allowGuest: false });
-      const midReport = aggregateMessagesIntoStats(updatedMessages, ckpt.streamId || 'stream_batch');
-      renderLiveChatReport(midReport, ckpt.title || 'Live Chat Report');
-      if (window.TubeMetrixAuth.getCreditsBalance() < 1) {
+        hideProgress();
+        const midReport = aggregateMessagesIntoStats(merged, ckpt.streamId || 'stream_chat');
+        renderLiveChatReport(midReport, ckpt.title || 'Live Chat Report');
+        updateViewerSessionButton();
+
+        if (stillHasCurrentStream || !ckpt.remainingVids || ckpt.remainingVids.length === 0 || bal < 1) {
+          return;
+        }
+      } catch (err) {
+        hideProgress();
+        alert(`Resume Error: ${err.message}`);
+        renderChatLimitAndResumeBanners();
         return;
       }
     }
@@ -827,17 +1021,15 @@
     try {
       setProgress(40, `Extracting Live Chat Replay...`, 'Streaming in-memory chat replay chunks...');
 
-      const resp = await fetch(`${API_BASE}/fetch-chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: vid })
+      const remBalAfterBase = window.TubeMetrixAuth?.getCreditsBalance
+        ? window.TubeMetrixAuth.getCreditsBalance()
+        : 0;
+      const maxFetch = paidByCredits ? Math.min(200000, 1000 + remBalAfterBase * 1000) : 1000;
+
+      const res = await fetchJsonWithRetry(`${API_BASE}/fetch-chat`, {
+        url: vid,
+        max_messages: maxFetch,
       });
-
-      if (!resp.ok) {
-        throw new Error(`API responded with HTTP status ${resp.status}`);
-      }
-
-      const res = await resp.json();
       if (!res.success || !res.data) {
         throw new Error(res.message || 'No live chat replay was found or chat is disabled for this stream.');
       }
@@ -864,7 +1056,9 @@
 
       const unlockedMessages = rawMessages.slice(0, allowedCount);
       const lockedTail = rawMessages.slice(allowedCount);
-      const visibleReport = lockedTail.length > 0
+      const hasServerMore = Boolean(lockedTail.length === 0 && res.has_more && res.continuation_token);
+      const isPausedCapped = lockedTail.length > 0 || hasServerMore;
+      const visibleReport = isPausedCapped
         ? aggregateMessagesIntoStats(unlockedMessages, vid)
         : {
             ...res.data,
@@ -873,7 +1067,7 @@
             messages: unlockedMessages,
           };
 
-      if (lockedTail.length > 0) {
+      if (isPausedCapped) {
         await saveChatCheckpoint(
           {
             kind: 'single_overflow',
@@ -882,7 +1076,9 @@
             streamId: vid,
             unlockedMessages,
             lockedTail,
-            lockedStreamTotal: rawMessages.length,
+            continuationToken: hasServerMore ? res.continuation_token : '',
+            hasMoreOnServer: hasServerMore,
+            lockedStreamTotal: lockedTail.length > 0 ? rawMessages.length : null,
             unlockedOnStream: unlockedMessages.length,
             remainingVids: [],
             completedVids: [vid],
@@ -897,11 +1093,13 @@
 
       const statusTicker = lockedTail.length > 0
         ? `Unlocked ${unlockedMessages.length.toLocaleString()} of ${rawMessages.length.toLocaleString()} messages (credit cap reached)`
-        : `Processed ${visibleReport.total_messages} messages in ${res.elapsed_sec || 0.5}s`;
+        : hasServerMore
+          ? `Unlocked ${unlockedMessages.length.toLocaleString()} messages (stopped cleanly at your allowance)`
+          : `Processed ${visibleReport.total_messages} messages in ${res.elapsed_sec || 0.5}s`;
 
       setProgress(
         100,
-        lockedTail.length > 0 ? 'Partial Limit Reached!' : 'Complete!',
+        isPausedCapped ? 'Partial Limit Reached!' : 'Complete!',
         statusTicker,
         visibleReport.total_messages,
         visibleReport.unique_chatters,
@@ -1058,6 +1256,8 @@
     isChatExtractionRunning = true;
     let allMessages = [...initialMessages];
     let lockedTail = [];
+    let continuationToken = '';
+    let hasMoreOnServer = false;
     let lockedStreamId = '';
     let lockedStreamTotal = 0;
     let unlockedOnStream = 0;
@@ -1101,43 +1301,44 @@
       );
 
       try {
-        const resp = await fetch(`${API_BASE}/fetch-chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: vid })
+        const remBalAfterBase = window.TubeMetrixAuth?.getCreditsBalance
+          ? window.TubeMetrixAuth.getCreditsBalance()
+          : 0;
+        const streamCap = paidByCredits ? Math.min(200000, 1000 + remBalAfterBase * 1000) : 1000;
+        const res = await fetchJsonWithRetry(`${API_BASE}/fetch-chat`, {
+          url: vid,
+          max_messages: streamCap,
         });
 
-        if (resp.ok) {
-          const res = await resp.json();
-          if (res.success && res.data && res.data.messages) {
-            const rawMsgs = res.data.messages.map((m) => ({
-              ...m,
-              stream_id: m.stream_id || vid,
-            }));
+        if (res.success && res.data && res.data.messages) {
+          const rawMsgs = res.data.messages.map((m) => ({
+            ...m,
+            stream_id: m.stream_id || vid,
+          }));
 
-            let allowedForStream = rawMsgs.length;
-            if (paidByCredits && rawMsgs.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
-              const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(rawMsgs.length, vid);
-              const extraDeducted = Number(settleRes?.deducted || 0);
-              allowedForStream = (1 + extraDeducted) * 1000;
-              updateChatLiveCreditBar(true, `Settled Stream ${overallIdx}/${totalPlanned}`);
-            }
+          let allowedForStream = rawMsgs.length;
+          if (paidByCredits && rawMsgs.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
+            const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(rawMsgs.length, vid);
+            const extraDeducted = Number(settleRes?.deducted || 0);
+            allowedForStream = (1 + extraDeducted) * 1000;
+            updateChatLiveCreditBar(true, `Settled Stream ${overallIdx}/${totalPlanned}`);
+          }
 
-            const unlockedSlice = rawMsgs.slice(0, allowedForStream);
-            unlockedSlice.forEach((m) => allMessages.push(m));
-            completedVids.push(vid);
+          const unlockedSlice = rawMsgs.slice(0, allowedForStream);
+          unlockedSlice.forEach((m) => allMessages.push(m));
+          completedVids.push(vid);
 
-            if (rawMsgs.length > allowedForStream) {
-              lockedTail = rawMsgs.slice(allowedForStream);
-              lockedStreamId = vid;
-              lockedStreamTotal = rawMsgs.length;
-              unlockedOnStream = unlockedSlice.length;
-              remainingVids = vids.slice(i + 1);
-              pauseReason = 'credits_exhausted';
-              break;
-            }
-          } else {
-            completedVids.push(vid);
+          const serverStopped = Boolean(rawMsgs.length <= allowedForStream && res.has_more && res.continuation_token);
+          if (rawMsgs.length > allowedForStream || serverStopped) {
+            lockedTail = rawMsgs.slice(allowedForStream);
+            continuationToken = serverStopped ? res.continuation_token : '';
+            hasMoreOnServer = serverStopped;
+            lockedStreamId = vid;
+            lockedStreamTotal = rawMsgs.length > allowedForStream ? rawMsgs.length : 0;
+            unlockedOnStream = unlockedSlice.length;
+            remainingVids = vids.slice(i + 1);
+            pauseReason = 'credits_exhausted';
+            break;
           }
         } else {
           completedVids.push(vid);
@@ -1148,7 +1349,7 @@
       }
     }
 
-    if (lockedTail.length > 0 || remainingVids.length > 0) {
+    if (lockedTail.length > 0 || hasMoreOnServer || remainingVids.length > 0) {
       await saveChatCheckpoint(
         {
           kind: mode === 'channel' ? 'channel' : 'batch',
@@ -1157,7 +1358,9 @@
           streamId: lockedStreamId || `batch_${totalPlanned}`,
           unlockedMessages: allMessages,
           lockedTail,
-          lockedStreamTotal,
+          continuationToken,
+          hasMoreOnServer,
+          lockedStreamTotal: lockedStreamTotal || null,
           unlockedOnStream,
           remainingVids,
           completedVids,
@@ -1186,54 +1389,128 @@
     }
 
     const limit = parseInt(el.commentsLimitSelect.value, 10) || 300;
-    const creditsNeeded = Math.max(1, Math.ceil(limit / 1000));
+    const isHighVolume = limit > 1000;
     if (window.TubeMetrixAuth) {
-      if (typeof window.TubeMetrixAuth.authorizeRun === 'function') {
-        if (!(await window.TubeMetrixAuth.authorizeRun(1, { mode: 'single', credits: creditsNeeded }))) return;
+      if (isHighVolume) {
+        if (window.TubeMetrixAuth.whenReady) await window.TubeMetrixAuth.whenReady();
+        if (!window.TubeMetrixAuth.isLoggedIn?.()) {
+          window.TubeMetrixAuth.openAuthModal?.(
+            `Downloading up to ${limit.toLocaleString()} video comments requires Google Sign-In and Prepaid Credits (1 Credit = 1,000 comments).`
+          );
+          return;
+        }
+        const ok = await window.TubeMetrixAuth.authorizeRun?.(1, { mode: 'comments', credits: 1 });
+        if (!ok) return;
+      } else if (typeof window.TubeMetrixAuth.authorizeRun === 'function') {
+        if (!(await window.TubeMetrixAuth.authorizeRun(1, { mode: 'single', credits: 1 }))) return;
       } else if (typeof window.TubeMetrixAuth.checkQuota === 'function') {
         if (!window.TubeMetrixAuth.checkQuota(1, { mode: 'single' })) return;
       }
     }
+
+    const remBalAfterBase = window.TubeMetrixAuth?.getCreditsBalance
+      ? window.TubeMetrixAuth.getCreditsBalance()
+      : 0;
+    const affordableLimit = isHighVolume
+      ? Math.min(limit, (1 + remBalAfterBase) * 1000)
+      : limit;
+
     el.startCommentsBtn.disabled = true;
+    isChatExtractionRunning = true;
     if (el.resultsCommentsSection) el.resultsCommentsSection.style.display = 'none';
     if (el.labelExtracted) el.labelExtracted.textContent = 'Comments Downloaded';
     setProgress(20, `Fetching Video Comments [${vid}]...`, 'Connecting to YouTube InnerTube comments engine...');
 
     try {
-      setProgress(50, `Streaming Comments (Limit: ${limit})...`, 'Extracting comments, author handles, likes & replies...');
+      setProgress(50, `Streaming Comments (Target: ${affordableLimit.toLocaleString()})...`, 'Extracting comments, author handles, likes & replies...');
 
-      const resp = await fetch(`${API_BASE}/fetch-comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: vid, max_comments: limit })
+      const res = await fetchJsonWithRetry(`${API_BASE}/fetch-comments`, {
+        url: vid,
+        max_comments: affordableLimit,
       });
-
-      if (!resp.ok) throw new Error(`HTTP error ${resp.status}`);
-      const res = await resp.json();
 
       if (!res.success) {
         throw new Error(res.error || 'Failed to download comments.');
       }
 
-      if (res.comments) {
-        res.comments.forEach(c => {
-          c.stream_id = c.stream_id || vid;
-        });
+      const fetchedComments = (res.comments || []).map((c, idx) => ({
+        ...c,
+        idx: idx + 1,
+        stream_id: c.stream_id || vid,
+      }));
+
+      let allowedCount = fetchedComments.length;
+      if (isHighVolume && fetchedComments.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
+        const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(fetchedComments.length, vid);
+        const extraDeducted = Number(settleRes?.deducted || 0);
+        allowedCount = Math.min(fetchedComments.length, (1 + extraDeducted) * 1000);
       }
-      state.commentsData = res;
+
+      const unlockedComments = fetchedComments.slice(0, allowedCount);
+      const lockedTail = fetchedComments.slice(allowedCount);
+      const hasMoreOnServer = Boolean(
+        lockedTail.length === 0 &&
+          res.has_more &&
+          res.continuation_token &&
+          unlockedComments.length < limit
+      );
+
+      if (lockedTail.length > 0 || hasMoreOnServer) {
+        await saveChatCheckpoint(
+          {
+            kind: 'comments_overflow',
+            mode: 'comments',
+            title: res.title || `Video [${vid}]`,
+            streamId: vid,
+            unlockedMessages: unlockedComments,
+            lockedTail,
+            continuationToken: hasMoreOnServer ? res.continuation_token : '',
+            hasMoreOnServer,
+            requestedLimit: limit,
+            lockedStreamTotal: lockedTail.length > 0 ? fetchedComments.length : null,
+            unlockedOnStream: unlockedComments.length,
+            remainingVids: [],
+            completedVids: [vid],
+            totalPlannedStreams: 1,
+            pauseReason: 'credits_exhausted',
+          },
+          { allowGuest: false }
+        );
+      } else {
+        await clearChatCheckpoint();
+      }
+
+      const finalReport = lockedTail.length > 0
+        ? buildCommentsStatsFromList(unlockedComments, vid, res.title)
+        : {
+            ...res,
+            comments: unlockedComments,
+            total_comments: unlockedComments.length,
+          };
+
+      state.commentsData = finalReport;
       state.lastExtractionType = 'comments';
 
-      setProgress(100, 'Complete!', `Downloaded ${res.total_comments} comments in ${res.elapsed_sec || 1.5}s`, res.total_comments, res.unique_commenters, 0);
+      setProgress(
+        100,
+        lockedTail.length > 0 || hasMoreOnServer ? 'Partial Limit Reached!' : 'Complete!',
+        `Downloaded ${finalReport.total_comments} comments in ${res.elapsed_sec || 1.5}s`,
+        finalReport.total_comments,
+        finalReport.unique_commenters,
+        0
+      );
 
       setTimeout(() => {
         hideProgress();
-        renderCommentsReport(res);
+        renderCommentsReport(finalReport);
+        renderChatLimitAndResumeBanners();
       }, 400);
 
     } catch (err) {
       hideProgress();
       alert(`Comments Error: ${err.message}`);
     } finally {
+      isChatExtractionRunning = false;
       el.startCommentsBtn.disabled = false;
     }
   }

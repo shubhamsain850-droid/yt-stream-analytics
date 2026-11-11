@@ -10,20 +10,20 @@
   <link rel="stylesheet" href="styles.css?v=7.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
     .legal-container {
       max-width: 860px;
       margin: 40px auto 80px;
       padding: 0 24px;
-      color: var(--text-secondary, #94a3b8);
+      color: var(--text-secondary);
       line-height: 1.75;
       font-size: 1rem;
     }
     .legal-container h1 {
       font-size: 2.2rem;
       font-weight: 800;
-      color: #fff;
+      color: var(--text-primary);
       margin-bottom: 8px;
     }
     .legal-container .last-updated {
@@ -35,10 +35,10 @@
     .legal-container h2 {
       font-size: 1.35rem;
       font-weight: 700;
-      color: #f1f5f9;
+      color: var(--text-primary);
       margin-top: 36px;
       margin-bottom: 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid var(--border-color);
       padding-bottom: 8px;
     }
     .legal-container p {
@@ -50,29 +50,62 @@
     .legal-container li {
       margin-bottom: 8px;
     }
+    .legal-container a {
+      color: #3b82f6;
+    }
     .legal-box {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: 12px;
       padding: 20px;
       margin: 24px 0;
+      color: var(--text-primary);
     }
   </style>
 </head>
 <body>
-  <!-- Header Nav -->
-  <header class="header">
+  <header class="top-nav">
     <div class="nav-container">
-      <a href="/" class="brand-logo" style="text-decoration: none;">
-        <span class="logo-badge">⚡</span>
-        <span class="logo-text">Tube<span style="color: var(--accent-red, #ff0033);">Metrix</span></span>
+      <a href="/" class="logo" title="TubeMetrix Home">
+        <div class="logo-icon" title="TubeMetrix">
+          <svg viewBox="0 0 100 100" fill="none" style="width: 100%; height: 100%;">
+            <defs>
+              <linearGradient id="navTmRed" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff1744" />
+                <stop offset="50%" stop-color="#ff0033" />
+                <stop offset="100%" stop-color="#c40026" />
+              </linearGradient>
+              <linearGradient id="navCyanArrow" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#00f2fe" />
+                <stop offset="100%" stop-color="#4facfe" />
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="96" height="96" rx="26" fill="url(#navTmRed)" />
+            <rect x="18" y="22" width="64" height="15" rx="7.5" fill="#ffffff" />
+            <rect x="33.5" y="48" width="9" height="28" rx="4.5" fill="#ffffff" opacity="0.82" />
+            <rect x="45.5" y="40" width="9" height="36" rx="4.5" fill="#ffffff" opacity="0.96" />
+            <rect x="57.5" y="32" width="9" height="44" rx="4.5" fill="url(#navCyanArrow)" />
+            <path d="M 22 74 L 75 24" stroke="url(#navCyanArrow)" stroke-width="5.5" stroke-linecap="round" />
+            <path d="M 57 24 L 75 24 L 75 42" fill="none" stroke="url(#navCyanArrow)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <span class="logo-text">Tube<span>Metrix</span></span>
+        <span class="badge-beta">Beta</span>
       </a>
-      <nav class="nav-links">
-        <a href="/" class="nav-link">Live Stream Calculator</a>
-        <a href="/chats" class="nav-link">Chat &amp; Comments</a>
-        <a href="/revenue" class="nav-link">Channel Analytics</a>
-      </nav>
-      <div id="authNavContainer"></div>
+      <div class="page-nav-wrapper">
+        <nav class="page-nav" id="mainPageNav">
+          <a href="/" class="nav-tab-link"><span class="nav-tab-icon">💰</span><span class="nav-text-full">Earnings Auditor</span><span class="nav-text-short">Earnings</span></a>
+          <a href="/chats" class="nav-tab-link"><span class="nav-tab-icon">💬</span><span class="nav-text-full">Live Chat &amp; Comments</span><span class="nav-text-short">Live Chat</span></a>
+          <a href="/revenue" class="nav-tab-link"><span class="nav-tab-icon">📊</span><span class="nav-text-full">Channel Analytics</span><span class="nav-text-short">Analytics</span><span class="nav-new-pill">NEW</span></a>
+        </nav>
+      </div>
+      <div class="nav-actions">
+        <div id="authNavContainer"></div>
+        <button class="theme-toggle-btn" id="themeToggleBtn" type="button" title="Switch Theme (Light / Dark)">
+          <span class="theme-icon" id="themeIcon">☀️</span>
+          <span class="theme-text" id="themeText">Light</span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -101,7 +134,8 @@
       <li>All payments are processed securely by our authorized Merchant of Record, <strong>Dodo Payments</strong>.</li>
       <li><strong>Weekly Free Tier (Single Stream Only):</strong> Unauthenticated guests receive 2 single-stream audits per week, and signed-in Google accounts receive 3 single-stream audits per week (including single live chat replay and single video comments up to 1,000 comments).</li>
       <li><strong>Prepaid Never-Expiring Credits (1 Credit = 1,000 chats/comments, minimum 1 Credit per stream):</strong>
-        Starter Pack (10 Credits: $2.99 USD / ₹99 INR regular, ₹49 INR India 1st order), Creator Pack (30 Credits: $6.99 USD / ₹249 INR regular, ₹149 INR India 1st order), and Agency Pack (100 Credits: $19.99 USD / ₹699 INR regular, ₹499 INR India 1st order).</li>
+        <strong>Global (USD):</strong> Starter Pack (200 Credits: $19.99 USD), Growth Pack (500 Credits: $29.00 USD), and Agency Pack (1,000 Credits: $49.00 USD).
+        <strong>India (INR):</strong> Starter Pack (10 Credits: ₹99 INR regular / ₹49 INR India 1st order), Creator Pack (30 Credits: ₹249 INR regular / ₹149 INR India 1st order), and Agency Pack (100 Credits: ₹699 INR regular / ₹499 INR India 1st order).</li>
       <li>Custom URL Batch and Channel &amp; Date Range modes require prepaid Credits and do not draw from weekly free single-stream allowances.</li>
       <li>Prices are displayed clearly in USD (and localized INR where supported) inclusive/exclusive of applicable regional VAT or sales taxes calculated at checkout.</li>
     </ul>
@@ -153,7 +187,30 @@
   </footer>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="auth.js?v=3.3"></script>
+  <script src="auth.js?v=3.4"></script>
+  <script>
+    (function () {
+      const btn = document.getElementById('themeToggleBtn');
+      const icon = document.getElementById('themeIcon');
+      const text = document.getElementById('themeText');
+      function applyLegalTheme(t) {
+        const next = t === 'light' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        document.body.className = next === 'light' ? 'light-mode' : '';
+        localStorage.setItem('TubeMetrix_theme', next);
+        localStorage.setItem('theme', next);
+        if (icon) icon.textContent = next === 'light' ? '🌙' : '☀️';
+        if (text) text.textContent = next === 'light' ? 'Dark' : 'Light';
+      }
+      applyLegalTheme(localStorage.getItem('TubeMetrix_theme') || localStorage.getItem('theme') || 'dark');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+          applyLegalTheme(cur === 'light' ? 'dark' : 'light');
+        });
+      }
+    })();
+  </script>
   <!-- Adsterra Social Bar Integration -->
   <script data-cfasync="false" src="https://bauval.org/14/1130b0119de2f33b3a0f98fff91280bc"></script>
 </body>

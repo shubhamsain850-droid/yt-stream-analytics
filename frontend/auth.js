@@ -18,60 +18,96 @@
   const CREDIT_PACK_CATALOG = [
     {
       id: 'credits_10',
+      usdId: 'credits_200',
+      inId: 'in_10',
       name: 'Starter Pack',
-      credits: 10,
-      chatsAllowance: '10,000 chats/comments',
+      inName: 'Starter Pack',
       featured: false,
       ribbon: '',
+      usdCredits: 200,
+      usdChatsAllowance: '200,000 chats or comments',
       usdSymbol: '$',
-      usdAmount: '2.99',
-      usdPer2k: '$0.60 per 2k chats',
+      usdAmount: '19.99',
+      usdUnitSub: '$0.10 per 1k chats • Never expires',
+      usdDesc: 'Great for high-volume creators, giveaways & bulk stream audits.',
+      inCredits: 10,
+      inChatsAllowance: '10,000 chats/comments',
+      inSymbol: '₹',
       inrRegular: '99',
       inrFirst: '49',
       inrBadge: '50% OFF 1st Order',
-      desc: 'Great for occasional streams, comment exports & creator checks.',
-      features: [
-        '✓ <strong>10 Credits</strong> (= 10,000 chats/comments)',
+      inUnitFirst: '₹4.90 / 1k chats • 1st India Order',
+      inUnitReg: '₹9.90 / 1k chats • India UPI Regular',
+      inDesc: 'Great for occasional streams, comment exports & creator checks.',
+      extraFeaturesUsd: [
+        '✓ Never Expire • Use Any Time',
+        '✓ Single, Batch URLs &amp; Date Range',
+      ],
+      extraFeaturesIn: [
         '✓ Never Expire • Use Any Time',
         '✓ Single, Batch URLs &amp; Date Range',
       ],
     },
     {
       id: 'credits_30',
-      name: 'Creator Pack',
-      credits: 30,
-      chatsAllowance: '30,000 chats/comments',
+      usdId: 'credits_500',
+      inId: 'in_30',
+      name: 'Growth Pack',
+      inName: 'Creator Pack',
       featured: true,
       ribbon: 'MOST POPULAR',
+      usdCredits: 500,
+      usdChatsAllowance: '500,000 chats or comments',
       usdSymbol: '$',
-      usdAmount: '6.99',
-      usdPer2k: '~$0.47 per 2k chats (Save 22%)',
+      usdAmount: '29',
+      usdUnitSub: '$0.058 per 1k chats (Save 42%) • Never expires',
+      usdDesc: 'Best value for regular live streamers, editors &amp; channel audits.',
+      inCredits: 30,
+      inChatsAllowance: '30,000 chats/comments',
+      inSymbol: '₹',
       inrRegular: '249',
       inrFirst: '149',
       inrBadge: '40% OFF 1st Order',
-      desc: 'Best value for regular live streamers, editors &amp; channel audits.',
-      features: [
-        '✓ <strong>30 Credits</strong> (= 30,000 chats/comments)',
+      inUnitFirst: '₹4.97 / 1k chats • 1st India Order',
+      inUnitReg: '₹8.30 / 1k chats • India UPI Regular',
+      inDesc: 'Best value for regular live streamers, editors &amp; channel audits.',
+      extraFeaturesUsd: [
+        '✓ Custom URL Batch &amp; Full Channel History',
+        '✓ 100% Ad-Free + Priority Throughput',
+      ],
+      extraFeaturesIn: [
         '✓ Custom URL Batch &amp; Full Channel History',
         '✓ 100% Ad-Free + Never Expiring Credits',
       ],
     },
     {
       id: 'credits_100',
+      usdId: 'credits_1000',
+      inId: 'in_100',
       name: 'Agency Pack',
-      credits: 100,
-      chatsAllowance: '100,000 chats/comments',
+      inName: 'Agency Pack',
       featured: false,
       ribbon: 'BEST VALUE',
+      usdCredits: 1000,
+      usdChatsAllowance: '1,000,000 chats or comments',
       usdSymbol: '$',
-      usdAmount: '19.99',
-      usdPer2k: '~$0.40 per 2k chats (Save 33%)',
+      usdAmount: '49',
+      usdUnitSub: '$0.049 per 1k chats (Save 51%) • Never expires',
+      usdDesc: 'Massive million-chat volume for MCNs, agencies &amp; researchers.',
+      inCredits: 100,
+      inChatsAllowance: '100,000 chats/comments',
+      inSymbol: '₹',
       inrRegular: '699',
       inrFirst: '499',
       inrBadge: '29% OFF 1st Order',
-      desc: 'High-volume archive audits for MCNs, agencies &amp; researchers.',
-      features: [
-        '✓ <strong>100 Credits</strong> (= 100,000 chats/comments)',
+      inUnitFirst: '₹4.99 / 1k chats • 1st India Order',
+      inUnitReg: '₹6.99 / 1k chats • India UPI Regular',
+      inDesc: 'High-volume archive audits for MCNs, agencies &amp; researchers.',
+      extraFeaturesUsd: [
+        '✓ 1,000+ Stream Parallel Batch Engine',
+        '✓ 100% Ad-Free + All Export Formats',
+      ],
+      extraFeaturesIn: [
         '✓ Parallel Batch Engine &amp; All Exports',
         '✓ 100% Ad-Free + Priority Throughput',
       ],
@@ -119,39 +155,81 @@
     if (currentPricingRegion === 'INR') {
       const promoActive = isIndiaFirstPromoActive();
       const amount = promoActive ? pack.inrFirst : pack.inrRegular;
+      const creditsText = pack.inCredits.toLocaleString('en-US');
       return {
+        packId: pack.inId,
+        name: pack.inName || pack.name,
+        credits: pack.inCredits,
+        creditsHeadline: `💎 ${creditsText} Credits`,
+        chatsBulletHtml: `✓ <strong>${creditsText} Credits</strong> (= ${pack.inChatsAllowance})`,
+        desc: pack.inDesc,
+        extraFeatures: pack.extraFeaturesIn,
         symbol: '₹',
         amount,
         strikeAmount: promoActive ? `₹${pack.inrRegular}` : '',
         badge: promoActive ? `🇮🇳 ${pack.inrBadge}` : '',
-        sub: promoActive
-          ? `${pack.chatsAllowance} • 1st India Order Special`
-          : `${pack.chatsAllowance} • India UPI Regular`,
-        cta: `Buy ${pack.credits} Credits for ₹${amount}`,
+        sub: promoActive ? pack.inUnitFirst : pack.inUnitReg,
+        cta: `Buy ${creditsText} Credits (₹${amount}${promoActive ? ' UPI' : ''})`,
       };
     }
 
+    const creditsText = pack.usdCredits.toLocaleString('en-US');
     return {
+      packId: pack.usdId,
+      name: pack.name,
+      credits: pack.usdCredits,
+      creditsHeadline: `💎 ${creditsText} Credits`,
+      chatsBulletHtml: `✓ <strong>${creditsText} Credits</strong> (= ${pack.usdChatsAllowance})`,
+      desc: pack.usdDesc,
+      extraFeatures: pack.extraFeaturesUsd,
       symbol: '$',
       amount: pack.usdAmount,
       strikeAmount: '',
       badge: '',
-      sub: `${pack.usdPer2k} • Never expires`,
-      cta: `Buy ${pack.credits} Credits (${pack.usdSymbol}${pack.usdAmount})`,
+      sub: pack.usdUnitSub,
+      cta: `Buy ${creditsText} Credits (${pack.usdSymbol}${pack.usdAmount})`,
     };
   }
 
   function applyRegionPricing(root = document) {
     const firstPack = getPackDisplayPricing(CREDIT_PACK_CATALOG[0]);
     const promoActive = isIndiaFirstPromoActive();
-    const bannerLabel = `💎 Buy Credits (${firstPack.symbol}${firstPack.amount} for 10 Credits)`;
+    const bannerLabel = `💎 Buy Credits (From ${firstPack.symbol}${firstPack.amount} • ${firstPack.credits} CR)`;
 
     root.querySelectorAll('[data-tm-price-target="banner-credits"]').forEach((node) => {
       node.textContent = bannerLabel;
     });
 
+    root.querySelectorAll('[data-tm-price-target="pricing-footnote"]').forEach((node) => {
+      node.textContent =
+        currentPricingRegion === 'INR'
+          ? '1 Credit = 1,000 chats/comments • India UPI packs from ₹49 (10k–100k chats) • Credits never expire.'
+          : '1 Credit = 1,000 chats/comments • Global volume packs from $0.049/1k chats (200k–1M) • Credits never expire.';
+    });
+
+    root.querySelectorAll('[data-tm-price-target="modal-sub-default"]').forEach((node) => {
+      if (node.dataset.customSub !== 'true') {
+        node.textContent =
+          currentPricingRegion === 'INR'
+            ? 'No subscriptions — India UPI prepaid packs from ₹49 (10 CR = 10k chats). Credits never expire.'
+            : 'No subscriptions — Global high-volume prepaid packs from $19.99 (200 CR = 200k chats). Credits never expire.';
+      }
+    });
+
     CREDIT_PACK_CATALOG.forEach((pack) => {
       const p = getPackDisplayPricing(pack);
+      root.querySelectorAll(`[data-tm-pack-name="${pack.id}"]`).forEach((n) => {
+        n.textContent = p.name;
+      });
+      root.querySelectorAll(`[data-tm-pack-credits="${pack.id}"]`).forEach((n) => {
+        n.textContent = p.creditsHeadline;
+      });
+      root.querySelectorAll(`[data-tm-pack-chats-bullet="${pack.id}"]`).forEach((n) => {
+        n.innerHTML = p.chatsBulletHtml;
+      });
+      root.querySelectorAll(`[data-tm-pack-desc="${pack.id}"]`).forEach((n) => {
+        n.innerHTML = p.desc;
+      });
       root.querySelectorAll(`[data-tm-pack-symbol="${pack.id}"]`).forEach((n) => {
         n.textContent = p.symbol;
       });
@@ -187,11 +265,11 @@
       } else if (regionState.isIndia && regionState.indiaFirstPurchaseEligible === false) {
         node.className = 'tm-india-promo-banner is-claimed';
         node.innerHTML =
-          '🇮🇳 <strong>India UPI Pricing:</strong> 1st-purchase promo already claimed on this account — standard INR rates active.';
+          '🇮🇳 <strong>India UPI Pricing:</strong> 1st-purchase promo already claimed on this account — standard INR rates active (10–100 CR).';
       } else {
         node.className = 'tm-india-promo-banner is-preview';
         node.innerHTML =
-          '🇮🇳 <strong>India Pricing Preview:</strong> Special 1st-purchase discount (₹49 / ₹149 / ₹499) is auto-verified for Indian IP orders at checkout.';
+          '🇮🇳 <strong>India Pricing Preview:</strong> Special 1st-purchase discount (₹49 / ₹149 / ₹499 for 10–100 CR) is auto-verified for Indian IP orders at checkout.';
       }
     });
 
@@ -509,7 +587,7 @@
             </div>
 
             <button class="btn-upgrade-pro-menu" id="dropdownBuyCreditsBtn" type="button">
-              <span>💎 Buy Credit Packs ($0.60 / 2k chats)</span>
+              <span>💎 Buy Credit Packs</span>
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </button>
 
@@ -618,11 +696,11 @@
           </div>
           <div class="benefit-item">
             <span class="benefit-icon">💎</span>
-            <span class="benefit-text"><strong>Prepaid Credit Packs</strong> — $0.60 per 2,000 chats, never expire</span>
+            <span class="benefit-text"><strong>Prepaid Credit Packs</strong> — Pay-as-you-go volume packs, never expire</span>
           </div>
           <div class="benefit-item">
             <span class="benefit-icon">🇮🇳</span>
-            <span class="benefit-text"><strong>India 1st Order Offer</strong> — Starter 10 Credits from ₹49 via UPI</span>
+            <span class="benefit-text">${currentPricingRegion === 'INR' ? '<strong>India 1st Order Offer</strong> — Starter 10 Credits from ₹49 via UPI' : '<strong>High-Volume Prepaid Packs</strong> — 200k to 1M chats from $19.99'}</span>
           </div>
         </div>
 
@@ -712,6 +790,30 @@
       return;
     }
 
+    if (regionState.country !== null) {
+      const serverMarket = regionState.isIndia ? 'INR' : 'USD';
+      if (currentPricingRegion !== serverMarket) {
+        setPricingRegion(serverMarket);
+        openCreditsModal();
+        setCheckoutStatus(
+          regionState.isIndia
+            ? '🇮🇳 Switched to India INR pricing (10–100 CR via UPI) matching your IP billing region. Click Buy again to continue.'
+            : '🌍 Switched to Global USD pricing (200–1,000 CR) matching your IP billing region. Click Buy again to continue.',
+          false
+        );
+        return;
+      }
+    }
+
+    const catalogMatch = CREDIT_PACK_CATALOG.find(
+      (p) => p.id === packId || p.usdId === packId || p.inId === packId
+    );
+    const resolvedPackId = catalogMatch
+      ? regionState.isIndia
+        ? catalogMatch.inId
+        : catalogMatch.usdId
+      : packId;
+
     const buttons = document.querySelectorAll('.btn-checkout-plan[data-pack]');
     const targetBtn = document.querySelector(`.btn-checkout-plan[data-pack="${packId}"]`);
     const origText = targetBtn ? targetBtn.textContent : '';
@@ -728,7 +830,7 @@
       const res = await apiRequest('/api/checkout/create', {
         method: 'POST',
         body: JSON.stringify({
-          packId,
+          packId: resolvedPackId,
           returnPath: window.location.pathname || '/',
         }),
       });
@@ -777,7 +879,9 @@
 
     const currentBal = currentUser ? Math.max(0, Number(currentUser.creditsBalance || 0)) : 0;
     const defaultSub =
-      'No subscriptions — buy prepaid credits once and use them any time. 1 Credit = 1,000 chats/comments ($0.60 per 2,000 chats).';
+      currentPricingRegion === 'INR'
+        ? 'No subscriptions — India UPI prepaid packs from ₹49 (10 CR = 10k chats). Credits never expire.'
+        : 'No subscriptions — Global high-volume prepaid packs from $19.99 (200 CR = 200k chats). Credits never expire.';
 
     const cardsHtml = CREDIT_PACK_CATALOG.map((pack) => {
       const p = getPackDisplayPricing(pack);
@@ -785,19 +889,20 @@
         <div class="pricing-card ${pack.featured ? 'card-featured' : ''}">
           ${pack.ribbon ? `<div class="featured-ribbon">${pack.ribbon}</div>` : ''}
           <div class="pricing-card-top">
-            <div class="pricing-plan-name">${pack.name}</div>
+            <div class="pricing-plan-name" data-tm-pack-name="${pack.id}">${p.name}</div>
             <span class="tm-pack-discount-badge" data-tm-pack-badge="${pack.id}" style="display:${p.badge ? 'inline-flex' : 'none'};">${p.badge}</span>
           </div>
-          <div class="pricing-credits-headline">💎 ${pack.credits} Credits</div>
+          <div class="pricing-credits-headline" data-tm-pack-credits="${pack.id}">${p.creditsHeadline}</div>
           <div class="pricing-price">
             <span class="price-strike" data-tm-pack-strike="${pack.id}" style="display:${p.strikeAmount ? 'inline-block' : 'none'};">${p.strikeAmount}</span>
             <span class="price-symbol" data-tm-pack-symbol="${pack.id}">${p.symbol}</span><span class="price-amount" data-tm-pack-amount="${pack.id}">${p.amount}</span>
             <span class="price-period">/ one-time</span>
             <span class="price-inr" data-tm-pack-sub="${pack.id}">${p.sub}</span>
           </div>
-          <p class="pricing-desc">${pack.desc}</p>
+          <p class="pricing-desc" data-tm-pack-desc="${pack.id}">${p.desc}</p>
           <ul class="pricing-features">
-            ${pack.features.map((f) => `<li>${f}</li>`).join('')}
+            <li data-tm-pack-chats-bullet="${pack.id}">${p.chatsBulletHtml}</li>
+            ${p.extraFeatures.map((f) => `<li>${f}</li>`).join('')}
           </ul>
           <button class="btn-checkout-plan ${pack.featured ? 'btn-checkout-featured' : ''}" data-pack="${pack.id}" data-tm-pack-cta="${pack.id}" type="button">${p.cta}</button>
         </div>
@@ -810,7 +915,7 @@
         <div class="tm-modal-header">
           <div class="tm-pro-pill">💎 PREPAID CREDITS • ${currentUser ? `BALANCE: ${currentBal} CREDITS` : 'PAY AS YOU GO'}</div>
           <h2 class="tm-modal-title">Buy Never-Expiring Credit Packs</h2>
-          <p class="tm-modal-subtitle">${escapeHtml(customSubtitle || defaultSub)}</p>
+          <p class="tm-modal-subtitle" data-tm-price-target="modal-sub-default" data-custom-sub="${customSubtitle ? 'true' : 'false'}">${escapeHtml(customSubtitle || defaultSub)}</p>
           <div class="tm-region-toggle" role="group" aria-label="Display currency">
             <button type="button" class="tm-region-btn ${currentPricingRegion === 'USD' ? 'active' : ''}" data-tm-region-btn="USD">🌍 Global (USD)</button>
             <button type="button" class="tm-region-btn ${currentPricingRegion === 'INR' ? 'active' : ''}" data-tm-region-btn="INR">🇮🇳 India (INR)</button>
@@ -934,7 +1039,7 @@
         const firstPrice = getPackDisplayPricing(CREDIT_PACK_CATALOG[0]);
         if (res.data?.freeExhausted) {
           openCreditsModal(
-            `Weekly Free Single Limit Reached (${FREE_WEEKLY_LIMIT}/${FREE_WEEKLY_LIMIT} used this week). You need ${needed} credit (balance: ${bal}). Grab 10 credits from ${firstPrice.symbol}${firstPrice.amount} — never expire!`
+            `Weekly Free Single Limit Reached (${FREE_WEEKLY_LIMIT}/${FREE_WEEKLY_LIMIT} used this week). You need ${needed} credit (balance: ${bal}). Grab ${firstPrice.credits} credits from ${firstPrice.symbol}${firstPrice.amount} — never expire!`
           );
         } else {
           const modeName =
@@ -944,7 +1049,7 @@
                 ? 'Custom URL Batch'
                 : 'This export';
           openCreditsModal(
-            `${modeName} requires ${needed} credit(s) — your current balance is ${bal}. Top up credits below ($0.60 per 2,000 chats/comments)!`
+            `${modeName} requires ${needed} credit(s) — your current balance is ${bal}. Top up never-expiring credits below!`
           );
         }
         return false;

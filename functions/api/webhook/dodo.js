@@ -61,10 +61,24 @@ export async function onRequestPost({ request, env }) {
       (Array.isArray(data?.product_cart) ? data.product_cart[0]?.product_id : null);
 
     if (eventType === 'payment.succeeded') {
-      const fromProd = resolvePackFromProductId(env, productId);
+      let pendingPlan = '';
+      if (sessionId) {
+        try {
+          const pendingRow = await env.DB
+            .prepare('SELECT plan FROM payments WHERE session_id = ?1 LIMIT 1')
+            .bind(sessionId)
+            .first();
+          pendingPlan = pendingRow?.plan ? String(pendingRow.plan) : '';
+        } catch {}
+      }
       const fromMeta = metadata?.pack_id ? String(metadata.pack_id) : metadata?.plan ? String(metadata.plan) : '';
+      const resolved = resolvePackFromProductId(env, productId, {
+        metaPack: fromMeta,
+        pendingPlan,
+        payment: data,
+      });
       const packId =
-        fromProd || (getCreditPack(fromMeta) ? fromMeta : 'credits_10');
+        resolved || (getCreditPack(fromMeta) ? fromMeta : 'in_10');
 
       await grantCreditPurchase(env.DB, {
         userId,

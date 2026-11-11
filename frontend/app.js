@@ -844,7 +844,7 @@ function setupChannelMode() {
 }
 
 // ── Option C (Multi-URL Batch - Credits System) ──
-const MAX_MULTI_STREAMS = 500;
+const MAX_MULTI_STREAMS = 1000;
 
 function setupMultiMode() {
   function updateMultiBadgeAndUI() {
@@ -1307,6 +1307,7 @@ const CONCURRENCY_LIMIT = 3;
 const EARNINGS_PAUSE_CKPT_KEY = 'earnings_pause_v1';
 let pauseEarningsRequested = false;
 let currentEarningsCheckpoint = null;
+let earningsCheckpointEpoch = 0;
 
 function escapeHtmlForBanner(str) {
   if (!str) return '';
@@ -1366,6 +1367,7 @@ function updateEarningsLiveCreditBar(visible, noteText = '') {
 }
 
 async function saveEarningsCheckpoint(ckpt) {
+  earningsCheckpointEpoch++;
   currentEarningsCheckpoint = ckpt || null;
   if (!ckpt || !window.TubeMetrixAuth?.checkpoints) {
     renderEarningsPauseAndResumeBanners();
@@ -1376,6 +1378,7 @@ async function saveEarningsCheckpoint(ckpt) {
 }
 
 async function clearEarningsCheckpoint() {
+  earningsCheckpointEpoch++;
   currentEarningsCheckpoint = null;
   if (window.TubeMetrixAuth?.checkpoints) {
     await window.TubeMetrixAuth.checkpoints.clear(EARNINGS_PAUSE_CKPT_KEY);
@@ -1385,7 +1388,11 @@ async function clearEarningsCheckpoint() {
 
 async function restoreSavedEarningsCheckpoint() {
   if (!window.TubeMetrixAuth?.checkpoints) return;
+  const startEpoch = earningsCheckpointEpoch;
   const saved = await window.TubeMetrixAuth.checkpoints.load(EARNINGS_PAUSE_CKPT_KEY);
+  if (startEpoch !== earningsCheckpointEpoch || state.processing) {
+    return;
+  }
   if (!saved || !Array.isArray(saved.remainingUrls) || saved.remainingUrls.length === 0) {
     currentEarningsCheckpoint = null;
     renderEarningsPauseAndResumeBanners();
@@ -1644,13 +1651,29 @@ async function startProcessing(urls, label = null, options = {}) {
     }
 
     try {
-      const resp = await fetch(`${API_BASE}/analyze-stream`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: url })
-      });
-
-      const resData = await resp.json();
+      let resp;
+      let resData = null;
+      for (let attempt = 0; attempt <= 1; attempt++) {
+        try {
+          resp = await fetch(`${API_BASE}/analyze-stream`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: url })
+          });
+          if (!resp.ok && attempt === 0 && [429, 502, 503, 504].includes(resp.status) && !state.pauseRequested) {
+            await new Promise(r => setTimeout(r, 1200));
+            continue;
+          }
+          resData = await resp.json();
+          break;
+        } catch (fetchErr) {
+          if (attempt === 0 && !state.pauseRequested) {
+            await new Promise(r => setTimeout(r, 1200));
+            continue;
+          }
+          throw fetchErr;
+        }
+      }
 
       if (resData.success && resData.data) {
         state.metrics.success++;
