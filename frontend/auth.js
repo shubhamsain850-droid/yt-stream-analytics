@@ -136,7 +136,7 @@
       amount: pack.usdAmount,
       strikeAmount: '',
       badge: '',
-      sub: `${pack.per2k} • Never expires`,
+      sub: `${pack.usdPer2k} • Never expires`,
       cta: `Buy ${pack.credits} Credits (${pack.usdSymbol}${pack.usdAmount})`,
     };
   }
