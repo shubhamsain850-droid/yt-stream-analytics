@@ -8489,3 +8489,384 @@ body.light-mode .glass-cue-btn {
   user-select: none;
   transition: all 0.3s ease;
 }
+
+
+/* ── Mobile Overflow, Clipping & Touch Polish (v6.2) ── */
+html,
+body {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+#singleUrlInput,
+#chatSingleUrlInput,
+#commUrlInput,
+#channelSearchInput,
+.input-wrapper:has(.btn-paste) input {
+  padding-right: 78px !important;
+}
+
+@media (min-width: 641px) and (max-width: 1420px) {
+  .top-nav {
+    padding: 0 14px !important;
+  }
+
+  .nav-container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    gap: 8px !important;
+  }
+
+  .page-nav-wrapper {
+    margin-left: 8px !important;
+  }
+
+  .nav-tab-link {
+    padding: 6px 10px !important;
+    font-size: 0.78rem !important;
+    gap: 4px !important;
+  }
+
+  .nav-actions {
+    gap: 6px !important;
+  }
+
+  .guest-quota-pill {
+    font-size: 0.68rem !important;
+    padding: 3px 7px !important;
+  }
+
+  .btn-auth-signin {
+    padding: 5px 10px !important;
+    font-size: 0.76rem !important;
+  }
+
+  .theme-toggle-btn {
+    padding: 0 9px !important;
+    font-size: 0.74rem !important;
+  }
+
+  .curr-btn {
+    padding: 0 6px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .curr-select {
+    padding: 0 5px !important;
+    font-size: 0.72rem !important;
+    max-width: 78px !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1340px) {
+  .top-nav {
+    padding: 0 10px !important;
+  }
+
+  .nav-container {
+    gap: 6px !important;
+  }
+
+  .logo {
+    gap: 6px !important;
+  }
+
+  .logo-text {
+    font-size: 1.06rem !important;
+  }
+
+  .beta-badge {
+    font-size: 0.62rem !important;
+    padding: 2px 6px !important;
+  }
+
+  .page-nav-wrapper {
+    margin-left: 4px !important;
+  }
+
+  .nav-tab-link {
+    padding: 5px 8px !important;
+    font-size: 0.74rem !important;
+    gap: 4px !important;
+  }
+
+  .nav-actions {
+    gap: 5px !important;
+  }
+
+  .btn-auth-signin {
+    padding: 5px 8px !important;
+    font-size: 0.73rem !important;
+  }
+
+  .theme-toggle-btn {
+    padding: 0 8px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .currency-switch {
+    padding: 2px !important;
+  }
+
+  .curr-btn {
+    padding: 0 5px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .curr-select {
+    padding: 0 4px !important;
+    font-size: 0.7rem !important;
+    max-width: 72px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .top-nav {
+    position: relative !important;
+    padding: 10px 12px !important;
+  }
+
+  .nav-container {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .nav-actions {
+    order: 2 !important;
+    width: 100% !important;
+    flex: 1 1 100% !important;
+    flex-shrink: 1 !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
+    max-width: 100% !important;
+  }
+
+  #authNavContainer {
+    display: flex !important;
+    align-items: center !important;
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    max-width: calc(100% - 42px) !important;
+  }
+
+  .auth-guest-group {
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .guest-quota-pill {
+    font-size: 0.7rem !important;
+    padding: 4px 8px !important;
+  }
+
+  .btn-auth-signin {
+    font-size: 0.76rem !important;
+    padding: 5px 11px !important;
+  }
+
+  .theme-toggle-btn {
+    flex-shrink: 0 !important;
+    height: 32px !important;
+    padding: 0 9px !important;
+    margin-left: auto !important;
+  }
+
+  /* Currency bar spans cleanly on its own full-width row — zero right clipping */
+  .currency-switch {
+    order: 10 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    padding: 4px !important;
+    gap: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+  }
+
+  .currency-switch .curr-btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    height: 28px !important;
+    padding: 0 6px !important;
+    font-size: 0.73rem !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+
+  .currency-switch .curr-select {
+    flex: 1.15 1 0 !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 28px !important;
+    padding: 0 6px !important;
+    font-size: 0.73rem !important;
+  }
+
+  /* Top Page Switcher Pills: fit cleanly without chevron overlay cutoff */
+  .page-nav-wrapper {
+    order: 3 !important;
+    width: 100% !important;
+    margin: 2px 0 0 !important;
+  }
+
+  .page-nav-wrapper .scroll-edge-hint {
+    display: none !important;
+  }
+
+  .page-nav-wrapper .page-nav,
+  .page-nav {
+    width: 100% !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    overflow: visible !important;
+    white-space: nowrap !important;
+    padding: 4px !important;
+    gap: 4px !important;
+  }
+
+  .nav-tab-link {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    padding: 6px 8px !important;
+    font-size: 0.73rem !important;
+    gap: 4px !important;
+    min-height: 34px !important;
+    justify-content: center !important;
+  }
+
+  .nav-new-pill {
+    font-size: 0.54rem !important;
+    padding: 1px 4px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Main content & Hero Badge wrap cleanly without text ellipsis */
+  .main-content {
+    padding: 18px 10px 56px !important;
+  }
+
+  .hero-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    font-size: 0.72rem !important;
+    line-height: 1.35 !important;
+    padding: 6px 12px !important;
+    margin: 0 auto 12px !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    text-align: center !important;
+    border-radius: 16px !important;
+  }
+
+  .hero-badge .pulse-dot {
+    flex-shrink: 0 !important;
+  }
+
+  /* Tool Mode Tabs: clean 2-col wrapped layout on mobile, zero clipped text */
+  .mode-tabs-wrapper {
+    margin-bottom: 18px !important;
+  }
+
+  .mode-tabs-wrapper .scroll-edge-hint {
+    display: none !important;
+  }
+
+  .mode-tabs-wrapper .mode-tabs,
+  .mode-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    padding: 6px !important;
+    overflow: visible !important;
+    white-space: normal !important;
+  }
+
+  .mode-tabs .tab-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex-shrink: 1 !important;
+    white-space: normal !important;
+    text-align: center !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    padding: 8px 6px !important;
+    font-size: 0.74rem !important;
+    line-height: 1.25 !important;
+    min-height: 42px !important;
+    gap: 4px !important;
+  }
+
+  .mode-tabs .tab-btn svg {
+    width: 15px !important;
+    height: 15px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mode-tabs .tab-btn:last-child:nth-child(odd) {
+    grid-column: 1 / -1 !important;
+  }
+
+  .tab-pro-pill,
+  .tab-counter-badge {
+    font-size: 0.62rem !important;
+    padding: 1px 6px !important;
+    margin-left: 2px !important;
+  }
+
+  /* Paste Button & Icon Alignment on Mobile */
+  .input-wrapper .input-icon {
+    left: 12px !important;
+    width: 17px !important;
+    height: 17px !important;
+  }
+
+  .input-wrapper input {
+    font-size: 0.86rem !important;
+    padding: 11px 12px 11px 36px !important;
+  }
+
+  #singleUrlInput,
+  #chatSingleUrlInput,
+  #commUrlInput,
+  #channelSearchInput,
+  .input-wrapper:has(.btn-paste) input {
+    padding-right: 72px !important;
+  }
+
+  .btn-paste {
+    right: 8px !important;
+    padding: 5px 10px !important;
+    font-size: 0.74rem !important;
+  }
+
+  /* PRO Panel Lock Banner on Narrow Screens */
+  .pro-panel-lock-banner {
+    padding: 20px 14px !important;
+  }
+
+  .pro-lock-title {
+    font-size: 1.18rem !important;
+  }
+
+  .pro-lock-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .btn-unlock-pro,
+  .btn-lock-free-switch {
+    width: 100% !important;
+  }
+}
