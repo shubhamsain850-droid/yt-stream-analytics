@@ -49,7 +49,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=6.3">
+  <link rel="stylesheet" href="styles.css?v=6.4">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -751,6 +751,68 @@
       </div>
     </section>
 
+    <!-- Public Transparent Pricing (Free & PRO Plans) -->
+    <section class="public-pricing-section" id="pricing" aria-label="TubeMetrix Pricing Plans">
+      <div style="text-align: center;">
+        <h2 style="font-size: 1.45rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Simple, Transparent Pricing</h2>
+        <p style="font-size: 0.92rem; color: var(--text-secondary); margin: 0;">Start with free daily stream audits or unlock unlimited bulk channel &amp; ad-free processing.</p>
+      </div>
+
+      <div class="public-pricing-grid">
+        <div class="pricing-card">
+          <div class="pricing-plan-name">Starter Free Tier</div>
+          <div class="pricing-price">
+            <span class="price-symbol">$</span><span class="price-amount">0</span>
+            <span class="price-inr">/ Free Forever</span>
+          </div>
+          <p class="pricing-desc">Test Super Chat, Jewels &amp; Chat tools before upgrading.</p>
+          <ul class="pricing-features">
+            <li>✓ 2 Daily Audits (Guest) • 5 Daily (Google Sign-In)</li>
+            <li>✓ Up to 3 URLs in Custom URL Batch</li>
+            <li>✓ Multi-Currency Forex &amp; CSV/Excel Export</li>
+          </ul>
+          <button class="btn-checkout-plan" type="button" onclick="window.TubeMetrixAuth && (window.TubeMetrixAuth.isLoggedIn() ? window.TubeMetrixAuth.openProModal() : window.TubeMetrixAuth.openAuthModal('Sign in with Google for 5 free daily stream audits!'))">Start Free With Google</button>
+        </div>
+
+        <div class="pricing-card">
+          <div class="pricing-plan-name">24-Hour Day Pass</div>
+          <div class="pricing-price">
+            <span class="price-symbol">$</span><span class="price-amount">0.99</span>
+            <span class="price-inr">/ ₹49 INR</span>
+          </div>
+          <p class="pricing-desc">One-time purchase for intensive 24-hour audit sessions.</p>
+          <ul class="pricing-features">
+            <li>✓ 24 Hours Unlimited Stream Audits</li>
+            <li>✓ Channel &amp; Date Range Bulk Extractor</li>
+            <li>✓ Unlimited Batch Queue &amp; Zero Ads</li>
+          </ul>
+          <button class="btn-checkout-plan" type="button" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.openProModal()">Get 24h Pass ($0.99)</button>
+        </div>
+
+        <div class="pricing-card card-featured">
+          <div class="featured-ribbon">MOST POPULAR</div>
+          <div class="pricing-plan-name">Monthly Creator Pro</div>
+          <div class="pricing-price">
+            <span class="price-symbol">$</span><span class="price-amount">4.99</span>
+            <span class="price-period">/ month</span>
+            <span class="price-inr">/ ₹299 INR</span>
+          </div>
+          <p class="pricing-desc">For creators, editors, talent agencies &amp; channel managers.</p>
+          <ul class="pricing-features">
+            <li>✓ Unlimited Daily Audits Every Month</li>
+            <li>✓ Full Channel History &amp; 3x Parallel Workers</li>
+            <li>✓ 100% Ad-Free + VIP Priority Support</li>
+          </ul>
+          <button class="btn-checkout-plan btn-checkout-featured" type="button" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.openProModal()">Upgrade to PRO ($4.99/mo)</button>
+        </div>
+      </div>
+
+      <p class="public-pricing-note">
+        Payments processed globally by Merchant of Record (Dodo Payments — Cards, Apple Pay &amp; India UPI).
+        <strong>All purchases are strictly final &amp; non-refundable</strong> — test free daily audits first. See <a href="/terms" style="color: #60a5fa;">Terms &amp; No-Refund Policy</a> • Support: <a href="mailto:support@tubemetrix.net" style="color: #60a5fa;">support@tubemetrix.net</a>
+      </p>
+    </section>
+
     <!-- FAQ Section for SEO -->
     <section class="info-section" style="margin-top: 0;">
       <div style="max-width: 860px; margin: 0 auto; padding: 0 16px;">
@@ -877,7 +939,8 @@
           <a href="sitemap.xml" class="footer-link">XML Sitemap</a>
           <a href="robots.txt" class="footer-link">Robots.txt</a>
           <a href="/privacy" class="footer-link">Privacy Policy</a>
-          <a href="/terms" class="footer-link">Terms of Service</a>
+          <a href="/terms" class="footer-link">Terms &amp; No-Refund Policy</a>
+          <a href="mailto:support@tubemetrix.net" class="footer-link">Contact Support</a>
         </div>
       </div>
     </div>
@@ -886,7 +949,7 @@
     </div>
   </footer>
 
-  <script src="auth.js?v=2.0"></script>
+  <script src="auth.js?v=2.1"></script>
   <script src="app.js?v=6.2"></script>
   <!-- Adsterra Social Bar Integration -->
   <script data-cfasync="false" src="https://bauval.org/14/1130b0119de2f33b3a0f98fff91280bc"></script>
