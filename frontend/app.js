@@ -881,7 +881,8 @@ function setupMultiMode() {
     // Check if free user is already at the limit
     if (!isPro && currentCount >= FREE_CUSTOM_URL_LIMIT) {
       if (window.TubeMetrixAuth) {
-        window.TubeMetrixAuth.openProModal("Free Batch Limit Reached! You have added 3 streams. Upgrade to PRO or get a $0.99 Day Pass to queue unlimited custom streams!");
+        const hint = window.TubeMetrixAuth.getDayPassHint ? window.TubeMetrixAuth.getDayPassHint() : '24h Day Pass';
+        window.TubeMetrixAuth.openProModal(`Free Batch Limit Reached! You have added 3 streams. Upgrade to PRO or get a ${hint} to queue unlimited custom streams!`);
       } else {
         alert("Free limit reached (3 streams). Upgrade to PRO for unlimited custom streams!");
       }

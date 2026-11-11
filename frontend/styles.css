@@ -8292,6 +8292,44 @@ body.light-mode .glass-cue-btn {
   padding: 0 24px;
 }
 
+.tm-region-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  margin-top: 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+[data-theme="light"] .tm-region-toggle {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.14);
+}
+
+.tm-region-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.tm-region-btn.active {
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  color: #ffffff;
+}
+
+[data-theme="light"] .tm-region-btn:not(.active) {
+  color: #475569;
+}
+
 .public-pricing-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

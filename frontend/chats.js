@@ -403,7 +403,8 @@
     // Gatekeeper: Max 3 streams for Free / Guest users
     if (!isPro && currentCount >= FREE_CUSTOM_URL_LIMIT) {
       if (window.TubeMetrixAuth) {
-        window.TubeMetrixAuth.openProModal("Free Batch Limit Reached! You have queued 3 streams. Upgrade to PRO or get a $0.99 Day Pass to download unlimited stream chats!");
+        const hint = window.TubeMetrixAuth.getDayPassHint ? window.TubeMetrixAuth.getDayPassHint() : '24h Day Pass';
+        window.TubeMetrixAuth.openProModal(`Free Batch Limit Reached! You have queued 3 streams. Upgrade to PRO or get a ${hint} to download unlimited stream chats!`);
       } else {
         alert("Free limit reached (3 streams). Upgrade to PRO for unlimited custom stream chat downloads!");
       }

@@ -49,7 +49,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=6.4">
+  <link rel="stylesheet" href="styles.css?v=6.5">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -269,7 +269,7 @@
           </div>
           <div class="pro-lock-actions">
             <button class="btn-unlock-pro" type="button" id="unlockChannelProBtn">
-              <span>⚡ Unlock with Day Pass ($0.99 / ₹49)</span>
+              <span data-tm-price-target="banner-daypass">⚡ Unlock with Day Pass ($0.99)</span>
             </button>
             <button class="btn-lock-free-switch" type="button" id="switchSingleStreamBtn">
               Try 1 Single Stream for Free →
@@ -756,6 +756,10 @@
       <div style="text-align: center;">
         <h2 style="font-size: 1.45rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Simple, Transparent Pricing</h2>
         <p style="font-size: 0.92rem; color: var(--text-secondary); margin: 0;">Start with free daily stream audits or unlock unlimited bulk channel &amp; ad-free processing.</p>
+        <div class="tm-region-toggle" role="group" aria-label="Display currency">
+          <button type="button" class="tm-region-btn" data-tm-region-btn="USD" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.setPricingRegion('USD')">🌍 Global (USD)</button>
+          <button type="button" class="tm-region-btn" data-tm-region-btn="INR" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.setPricingRegion('INR')">🇮🇳 India (INR)</button>
+        </div>
       </div>
 
       <div class="public-pricing-grid">
@@ -777,8 +781,8 @@
         <div class="pricing-card">
           <div class="pricing-plan-name">24-Hour Day Pass</div>
           <div class="pricing-price">
-            <span class="price-symbol">$</span><span class="price-amount">0.99</span>
-            <span class="price-inr">/ ₹49 INR</span>
+            <span class="price-symbol" data-tm-price-target="day-symbol">$</span><span class="price-amount" data-tm-price-target="day-amount">0.99</span>
+            <span class="price-inr" data-tm-price-target="day-sub">One-time 24h access • Global USD</span>
           </div>
           <p class="pricing-desc">One-time purchase for intensive 24-hour audit sessions.</p>
           <ul class="pricing-features">
@@ -786,16 +790,16 @@
             <li>✓ Channel &amp; Date Range Bulk Extractor</li>
             <li>✓ Unlimited Batch Queue &amp; Zero Ads</li>
           </ul>
-          <button class="btn-checkout-plan" type="button" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.openProModal()">Get 24h Pass ($0.99)</button>
+          <button class="btn-checkout-plan" type="button" data-tm-price-target="day-cta" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.openProModal()">Get 24h Pass ($0.99)</button>
         </div>
 
         <div class="pricing-card card-featured">
           <div class="featured-ribbon">MOST POPULAR</div>
           <div class="pricing-plan-name">Monthly Creator Pro</div>
           <div class="pricing-price">
-            <span class="price-symbol">$</span><span class="price-amount">4.99</span>
-            <span class="price-period">/ month</span>
-            <span class="price-inr">/ ₹299 INR</span>
+            <span class="price-symbol" data-tm-price-target="pro-symbol">$</span><span class="price-amount" data-tm-price-target="pro-amount">8.99</span>
+            <span class="price-period" data-tm-price-target="pro-period">/ month</span>
+            <span class="price-inr" data-tm-price-target="pro-sub">Global creator plan • Cards &amp; Apple Pay</span>
           </div>
           <p class="pricing-desc">For creators, editors, talent agencies &amp; channel managers.</p>
           <ul class="pricing-features">
@@ -803,7 +807,7 @@
             <li>✓ Full Channel History &amp; 3x Parallel Workers</li>
             <li>✓ 100% Ad-Free + VIP Priority Support</li>
           </ul>
-          <button class="btn-checkout-plan btn-checkout-featured" type="button" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.openProModal()">Upgrade to PRO ($4.99/mo)</button>
+          <button class="btn-checkout-plan btn-checkout-featured" type="button" data-tm-price-target="pro-cta-public" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.openProModal()">Upgrade to PRO ($8.99/mo)</button>
         </div>
       </div>
 
@@ -949,8 +953,8 @@
     </div>
   </footer>
 
-  <script src="auth.js?v=2.1"></script>
-  <script src="app.js?v=6.2"></script>
+  <script src="auth.js?v=2.2"></script>
+  <script src="app.js?v=6.3"></script>
   <!-- Adsterra Social Bar Integration -->
   <script data-cfasync="false" src="https://bauval.org/14/1130b0119de2f33b3a0f98fff91280bc"></script>
 </body>

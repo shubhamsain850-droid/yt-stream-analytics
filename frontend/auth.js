@@ -13,6 +13,107 @@
 
   const GUEST_DAILY_LIMIT = 2;
   const FREE_DAILY_LIMIT = 5;
+  const CURRENCY_REGION_KEY = 'TubeMetrix_currency_region';
+
+  const PRICING_PLANS = {
+    USD: {
+      region: 'USD',
+      dayPass: {
+        symbol: '$',
+        amount: '0.99',
+        sub: 'One-time 24h access • Global USD',
+        cta: 'Get 24h Pass ($0.99)',
+      },
+      monthlyPro: {
+        symbol: '$',
+        amount: '8.99',
+        period: '/ month',
+        sub: 'Global creator plan • Cards & Apple Pay',
+        ctaModal: 'Subscribe for $8.99 / mo',
+        ctaPublic: 'Upgrade to PRO ($8.99/mo)',
+      },
+      bannerLabel: '⚡ Unlock with Day Pass ($0.99)',
+      limitHint: '$0.99 Day Pass',
+    },
+    INR: {
+      region: 'INR',
+      dayPass: {
+        symbol: '₹',
+        amount: '49',
+        sub: 'India localized price • Instant UPI',
+        cta: 'Get 24h Pass (₹49)',
+      },
+      monthlyPro: {
+        symbol: '₹',
+        amount: '299',
+        period: '/ month',
+        sub: 'India creator plan • Instant UPI',
+        ctaModal: 'Subscribe for ₹299 / mo',
+        ctaPublic: 'Upgrade to PRO (₹299/mo)',
+      },
+      bannerLabel: '⚡ Unlock with Day Pass (₹49)',
+      limitHint: '₹49 Day Pass',
+    },
+  };
+
+  function detectDefaultRegion() {
+    try {
+      const saved = localStorage.getItem(CURRENCY_REGION_KEY);
+      if (saved === 'INR' || saved === 'USD') return saved;
+    } catch {}
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      if (tz === 'Asia/Kolkata' || tz === 'Asia/Calcutta') return 'INR';
+    } catch {}
+    try {
+      const lang = (navigator.language || '').toLowerCase();
+      if (lang.endsWith('-in') || lang === 'hi' || lang.startsWith('hi-')) return 'INR';
+    } catch {}
+    return 'USD';
+  }
+
+  let currentPricingRegion = detectDefaultRegion();
+
+  function getPlanSpec(region = currentPricingRegion) {
+    return PRICING_PLANS[region === 'INR' ? 'INR' : 'USD'];
+  }
+
+  function applyRegionPricing(root = document) {
+    const spec = getPlanSpec();
+    const map = {
+      'day-symbol': spec.dayPass.symbol,
+      'day-amount': spec.dayPass.amount,
+      'day-sub': spec.dayPass.sub,
+      'day-cta': spec.dayPass.cta,
+      'pro-symbol': spec.monthlyPro.symbol,
+      'pro-amount': spec.monthlyPro.amount,
+      'pro-period': spec.monthlyPro.period,
+      'pro-sub': spec.monthlyPro.sub,
+      'pro-cta-public': spec.monthlyPro.ctaPublic,
+      'pro-cta-modal': spec.monthlyPro.ctaModal,
+      'banner-daypass': spec.bannerLabel,
+    };
+
+    root.querySelectorAll('[data-tm-price-target]').forEach((node) => {
+      const key = node.getAttribute('data-tm-price-target');
+      if (key && Object.prototype.hasOwnProperty.call(map, key)) {
+        node.textContent = map[key];
+      }
+    });
+
+    root.querySelectorAll('[data-tm-region-btn]').forEach((btn) => {
+      const r = btn.getAttribute('data-tm-region-btn');
+      btn.classList.toggle('active', r === spec.region);
+    });
+  }
+
+  function setPricingRegion(region) {
+    currentPricingRegion = region === 'INR' ? 'INR' : 'USD';
+    try {
+      localStorage.setItem(CURRENCY_REGION_KEY, currentPricingRegion);
+    } catch {}
+    applyRegionPricing(document);
+  }
 
   // Legacy client-storage keys purged on boot so old test unlocks cannot linger
   const LEGACY_KEYS = [
@@ -571,6 +672,7 @@
 
     const defaultSub =
       'Audit hundreds of streams simultaneously, unlock full channel histories, and enjoy 100% ad-free processing.';
+    const spec = getPlanSpec();
 
     backdrop.innerHTML = `
       <div class="tm-modal-card tm-pro-card">
@@ -579,6 +681,10 @@
           <div class="tm-pro-pill">👑 PRO MEMBERSHIP</div>
           <h2 class="tm-modal-title">Unlock Unlimited Stream Audits</h2>
           <p class="tm-modal-subtitle">${escapeHtml(customSubtitle || defaultSub)}</p>
+          <div class="tm-region-toggle" role="group" aria-label="Display currency">
+            <button type="button" class="tm-region-btn ${spec.region === 'USD' ? 'active' : ''}" data-tm-region-btn="USD">🌍 Global (USD)</button>
+            <button type="button" class="tm-region-btn ${spec.region === 'INR' ? 'active' : ''}" data-tm-region-btn="INR">🇮🇳 India (INR)</button>
+          </div>
         </div>
 
         <div id="tmCheckoutStatus" class="tm-checkout-status" style="display: none;"></div>
@@ -588,8 +694,8 @@
           <div class="pricing-card">
             <div class="pricing-plan-name">24-Hour Day Pass</div>
             <div class="pricing-price">
-              <span class="price-symbol">$</span><span class="price-amount">0.99</span>
-              <span class="price-inr">/ ₹49 INR</span>
+              <span class="price-symbol" data-tm-price-target="day-symbol">${spec.dayPass.symbol}</span><span class="price-amount" data-tm-price-target="day-amount">${spec.dayPass.amount}</span>
+              <span class="price-inr" data-tm-price-target="day-sub">${spec.dayPass.sub}</span>
             </div>
             <p class="pricing-desc">Perfect for a single audit session or weekly stream review.</p>
             <ul class="pricing-features">
@@ -598,7 +704,7 @@
               <li>✓ Excel &amp; CSV Full Exports</li>
               <li>✓ Zero Ads Guaranteed</li>
             </ul>
-            <button class="btn-checkout-plan" data-plan="day_pass" type="button">Get 24h Pass ($0.99)</button>
+            <button class="btn-checkout-plan" data-plan="day_pass" data-tm-price-target="day-cta" type="button">${spec.dayPass.cta}</button>
           </div>
 
           <!-- Monthly Pro (Featured) -->
@@ -606,9 +712,9 @@
             <div class="featured-ribbon">MOST POPULAR</div>
             <div class="pricing-plan-name">Monthly Creator Pro</div>
             <div class="pricing-price">
-              <span class="price-symbol">$</span><span class="price-amount">4.99</span>
-              <span class="price-period">/ month</span>
-              <span class="price-inr">/ ₹299 INR</span>
+              <span class="price-symbol" data-tm-price-target="pro-symbol">${spec.monthlyPro.symbol}</span><span class="price-amount" data-tm-price-target="pro-amount">${spec.monthlyPro.amount}</span>
+              <span class="price-period" data-tm-price-target="pro-period">${spec.monthlyPro.period}</span>
+              <span class="price-inr" data-tm-price-target="pro-sub">${spec.monthlyPro.sub}</span>
             </div>
             <p class="pricing-desc">For active creators, editors &amp; esports team managers.</p>
             <ul class="pricing-features">
@@ -617,7 +723,7 @@
               <li>✓ YouTube Jewels &amp; Tiers Breakdown</li>
               <li>✓ VIP Priority Support</li>
             </ul>
-            <button class="btn-checkout-plan btn-checkout-featured" data-plan="monthly_pro" type="button">Subscribe for $4.99 / mo</button>
+            <button class="btn-checkout-plan btn-checkout-featured" data-plan="monthly_pro" data-tm-price-target="pro-cta-modal" type="button">${spec.monthlyPro.ctaModal}</button>
           </div>
         </div>
 
@@ -629,6 +735,12 @@
     `;
 
     backdrop.style.display = 'flex';
+
+    backdrop.querySelectorAll('[data-tm-region-btn]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        setPricingRegion(btn.getAttribute('data-tm-region-btn'));
+      });
+    });
 
     document.getElementById('closeProModalBtn').onclick = closeProModal;
     backdrop.onclick = (e) => {
@@ -701,7 +813,7 @@
       }
       if (reason === 'free_limit') {
         openProModal(
-          `Daily Free Limit Reached (${FREE_DAILY_LIMIT}/${FREE_DAILY_LIMIT} audits used today). Upgrade to PRO or get a $0.99 Day Pass for unlimited streams!`
+          `Daily Free Limit Reached (${FREE_DAILY_LIMIT}/${FREE_DAILY_LIMIT} audits used today). Upgrade to PRO or get a ${getPlanSpec().limitHint} for unlimited streams!`
         );
         return false;
       }
@@ -834,11 +946,15 @@
     startCheckout: startDodoCheckout,
     signOut: signOutUser,
     updateProLocks,
+    getPricingRegion: () => currentPricingRegion,
+    setPricingRegion,
+    getDayPassHint: () => getPlanSpec().limitHint,
   };
 
   // ── Init on DOM Ready ──
   document.addEventListener('DOMContentLoaded', async () => {
     purgeLegacyStorage();
+    applyRegionPricing(document);
     renderAuthNav();
     updateProLocks();
     await syncFromServer();
