@@ -19,7 +19,7 @@ export function serializeUser(row) {
 }
 
 /**
- * Loads user and automatically expires time-limited passes (e.g., 24h Day Pass) when past pro_expires_at.
+ * Loads user and automatically expires past-due PRO subscriptions when past pro_expires_at.
  */
 export async function resolveActiveUser(db, userId) {
   if (!userId) return null;
@@ -234,20 +234,12 @@ export async function grantProAccess(
     return null;
   }
 
-  const normalizedPlan = plan === 'day_pass' ? 'day_pass' : 'monthly_pro';
+  const normalizedPlan = 'monthly_pro';
   let nextExpiryIso = expiresAt || null;
 
   if (!nextExpiryIso) {
-    const durationMs =
-      normalizedPlan === 'day_pass'
-        ? 24 * 60 * 60 * 1000
-        : 35 * 24 * 60 * 60 * 1000; // 35-day buffer refreshed by recurring webhooks
-    const existingMs =
-      resolvedUser.tier === 'pro' && resolvedUser.pro_expires_at && normalizedPlan === 'day_pass'
-        ? Date.parse(resolvedUser.pro_expires_at)
-        : 0;
-    const baseMs = !Number.isNaN(existingMs) && existingMs > Date.now() ? existingMs : Date.now();
-    nextExpiryIso = new Date(baseMs + durationMs).toISOString();
+    const durationMs = 35 * 24 * 60 * 60 * 1000; // 35-day buffer refreshed by recurring webhooks
+    nextExpiryIso = new Date(Date.now() + durationMs).toISOString();
   }
 
   await db

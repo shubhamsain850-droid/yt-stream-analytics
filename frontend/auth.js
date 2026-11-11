@@ -18,12 +18,6 @@
   const PRICING_PLANS = {
     USD: {
       region: 'USD',
-      dayPass: {
-        symbol: '$',
-        amount: '2.50',
-        sub: 'One-time 24h access • Global USD',
-        cta: 'Get 24h Pass ($2.50)',
-      },
       monthlyPro: {
         symbol: '$',
         amount: '8.99',
@@ -32,17 +26,11 @@
         ctaModal: 'Subscribe for $8.99 / mo',
         ctaPublic: 'Upgrade to PRO ($8.99/mo)',
       },
-      bannerLabel: '⚡ Unlock with Day Pass ($2.50)',
-      limitHint: '$2.50 Day Pass',
+      bannerLabel: '⚡ Upgrade to Creator PRO ($8.99/mo)',
+      limitHint: 'Creator PRO ($8.99/mo)',
     },
     INR: {
       region: 'INR',
-      dayPass: {
-        symbol: '₹',
-        amount: '49',
-        sub: 'India localized price • Instant UPI',
-        cta: 'Get 24h Pass (₹49)',
-      },
       monthlyPro: {
         symbol: '₹',
         amount: '299',
@@ -51,8 +39,8 @@
         ctaModal: 'Subscribe for ₹299 / mo',
         ctaPublic: 'Upgrade to PRO (₹299/mo)',
       },
-      bannerLabel: '⚡ Unlock with Day Pass (₹49)',
-      limitHint: '₹49 Day Pass',
+      bannerLabel: '⚡ Upgrade to Creator PRO (₹299/mo)',
+      limitHint: 'Creator PRO (₹299/mo)',
     },
   };
 
@@ -81,17 +69,13 @@
   function applyRegionPricing(root = document) {
     const spec = getPlanSpec();
     const map = {
-      'day-symbol': spec.dayPass.symbol,
-      'day-amount': spec.dayPass.amount,
-      'day-sub': spec.dayPass.sub,
-      'day-cta': spec.dayPass.cta,
       'pro-symbol': spec.monthlyPro.symbol,
       'pro-amount': spec.monthlyPro.amount,
       'pro-period': spec.monthlyPro.period,
       'pro-sub': spec.monthlyPro.sub,
       'pro-cta-public': spec.monthlyPro.ctaPublic,
       'pro-cta-modal': spec.monthlyPro.ctaModal,
-      'banner-daypass': spec.bannerLabel,
+      'banner-pro': spec.bannerLabel,
     };
 
     root.querySelectorAll('[data-tm-price-target]').forEach((node) => {
@@ -314,12 +298,6 @@
 
   function formatProExpiryLabel(user) {
     if (!user?.proExpiresAt) return 'PRO Member (Unlimited)';
-    const ms = Date.parse(user.proExpiresAt);
-    if (Number.isNaN(ms)) return 'PRO Member (Unlimited)';
-    if (user.proPlan === 'day_pass') {
-      const hrs = Math.max(1, Math.ceil((ms - Date.now()) / 3600000));
-      return `24h Day Pass (${hrs}h left)`;
-    }
     return 'Monthly PRO (Unlimited)';
   }
 
@@ -690,26 +668,9 @@
         <div id="tmCheckoutStatus" class="tm-checkout-status" style="display: none;"></div>
 
         <div class="pro-pricing-grid">
-          <!-- 24-Hour Day Pass -->
-          <div class="pricing-card">
-            <div class="pricing-plan-name">24-Hour Day Pass</div>
-            <div class="pricing-price">
-              <span class="price-symbol" data-tm-price-target="day-symbol">${spec.dayPass.symbol}</span><span class="price-amount" data-tm-price-target="day-amount">${spec.dayPass.amount}</span>
-              <span class="price-inr" data-tm-price-target="day-sub">${spec.dayPass.sub}</span>
-            </div>
-            <p class="pricing-desc">Perfect for a single audit session or weekly stream review.</p>
-            <ul class="pricing-features">
-              <li>✓ 24 Hours Unlimited Streams</li>
-              <li>✓ Channel &amp; Date Range Full Audit</li>
-              <li>✓ Excel &amp; CSV Full Exports</li>
-              <li>✓ Zero Ads Guaranteed</li>
-            </ul>
-            <button class="btn-checkout-plan" data-plan="day_pass" data-tm-price-target="day-cta" type="button">${spec.dayPass.cta}</button>
-          </div>
-
           <!-- Monthly Pro (Featured) -->
           <div class="pricing-card card-featured">
-            <div class="featured-ribbon">MOST POPULAR</div>
+            <div class="featured-ribbon">CREATOR PRO</div>
             <div class="pricing-plan-name">Monthly Creator Pro</div>
             <div class="pricing-price">
               <span class="price-symbol" data-tm-price-target="pro-symbol">${spec.monthlyPro.symbol}</span><span class="price-amount" data-tm-price-target="pro-amount">${spec.monthlyPro.amount}</span>
@@ -813,7 +774,7 @@
       }
       if (reason === 'free_limit') {
         openProModal(
-          `Daily Free Limit Reached (${FREE_DAILY_LIMIT}/${FREE_DAILY_LIMIT} audits used today). Upgrade to PRO or get a ${getPlanSpec().limitHint} for unlimited streams!`
+          `Daily Free Limit Reached (${FREE_DAILY_LIMIT}/${FREE_DAILY_LIMIT} audits used today). Upgrade to ${getPlanSpec().limitHint} for unlimited streams!`
         );
         return false;
       }
@@ -948,7 +909,6 @@
     updateProLocks,
     getPricingRegion: () => currentPricingRegion,
     setPricingRegion,
-    getDayPassHint: () => getPlanSpec().limitHint,
   };
 
   // ── Init on DOM Ready ──

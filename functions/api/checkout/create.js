@@ -35,7 +35,7 @@ export async function onRequestPost({ request, env }) {
       return jsonResponse({ error: 'Invalid JSON body.' }, 400);
     }
 
-    const plan = body?.plan === 'day_pass' ? 'day_pass' : body?.plan === 'monthly_pro' ? 'monthly_pro' : null;
+    const plan = body?.plan === 'monthly_pro' ? 'monthly_pro' : null;
     if (!plan) {
       return jsonResponse({ error: 'Invalid plan selected.' }, 400);
     }

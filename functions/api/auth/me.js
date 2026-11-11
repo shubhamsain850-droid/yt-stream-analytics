@@ -17,7 +17,6 @@ export async function onRequestGet({ request, env }) {
         provider: 'dodo',
         envMode: dodo.envMode,
         configured: dodo.configured,
-        dayPassConfigured: Boolean(dodo.apiKey && dodo.products.day_pass),
         monthlyProConfigured: Boolean(dodo.apiKey && dodo.products.monthly_pro),
       },
     });

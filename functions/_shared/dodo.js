@@ -8,7 +8,6 @@ import { timingSafeEqualBytes } from './security.js';
 export function getDodoConfig(env) {
   const apiKey = (env.DODO_PAYMENTS_API_KEY || '').trim();
   const webhookSecret = (env.DODO_WEBHOOK_SECRET || '').trim();
-  const dayPassProductId = (env.DODO_PRODUCT_DAY_PASS || '').trim();
   const monthlyProProductId = (env.DODO_PRODUCT_MONTHLY_PRO || '').trim();
   const envMode = (env.DODO_ENV || 'live').trim().toLowerCase() === 'test' ? 'test' : 'live';
   const baseUrl =
@@ -20,18 +19,14 @@ export function getDodoConfig(env) {
     apiKey,
     webhookSecret,
     products: {
-      day_pass: dayPassProductId,
       monthly_pro: monthlyProProductId,
     },
-    configured: Boolean(apiKey && (dayPassProductId || monthlyProProductId)),
+    configured: Boolean(apiKey && monthlyProProductId),
   };
 }
 
 export function resolvePlanFromProductId(env, productId) {
   const cfg = getDodoConfig(env);
-  if (productId && cfg.products.day_pass && productId === cfg.products.day_pass) {
-    return 'day_pass';
-  }
   if (productId && cfg.products.monthly_pro && productId === cfg.products.monthly_pro) {
     return 'monthly_pro';
   }
