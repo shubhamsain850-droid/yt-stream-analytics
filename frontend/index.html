@@ -49,7 +49,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=6.9">
+  <link rel="stylesheet" href="styles.css?v=7.0">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -377,6 +377,9 @@
     </div>
     </div>
 
+    <!-- Saved Pause Checkpoint Resume Banner -->
+    <div class="tm-resume-banner" id="earningsResumeBanner" style="display: none;"></div>
+
     <!-- Live Processing & Progress Status Card -->
     <div class="status-card" id="processingCard" style="display: none;">
       <div class="status-header">
@@ -390,6 +393,15 @@
       <!-- Main Progress Bar -->
       <div class="progress-track">
         <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+      </div>
+
+      <!-- Live Credit Balance & Pause Bar -->
+      <div class="tm-live-credit-bar" id="earningsLiveCreditBar" style="display: none;">
+        <div class="tm-live-credit-left">
+          <span class="tm-credit-pill" id="earningsLiveCreditPill">💎 Credits: <strong>0 CR</strong></span>
+          <span class="tm-live-meter-note" id="earningsLiveMeterNote">Stream-by-stream metering • Stops safely at 0 CR</span>
+        </div>
+        <button type="button" class="btn-pause-run" id="pauseEarningsBatchBtn">⏸ Pause &amp; Save</button>
       </div>
 
       <!-- Live Stream Parsing Terminal Ticker -->
@@ -436,6 +448,9 @@
 
     <!-- Comprehensive Completed Results Section -->
     <section class="results-section" id="resultsSection" style="display: none;">
+      <!-- Out-of-Credits / Manual Pause Alert Banner -->
+      <div class="tm-limit-banner" id="earningsLimitBanner" style="display: none;"></div>
+
       <!-- KPI Revenue Overview Banner -->
       <div class="kpi-banner">
         <div class="kpi-card highlight">
@@ -982,8 +997,8 @@
     </div>
   </footer>
 
-  <script src="auth.js?v=3.2"></script>
-  <script src="app.js?v=6.5"></script>
+  <script src="auth.js?v=3.3"></script>
+  <script src="app.js?v=6.6"></script>
   <!-- Adsterra Social Bar Integration -->
   <script data-cfasync="false" src="https://bauval.org/14/1130b0119de2f33b3a0f98fff91280bc"></script>
 </body>

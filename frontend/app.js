@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TubeMetrix — YouTube Live Stream Earning, Super Chat, Memberships & Jewels Analytics
  * Connected to live FastAPI backend on Hugging Face: https://shubhamsain858-kickcuttr-api.hf.space
  */
@@ -168,6 +168,12 @@ const elements = {
   countSuccess: document.getElementById('countSuccess'),
   countFailed: document.getElementById('countFailed'),
   countNoChat: document.getElementById('countNoChat'),
+  earningsResumeBanner: document.getElementById('earningsResumeBanner'),
+  earningsLiveCreditBar: document.getElementById('earningsLiveCreditBar'),
+  earningsLiveCreditPill: document.getElementById('earningsLiveCreditPill'),
+  earningsLiveMeterNote: document.getElementById('earningsLiveMeterNote'),
+  pauseEarningsBatchBtn: document.getElementById('pauseEarningsBatchBtn'),
+  earningsLimitBanner: document.getElementById('earningsLimitBanner'),
 
   // Results Section
   resultsSection: document.getElementById('resultsSection'),
@@ -249,6 +255,30 @@ document.addEventListener('DOMContentLoaded', () => {
   setupResultsTabs();
   setupSearchAndSort();
   setupExports();
+
+  if (elements.pauseEarningsBatchBtn) {
+    elements.pauseEarningsBatchBtn.addEventListener('click', () => {
+      pauseEarningsRequested = true;
+      updateEarningsLiveCreditBar(true, 'Finishing active worker stream(s) cleanly before pausing...');
+    });
+  }
+
+  window.addEventListener('tubemetrix:auth-updated', (e) => {
+    if (state.processing) {
+      updateEarningsLiveCreditBar(true);
+      return;
+    }
+    if (!currentEarningsCheckpoint || !e?.detail?.user) {
+      if (window.TubeMetrixAuth?.whenReady) {
+        restoreSavedEarningsCheckpoint();
+      }
+    }
+    renderEarningsPauseAndResumeBanners();
+  });
+
+  if (window.TubeMetrixAuth?.whenReady) {
+    window.TubeMetrixAuth.whenReady().then(() => restoreSavedEarningsCheckpoint());
+  }
 });
 
 // ── Theme Engine (YouTube Studio Dark & Light Mode) ──
@@ -1272,71 +1302,345 @@ function stopProgressSimulation() {
 }
 
 // ── 6. High-Performance Processing Engine (Safe Concurrency Pool & Live Streaming UI) ──
+// ── 6. Main Stream Processing & Multi-Stream Worker Engine (Level A Metered + Pause/Resume) ──
 const CONCURRENCY_LIMIT = 3;
+const EARNINGS_PAUSE_CKPT_KEY = 'earnings_pause_v1';
+let pauseEarningsRequested = false;
+let currentEarningsCheckpoint = null;
+
+function escapeHtmlForBanner(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function serializeAccumulator(acc) {
+  return {
+    streams: Array.isArray(acc?.streams) ? acc.streams : [],
+    superchats: Array.isArray(acc?.superchats) ? acc.superchats : [],
+    memberships: Array.isArray(acc?.memberships) ? acc.memberships : [],
+    jewels: Array.isArray(acc?.jewels) ? acc.jewels : [],
+    uniqueDonors: Array.from(acc?.uniqueDonors || []),
+    uniqueChatters: Array.from(acc?.uniqueChatters || []),
+  };
+}
+
+function hydrateAccumulator(saved) {
+  return {
+    streams: Array.isArray(saved?.streams) ? [...saved.streams] : [],
+    superchats: Array.isArray(saved?.superchats) ? [...saved.superchats] : [],
+    memberships: Array.isArray(saved?.memberships) ? [...saved.memberships] : [],
+    jewels: Array.isArray(saved?.jewels) ? [...saved.jewels] : [],
+    uniqueDonors: new Set(Array.isArray(saved?.uniqueDonors) ? saved.uniqueDonors : []),
+    uniqueChatters: new Set(Array.isArray(saved?.uniqueChatters) ? saved.uniqueChatters : []),
+  };
+}
+
+function updateEarningsLiveCreditBar(visible, noteText = '') {
+  if (!elements.earningsLiveCreditBar) return;
+  if (!visible) {
+    elements.earningsLiveCreditBar.style.display = 'none';
+    return;
+  }
+  elements.earningsLiveCreditBar.style.display = 'flex';
+  const bal = window.TubeMetrixAuth?.getCreditsBalance
+    ? window.TubeMetrixAuth.getCreditsBalance()
+    : 0;
+  if (elements.earningsLiveCreditPill) {
+    elements.earningsLiveCreditPill.innerHTML = `💎 Credits Left: <strong>${bal} CR</strong>`;
+    elements.earningsLiveCreditPill.classList.toggle('low', bal <= 1);
+  }
+  if (elements.earningsLiveMeterNote && noteText) {
+    elements.earningsLiveMeterNote.textContent = noteText;
+  }
+  if (elements.pauseEarningsBatchBtn) {
+    elements.pauseEarningsBatchBtn.disabled = Boolean(pauseEarningsRequested);
+    elements.pauseEarningsBatchBtn.textContent = pauseEarningsRequested
+      ? '⏳ Stopping safely...'
+      : '⏸ Pause & Save';
+  }
+}
+
+async function saveEarningsCheckpoint(ckpt) {
+  currentEarningsCheckpoint = ckpt || null;
+  if (!ckpt || !window.TubeMetrixAuth?.checkpoints) {
+    renderEarningsPauseAndResumeBanners();
+    return;
+  }
+  await window.TubeMetrixAuth.checkpoints.save(EARNINGS_PAUSE_CKPT_KEY, ckpt, { allowGuest: false });
+  renderEarningsPauseAndResumeBanners();
+}
+
+async function clearEarningsCheckpoint() {
+  currentEarningsCheckpoint = null;
+  if (window.TubeMetrixAuth?.checkpoints) {
+    await window.TubeMetrixAuth.checkpoints.clear(EARNINGS_PAUSE_CKPT_KEY);
+  }
+  renderEarningsPauseAndResumeBanners();
+}
+
+async function restoreSavedEarningsCheckpoint() {
+  if (!window.TubeMetrixAuth?.checkpoints) return;
+  const saved = await window.TubeMetrixAuth.checkpoints.load(EARNINGS_PAUSE_CKPT_KEY);
+  if (!saved || !Array.isArray(saved.remainingUrls) || saved.remainingUrls.length === 0) {
+    currentEarningsCheckpoint = null;
+    renderEarningsPauseAndResumeBanners();
+    return;
+  }
+  currentEarningsCheckpoint = saved;
+  if (!state.results && saved.accumulator) {
+    if (saved.tierPrices && typeof saved.tierPrices === 'object') {
+      Object.assign(state.tierPrices, saved.tierPrices);
+    }
+    if (Array.isArray(saved.discoveredTiers)) {
+      saved.discoveredTiers.forEach((t) => state.discoveredTiers.add(t));
+    }
+    if (saved.metrics) {
+      state.metrics = { ...saved.metrics };
+      updateMetricsDisplay();
+    }
+    const hydrated = hydrateAccumulator(saved.accumulator);
+    state.results = hydrated;
+    if (hydrated.streams.length > 0) {
+      renderAllResults(hydrated);
+      renderTiersBar();
+    }
+    if (elements.resultsSection) {
+      elements.resultsSection.style.display = 'block';
+    }
+  }
+  renderEarningsPauseAndResumeBanners();
+}
+
+function renderEarningsPauseAndResumeBanners() {
+  const ckpt = currentEarningsCheckpoint;
+  const remCount = Array.isArray(ckpt?.remainingUrls) ? ckpt.remainingUrls.length : 0;
+  if (!ckpt || remCount === 0) {
+    if (elements.earningsResumeBanner) elements.earningsResumeBanner.style.display = 'none';
+    if (elements.earningsLimitBanner) elements.earningsLimitBanner.style.display = 'none';
+    return;
+  }
+
+  const isLoggedIn = window.TubeMetrixAuth?.isLoggedIn ? window.TubeMetrixAuth.isLoggedIn() : false;
+  const bal = window.TubeMetrixAuth?.getCreditsBalance ? window.TubeMetrixAuth.getCreditsBalance() : 0;
+  const doneCount = Array.isArray(ckpt.completedUrls) ? ckpt.completedUrls.length : 0;
+  const totalPlanned = ckpt.totalPlanned || (doneCount + remCount);
+  const reasonLabel = ckpt.pauseReason === 'manual' ? 'Manually Paused' : 'Out of Credits';
+
+  const headline = `⏸ ${reasonLabel} after Stream #${doneCount} of ${totalPlanned}`;
+  const subtext = `${doneCount} stream(s) already audited & saved below. ${remCount} remaining stream(s) will resume from Stream #${doneCount + 1} without re-charging completed streams.`;
+
+  let primaryLabel = '';
+  if (!isLoggedIn) {
+    primaryLabel = '🔑 Sign In & Add Credits to Resume';
+  } else if (bal < 1) {
+    primaryLabel = '💎 Buy Credits to Resume';
+  } else {
+    primaryLabel = `▶ Resume from Stream #${doneCount + 1} (${remCount} left • ${bal} CR available)`;
+  }
+
+  const html = `
+    <div class="tm-limit-banner-inner">
+      <div class="tm-limit-info">
+        <div class="tm-limit-headline">${escapeHtmlForBanner(headline)}</div>
+        <div class="tm-limit-sub">${escapeHtmlForBanner(subtext)}</div>
+        <div class="tm-limit-meta">
+          <span>💎 Balance: <strong>${bal} CR</strong></span>
+          <span>✅ Completed: <strong>${doneCount}/${totalPlanned}</strong></span>
+          <span>⏳ Remaining: <strong>${remCount}</strong></span>
+        </div>
+      </div>
+        <div class="tm-limit-actions">
+          <button type="button" class="btn-resume-primary" data-tm-earn-action="resume">${escapeHtmlForBanner(primaryLabel)}</button>
+          ${bal >= 1 && bal < remCount ? '<button type="button" class="btn-resume-secondary" data-tm-earn-action="buy">💎 Buy More Credits</button>' : ''}
+          <button type="button" class="btn-resume-dismiss" data-tm-earn-action="dismiss" title="Discard saved task">✕ Dismiss</button>
+        </div>
+    </div>
+  `;
+
+  [elements.earningsLimitBanner, elements.earningsResumeBanner].forEach((bannerEl, idx) => {
+    if (!bannerEl) return;
+    const showHere = idx === 0
+      ? Boolean(elements.resultsSection && elements.resultsSection.style.display !== 'none')
+      : Boolean(!elements.resultsSection || elements.resultsSection.style.display === 'none');
+    if (!showHere) {
+      bannerEl.style.display = 'none';
+      return;
+    }
+    bannerEl.innerHTML = html;
+    bannerEl.style.display = 'block';
+    bannerEl.querySelectorAll('[data-tm-earn-action]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const act = btn.getAttribute('data-tm-earn-action');
+        if (act === 'resume') await handleResumeEarningsCheckpoint();
+        else if (act === 'buy') window.TubeMetrixAuth?.openCreditsModal?.();
+        else if (act === 'dismiss') await clearEarningsCheckpoint();
+      });
+    });
+  });
+}
+
+async function handleResumeEarningsCheckpoint() {
+  const ckpt = currentEarningsCheckpoint;
+  if (!ckpt || !Array.isArray(ckpt.remainingUrls) || ckpt.remainingUrls.length === 0) return;
+
+  if (window.TubeMetrixAuth?.whenReady) {
+    await window.TubeMetrixAuth.whenReady();
+  }
+  if (!window.TubeMetrixAuth?.isLoggedIn()) {
+    window.TubeMetrixAuth?.openAuthModal?.('Sign in with Google to resume your saved audit.');
+    return;
+  }
+  const bal = window.TubeMetrixAuth.getCreditsBalance();
+  if (bal < 1) {
+    window.TubeMetrixAuth?.openCreditsModal?.(
+      `Your paused audit has ${ckpt.remainingUrls.length} remaining stream(s). Top up Credits below to continue cleanly from Stream #${(ckpt.completedUrls?.length || 0) + 1}!`
+    );
+    return;
+  }
+
+  await startProcessing(ckpt.remainingUrls, ckpt.label || 'Resumed Audit', {
+    mode: ckpt.mode || 'batch',
+    isResume: true,
+    initialAccumulator: ckpt.accumulator,
+    completedBeforeUrls: ckpt.completedUrls || [],
+    totalPlannedCount: ckpt.totalPlanned,
+    initialMetrics: ckpt.metrics,
+  });
+}
 
 async function startProcessing(urls, label = null, options = {}) {
   const mode = options?.mode || 'single';
+  const isResume = Boolean(options?.isResume);
+  const isCreditMeteredBatch = (mode === 'batch' || mode === 'channel');
+
   // Server-Verified Auth, Weekly Single Quota & Credits Gatekeeper
   if (window.TubeMetrixAuth) {
     if (typeof window.TubeMetrixAuth.authorizeRun === 'function') {
-      if (!(await window.TubeMetrixAuth.authorizeRun(urls.length, { mode, credits: urls.length }))) {
+      // Single mode charges upfront (preserving 2–3/wk free quota); Batch/Channel checks >= 1 credit then claims 1 credit per stream
+      const preflightOk = isCreditMeteredBatch
+        ? await window.TubeMetrixAuth.authorizeRun(1, { mode, credits: 1, checkOnly: true })
+        : await window.TubeMetrixAuth.authorizeRun(urls.length, { mode, credits: urls.length });
+      if (!preflightOk) {
         return;
       }
     } else if (typeof window.TubeMetrixAuth.checkQuota === 'function') {
-      if (!window.TubeMetrixAuth.checkQuota(urls.length, { mode })) {
+      if (!window.TubeMetrixAuth.checkQuota(1, { mode })) {
         return;
       }
     }
   }
-  // 1. Session Isolation Reset (Zero cross-session pollution)
-  state.discoveredTiers.clear();
-  state.results = null;
+
+  const completedBeforeUrls = Array.isArray(options?.completedBeforeUrls) ? [...options.completedBeforeUrls] : [];
+  const completedBeforeCount = completedBeforeUrls.length;
+  const totalPlanned = Math.max(completedBeforeCount + urls.length, Number(options?.totalPlannedCount || urls.length));
+
+  // 1. Session Reset vs Resume Hydration
+  if (!isResume) {
+    state.discoveredTiers.clear();
+    state.results = null;
+  }
   if (elements.streamsTableBody) elements.streamsTableBody.innerHTML = '';
   if (elements.superchatTableBody) elements.superchatTableBody.innerHTML = '';
   if (elements.membershipsTableBody) elements.membershipsTableBody.innerHTML = '';
   if (elements.jewelsTableBody) elements.jewelsTableBody.innerHTML = '';
   if (elements.tiersBar) elements.tiersBar.style.display = 'none';
+  if (elements.earningsLimitBanner) elements.earningsLimitBanner.style.display = 'none';
+  if (elements.earningsResumeBanner) elements.earningsResumeBanner.style.display = 'none';
 
+  pauseEarningsRequested = false;
   state.processing = true;
+  elements.processingCard.classList.remove('is-paused');
   elements.processingCard.style.display = 'block';
   elements.resultsSection.style.display = 'none';
   elements.processingCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-  state.metrics = {
-    total: urls.length,
-    success: 0,
-    failed: 0,
-    noChat: 0
-  };
+  state.metrics = isResume && options?.initialMetrics
+    ? { ...options.initialMetrics, total: totalPlanned }
+    : {
+        total: totalPlanned,
+        success: 0,
+        failed: 0,
+        noChat: 0
+      };
   updateMetricsDisplay();
 
   const numWorkers = Math.min(CONCURRENCY_LIMIT, urls.length);
-  elements.statusTitle.textContent = urls.length > 1 ? `Auditing Streams: 0 of ${urls.length} Checked (0%)` : (label || 'Analyzing Stream...');
-  elements.progressBarFill.style.width = '3%';
-  elements.progressPercent.textContent = '0%';
-  elements.statusTicker.textContent = urls.length > 1 ? `Initializing ${numWorkers} parallel workers... (0/${urls.length} checked)` : 'Connecting to YouTube streaming sockets...';
+  const startPct = Math.round((completedBeforeCount / totalPlanned) * 100);
+  elements.statusTitle.textContent = totalPlanned > 1 ? `Auditing Streams: ${completedBeforeCount} of ${totalPlanned} Checked (${startPct}%)` : (label || 'Analyzing Stream...');
+  elements.progressBarFill.style.width = `${Math.max(3, startPct)}%`;
+  elements.progressPercent.textContent = `${startPct}%`;
+  elements.statusTicker.textContent = totalPlanned > 1 ? `Initializing ${numWorkers} parallel workers... (${completedBeforeCount}/${totalPlanned} checked)` : 'Connecting to YouTube streaming sockets...';
 
-  const resultsAccumulator = {
-    streams: [],
-    superchats: [],
-    memberships: [],
-    jewels: [],
-    uniqueDonors: new Set(),
-    uniqueChatters: new Set()
-  };
+  if (isCreditMeteredBatch) {
+    updateEarningsLiveCreditBar(true, `Stream-by-stream metering (${completedBeforeCount}/${totalPlanned} done)`);
+  } else {
+    updateEarningsLiveCreditBar(false);
+  }
 
-  // Shared state across concurrent workers
+  const resultsAccumulator = isResume && options?.initialAccumulator
+    ? hydrateAccumulator(options.initialAccumulator)
+    : {
+        streams: [],
+        superchats: [],
+        memberships: [],
+        jewels: [],
+        uniqueDonors: new Set(),
+        uniqueChatters: new Set()
+      };
+
+  // Shared state + atomic task/credit dispatch mutex across concurrent workers
   let nextTaskIndex = 0;
-  let completedCount = 0;
-  let hasShownFirstResult = false;
+  let completedThisRun = 0;
+  let hasShownFirstResult = resultsAccumulator.streams.length > 0;
+  let taskDispatchLock = Promise.resolve();
+  let stopDispatching = false;
+  let stopReason = '';
+
+  function acquireNextAuthorizedTask() {
+    const run = async () => {
+      if (stopDispatching || pauseEarningsRequested) {
+        if (pauseEarningsRequested && !stopReason) stopReason = 'manual';
+        stopDispatching = true;
+        return null;
+      }
+      if (nextTaskIndex >= urls.length) {
+        return null;
+      }
+      const idx = nextTaskIndex;
+      if (isCreditMeteredBatch && window.TubeMetrixAuth?.authorizeRun) {
+        const ok = await window.TubeMetrixAuth.authorizeRun(1, {
+          mode,
+          credits: 1,
+          silent: true,
+        });
+        updateEarningsLiveCreditBar(true, `Claimed ${completedBeforeCount + idx + 1}/${totalPlanned}`);
+        if (!ok) {
+          stopDispatching = true;
+          stopReason = 'credits_exhausted';
+          return null;
+        }
+      }
+      nextTaskIndex = idx + 1;
+      return { idx, url: urls[idx] };
+    };
+    const chained = taskDispatchLock.then(run, run);
+    taskDispatchLock = chained.catch(() => {});
+    return chained;
+  }
 
   async function processSingleUrl(url, taskIdx, workerId) {
-    const vid = extractVideoId(url) || `VID_${taskIdx + 1}`;
+    const vid = extractVideoId(url) || `VID_${completedBeforeCount + taskIdx + 1}`;
+    const overallCompletedSoFar = completedBeforeCount + completedThisRun;
 
-    if (urls.length === 1) {
+    if (totalPlanned === 1) {
       startProgressSimulation(0, 1, vid);
     } else {
-      elements.statusTicker.textContent = `[Safe Worker ${workerId}] Fetching live chat for ${vid}... (${completedCount}/${urls.length} completed)`;
+      elements.statusTicker.textContent = `[Safe Worker ${workerId}] Fetching live chat for ${vid}... (${overallCompletedSoFar}/${totalPlanned} completed)`;
     }
 
     try {
@@ -1418,24 +1722,25 @@ async function startProcessing(urls, label = null, options = {}) {
       state.metrics.failed++;
       elements.statusTicker.textContent = `[ERROR] Network error for ${vid}`;
     } finally {
-      completedCount++;
+      completedThisRun++;
       if (window.TubeMetrixAuth && typeof window.TubeMetrixAuth.incrementUsage === 'function') {
         window.TubeMetrixAuth.incrementUsage(1);
       }
       updateMetricsDisplay();
 
-      if (urls.length > 1) {
-        const stepPct = Math.round((completedCount / urls.length) * 100);
+      if (totalPlanned > 1) {
+        const totalDoneNow = completedBeforeCount + completedThisRun;
+        const stepPct = Math.round((totalDoneNow / totalPlanned) * 100);
         elements.progressBarFill.style.width = `${stepPct}%`;
         elements.progressPercent.textContent = `${stepPct}%`;
-        elements.statusTitle.textContent = `Auditing Streams: ${completedCount} of ${urls.length} Checked (${stepPct}%)`;
+        elements.statusTitle.textContent = `Auditing Streams: ${totalDoneNow} of ${totalPlanned} Checked (${stepPct}%)`;
         const currentGross = resultsAccumulator.streams.reduce((acc, s) => acc + (s.grossInr || 0), 0);
-        elements.statusTicker.textContent = `[Safe Worker ${workerId}] Audited ${completedCount}/${urls.length} streams (${stepPct}%) — Current Gross: ${formatCurrency(currentGross)}`;
+        elements.statusTicker.textContent = `[Safe Worker ${workerId}] Audited ${totalDoneNow}/${totalPlanned} streams (${stepPct}%) — Current Gross: ${formatCurrency(currentGross)}`;
       }
     }
   }
 
-  // Launch Worker Pool with human traffic jitter
+  // Launch Worker Pool with serialized credit mutex & human traffic jitter
   const workerPromises = [];
   for (let w = 0; w < numWorkers; w++) {
     const workerId = w + 1;
@@ -1443,28 +1748,78 @@ async function startProcessing(urls, label = null, options = {}) {
       if (w > 0) {
         await new Promise(r => setTimeout(r, w * 350));
       }
-      while (nextTaskIndex < urls.length) {
-        const currentTask = nextTaskIndex++;
-        const currentUrl = urls[currentTask];
-        await processSingleUrl(currentUrl, currentTask, workerId);
+      while (true) {
+        const task = await acquireNextAuthorizedTask();
+        if (!task) break;
+        await processSingleUrl(task.url, task.idx, workerId);
       }
     })();
     workerPromises.push(workerPromise);
   }
 
-  // Wait for all concurrent safe workers to finish
+  // Wait for all active workers to finish
   await Promise.all(workerPromises);
 
-  // 100% Finalize
   stopProgressSimulation();
-  elements.progressBarFill.style.width = '100%';
-  elements.progressPercent.textContent = '100%';
   state.processing = false;
   state.results = resultsAccumulator;
+  updateEarningsLiveCreditBar(false);
+
+  const remainingUrls = stopReason ? urls.slice(nextTaskIndex) : [];
+  const completedUrlsTotal = [...completedBeforeUrls, ...urls.slice(0, nextTaskIndex)];
+
+  if (remainingUrls.length > 0) {
+    if (completedUrlsTotal.length === 0) {
+      await clearEarningsCheckpoint();
+      elements.processingCard.style.display = 'none';
+      window.TubeMetrixAuth?.openCreditsModal?.(
+        'Insufficient Credits to audit the first queued stream. Buy Credits to run.'
+      );
+      return;
+    }
+
+    const pausePct = Math.round((completedUrlsTotal.length / totalPlanned) * 100);
+    elements.processingCard.classList.add('is-paused');
+    elements.progressBarFill.style.width = `${pausePct}%`;
+    elements.progressPercent.textContent = `${pausePct}%`;
+    elements.statusTitle.textContent = stopReason === 'manual'
+      ? `⏸ Paused: ${completedUrlsTotal.length} of ${totalPlanned} Streams Checked`
+      : `⏸ Out of Credits: Stopped at ${completedUrlsTotal.length} of ${totalPlanned} Streams`;
+    elements.statusTicker.textContent = `${remainingUrls.length} stream(s) saved safely. Buy Credits & click Resume anytime.`;
+
+    await saveEarningsCheckpoint({
+      mode,
+      label: label || `Batch (${totalPlanned} Streams)`,
+      completedUrls: completedUrlsTotal,
+      remainingUrls,
+      totalPlanned,
+      metrics: { ...state.metrics },
+      accumulator: serializeAccumulator(resultsAccumulator),
+      discoveredTiers: Array.from(state.discoveredTiers),
+      tierPrices: { ...state.tierPrices },
+      pauseReason: stopReason || 'credits_exhausted',
+    });
+
+    if (state.metrics.success > 0) {
+      renderAllResults(resultsAccumulator);
+      renderTiersBar();
+    }
+    elements.resultsSection.style.display = 'block';
+    renderEarningsPauseAndResumeBanners();
+    if (!hasShownFirstResult) {
+      elements.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    return;
+  }
+
+  // 100% Finalize
+  await clearEarningsCheckpoint();
+  elements.progressBarFill.style.width = '100%';
+  elements.progressPercent.textContent = '100%';
 
   if (state.metrics.success > 0) {
     elements.statusTicker.textContent = `Audit Complete! Successfully parsed ${state.metrics.success} stream(s) via 3 Safe Workers.`;
-    elements.statusTitle.textContent = `Audit Finished: ${state.metrics.success} of ${urls.length} Streams Completed (100%)`;
+    elements.statusTitle.textContent = `Audit Finished: ${state.metrics.success} of ${totalPlanned} Streams Completed (100%)`;
     renderAllResults(resultsAccumulator);
     renderTiersBar();
     elements.resultsSection.style.display = 'block';

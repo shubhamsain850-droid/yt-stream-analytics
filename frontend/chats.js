@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TubeMetrix — YouTube Live Chat & Comments Downloader & Interactive View Engine
  * High-Speed In-Memory Client Engine (100% Client-Side Processing & Offline Viewer)
  */
@@ -134,6 +134,14 @@
     openCommViewModalBtn: document.getElementById('openCommViewModalBtn'),
     quickViewBtn: document.getElementById('quickViewBtn'),
     progressActions: document.getElementById('progressActions'),
+
+    // Level A: Live Credits Meter & Pause/Resume Checkpoints
+    chatResumeBanner: document.getElementById('chatResumeBanner'),
+    chatLiveCreditBar: document.getElementById('chatLiveCreditBar'),
+    chatLiveCreditPill: document.getElementById('chatLiveCreditPill'),
+    chatLiveMeterNote: document.getElementById('chatLiveMeterNote'),
+    pauseChatBatchBtn: document.getElementById('pauseChatBatchBtn'),
+    chatCreditLimitBanner: document.getElementById('chatCreditLimitBanner'),
 
     // Progress Card
     processingCard: document.getElementById('processingCard'),
@@ -507,6 +515,290 @@
   }
 
   // Option A: Single Stream Live Chat
+  // ── Level A: Credit Guard, Pause/Resume & Locked Tail Closure ──
+  const CHAT_PAUSE_CKPT_KEY = 'chats_pause_v1';
+  let activeChatPauseRequested = false;
+  let isChatExtractionRunning = false;
+  let currentChatCheckpoint = null;
+
+  function aggregateMessagesIntoStats(messagesList, streamIdHint = 'stream_chat') {
+    const msgs = Array.isArray(messagesList) ? messagesList : [];
+    const uniqueChatters = new Set();
+    const userMsgCounts = {};
+    let totalSc = 0;
+    let totalMem = 0;
+    let totalJewels = 0;
+
+    msgs.forEach((m, idx) => {
+      m.idx = idx + 1;
+      if (m.author) {
+        uniqueChatters.add(m.author);
+        userMsgCounts[m.author] = (userMsgCounts[m.author] || 0) + 1;
+      }
+      if (m.event_type === 'SUPERCHAT' || m.event_type === 'STICKER') totalSc++;
+      else if (m.event_type === 'MEMBERSHIP' || m.event_type === 'GIFT') totalMem++;
+      else if (m.event_type === 'JEWELS') totalJewels++;
+    });
+
+    const topChatters = Object.entries(userMsgCounts)
+      .map(([author, count]) => ({ author, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 25);
+
+    return {
+      stream_id: streamIdHint,
+      total_messages: msgs.length,
+      unique_chatters: uniqueChatters.size,
+      superchats_count: totalSc,
+      memberships_count: totalMem,
+      jewels_count: totalJewels,
+      events_count: totalSc + totalMem + totalJewels,
+      top_chatters: topChatters,
+      messages: msgs,
+    };
+  }
+
+  function updateChatLiveCreditBar(visible, noteText = '') {
+    if (!el.chatLiveCreditBar) return;
+    if (!visible) {
+      el.chatLiveCreditBar.style.display = 'none';
+      return;
+    }
+    el.chatLiveCreditBar.style.display = 'flex';
+    const bal = window.TubeMetrixAuth?.getCreditsBalance
+      ? window.TubeMetrixAuth.getCreditsBalance()
+      : 0;
+    if (el.chatLiveCreditPill) {
+      el.chatLiveCreditPill.innerHTML = `💎 Credits Left: <strong>${bal} CR</strong>`;
+      el.chatLiveCreditPill.classList.toggle('low', bal <= 1);
+    }
+    if (el.chatLiveMeterNote && noteText) {
+      el.chatLiveMeterNote.textContent = noteText;
+    }
+    if (el.pauseChatBatchBtn) {
+      el.pauseChatBatchBtn.disabled = Boolean(activeChatPauseRequested);
+      el.pauseChatBatchBtn.textContent = activeChatPauseRequested
+        ? '⏳ Stopping after current stream...'
+        : '⏸ Pause & Save';
+    }
+  }
+
+  async function saveChatCheckpoint(ckpt, { allowGuest = false } = {}) {
+    currentChatCheckpoint = ckpt || null;
+    if (!ckpt || !window.TubeMetrixAuth?.checkpoints) {
+      renderChatLimitAndResumeBanners();
+      return;
+    }
+    await window.TubeMetrixAuth.checkpoints.save(CHAT_PAUSE_CKPT_KEY, ckpt, { allowGuest });
+    renderChatLimitAndResumeBanners();
+  }
+
+  async function clearChatCheckpoint() {
+    currentChatCheckpoint = null;
+    if (window.TubeMetrixAuth?.checkpoints) {
+      await window.TubeMetrixAuth.checkpoints.clear(CHAT_PAUSE_CKPT_KEY);
+    }
+    renderChatLimitAndResumeBanners();
+  }
+
+  async function restoreSavedChatCheckpoint() {
+    if (!window.TubeMetrixAuth?.checkpoints) return;
+    const saved = await window.TubeMetrixAuth.checkpoints.load(CHAT_PAUSE_CKPT_KEY);
+    if (!saved) {
+      currentChatCheckpoint = null;
+      renderChatLimitAndResumeBanners();
+      return;
+    }
+    currentChatCheckpoint = saved;
+    if (Array.isArray(saved.unlockedMessages) && saved.unlockedMessages.length > 0 && !state.liveChatData) {
+      const aggregated = aggregateMessagesIntoStats(saved.unlockedMessages, saved.streamId || 'saved_stream');
+      renderLiveChatReport(aggregated, saved.title || 'Saved Session');
+    } else {
+      renderChatLimitAndResumeBanners();
+    }
+  }
+
+  function renderChatLimitAndResumeBanners() {
+    const ckpt = currentChatCheckpoint;
+    const hasLockedTail = Boolean(ckpt && Array.isArray(ckpt.lockedTail) && ckpt.lockedTail.length > 0);
+    const hasRemainingStreams = Boolean(ckpt && Array.isArray(ckpt.remainingVids) && ckpt.remainingVids.length > 0);
+
+    if (!ckpt || (!hasLockedTail && !hasRemainingStreams)) {
+      if (el.chatResumeBanner) el.chatResumeBanner.style.display = 'none';
+      if (el.chatCreditLimitBanner) el.chatCreditLimitBanner.style.display = 'none';
+      return;
+    }
+
+    const isLoggedIn = window.TubeMetrixAuth?.isLoggedIn ? window.TubeMetrixAuth.isLoggedIn() : false;
+    const bal = window.TubeMetrixAuth?.getCreditsBalance ? window.TubeMetrixAuth.getCreditsBalance() : 0;
+    const lockedCount = hasLockedTail ? ckpt.lockedTail.length : 0;
+    const remStreamsCount = hasRemainingStreams ? ckpt.remainingVids.length : 0;
+    const creditsForLocked = Math.ceil(lockedCount / 1000);
+    const totalEstimatedCredits = creditsForLocked + remStreamsCount;
+
+    let headline = '';
+    let subtext = '';
+    let primaryLabel = '';
+
+    if (hasLockedTail && hasRemainingStreams) {
+      headline = `⏸ Paused Mid-Stream (${ckpt.unlockedOnStream?.toLocaleString() || 0} of ${ckpt.lockedStreamTotal?.toLocaleString() || 0} chats shown • ${remStreamsCount} stream(s) waiting)`;
+      subtext = `${lockedCount.toLocaleString()} chat(s) locked on current stream + ${remStreamsCount} queued stream(s) remaining. Already unlocked data stays safely saved below.`;
+    } else if (hasLockedTail) {
+      headline = `🔒 Credit Limit Reached — Showing ${ckpt.unlockedOnStream?.toLocaleString() || 0} of ${ckpt.lockedStreamTotal?.toLocaleString() || 0} Chats`;
+      subtext = `${lockedCount.toLocaleString()} extra messages are safely held and need up to ${creditsForLocked} Credit(s) to unlock & export (1 Credit = 1,000 chats).`;
+    } else {
+      const doneCount = ckpt.completedVids?.length || 0;
+      const totalPlanned = ckpt.totalPlannedStreams || (doneCount + remStreamsCount);
+      const reasonBadge = ckpt.pauseReason === 'manual' ? 'Manually Paused' : 'Out of Credits';
+      headline = `⏸ ${reasonBadge} at Stream #${doneCount} of ${totalPlanned}`;
+      subtext = `${doneCount} stream(s) extracted and ready to inspect/export below. ${remStreamsCount} remaining stream(s) are safely checkpointed.`;
+    }
+
+    if (!isLoggedIn) {
+      primaryLabel = '🔑 Sign In & Buy Credits to Unlock';
+    } else if (bal < 1) {
+      primaryLabel = '💎 Buy Credits to Continue';
+    } else if (hasLockedTail && creditsForLocked > bal) {
+      const unlockNowCount = bal * 1000;
+      primaryLabel = `▶ Unlock +${unlockNowCount.toLocaleString()} More Chats (${bal} CR)`;
+    } else if (hasLockedTail) {
+      primaryLabel = hasRemainingStreams
+        ? `▶ Unlock ${lockedCount.toLocaleString()} Chats & Resume (${totalEstimatedCredits} CR)`
+        : `▶ Unlock Remaining ${lockedCount.toLocaleString()} Chats (${creditsForLocked} CR)`;
+    } else {
+      primaryLabel = `▶ Resume from Stream #${(ckpt.completedVids?.length || 0) + 1} (${remStreamsCount} left • ${bal} CR available)`;
+    }
+
+    const bannerHtml = `
+      <div class="tm-limit-banner-inner">
+        <div class="tm-limit-info">
+          <div class="tm-limit-headline">${escapeHtml(headline)}</div>
+          <div class="tm-limit-sub">${escapeHtml(subtext)}</div>
+          <div class="tm-limit-meta">
+            <span>💎 Balance: <strong>${bal} CR</strong></span>
+            ${lockedCount > 0 ? `<span>🔒 Locked Messages: <strong>${lockedCount.toLocaleString()}</strong></span>` : ''}
+            ${remStreamsCount > 0 ? `<span>⏳ Queued Streams: <strong>${remStreamsCount}</strong></span>` : ''}
+          </div>
+        </div>
+        <div class="tm-limit-actions">
+          <button type="button" class="btn-resume-primary" data-tm-chat-action="resume">${escapeHtml(primaryLabel)}</button>
+          ${bal >= 1 && bal < totalEstimatedCredits ? '<button type="button" class="btn-resume-secondary" data-tm-chat-action="buy">💎 Buy More Credits</button>' : ''}
+          <button type="button" class="btn-resume-dismiss" data-tm-chat-action="dismiss" title="Discard saved task">✕ Dismiss</button>
+        </div>
+      </div>
+    `;
+
+    [el.chatCreditLimitBanner, el.chatResumeBanner].forEach((bannerEl, idx) => {
+      if (!bannerEl) return;
+      // Show compact resume banner at top only when results aren't already visible right on screen, or keep both synced cleanly
+      const showBanner = idx === 0
+        ? Boolean(state.liveChatData && el.resultsChatSection && el.resultsChatSection.style.display !== 'none')
+        : Boolean(!state.liveChatData || !el.resultsChatSection || el.resultsChatSection.style.display === 'none');
+      if (!showBanner) {
+        bannerEl.style.display = 'none';
+        return;
+      }
+      bannerEl.innerHTML = bannerHtml;
+      bannerEl.style.display = 'block';
+      bannerEl.querySelectorAll('[data-tm-chat-action]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const act = btn.getAttribute('data-tm-chat-action');
+          if (act === 'resume') await handleResumeOrUnlockChatCheckpoint();
+          else if (act === 'buy') window.TubeMetrixAuth?.openCreditsModal?.();
+          else if (act === 'dismiss') await clearChatCheckpoint();
+        });
+      });
+    });
+  }
+
+  async function handleResumeOrUnlockChatCheckpoint() {
+    const ckpt = currentChatCheckpoint;
+    if (!ckpt) return;
+
+    if (window.TubeMetrixAuth?.whenReady) {
+      await window.TubeMetrixAuth.whenReady();
+    }
+
+    if (!window.TubeMetrixAuth?.isLoggedIn()) {
+      window.TubeMetrixAuth?.openAuthModal?.(
+        'Sign in with Google and purchase Credits to unlock remaining messages or resume your queued streams.'
+      );
+      return;
+    }
+
+    const bal = window.TubeMetrixAuth.getCreditsBalance();
+    if (bal < 1) {
+      const remCount = (Array.isArray(ckpt.remainingVids) ? ckpt.remainingVids.length : 0) +
+        Math.ceil((ckpt.lockedTail?.length || 0) / 1000);
+      window.TubeMetrixAuth?.openCreditsModal?.(
+        `Your saved task needs up to ${Math.max(1, remCount)} Credit(s) to finish cleanly. Buy credits below — your unlocked progress is safely saved!`
+      );
+      return;
+    }
+
+    // Step 1: Unlock locked tail messages from current stream first (if any)
+    if (Array.isArray(ckpt.lockedTail) && ckpt.lockedTail.length > 0) {
+      const creditsNeeded = Math.ceil(ckpt.lockedTail.length / 1000);
+      const unlockRes = await window.TubeMetrixAuth.unlockRemainingChatCredits({
+        streamId: ckpt.streamId || '',
+        totalMessages: ckpt.lockedStreamTotal || ((ckpt.unlockedOnStream || 0) + ckpt.lockedTail.length),
+        unlockedCount: ckpt.unlockedOnStream || 0,
+        creditsNeeded,
+      });
+
+      const added = Number(unlockRes?.addedMessageAllowance || (unlockRes?.deducted || 0) * 1000);
+      if (added <= 0) {
+        renderChatLimitAndResumeBanners();
+        return;
+      }
+
+      const newlyUnlocked = ckpt.lockedTail.slice(0, added);
+      const updatedMessages = [...(ckpt.unlockedMessages || []), ...newlyUnlocked];
+      const remainingTail = ckpt.lockedTail.slice(added);
+
+      ckpt.unlockedMessages = updatedMessages;
+      ckpt.lockedTail = remainingTail;
+      ckpt.unlockedOnStream = (ckpt.unlockedOnStream || 0) + newlyUnlocked.length;
+
+      if (remainingTail.length > 0 || !ckpt.remainingVids || ckpt.remainingVids.length === 0) {
+        if (remainingTail.length === 0 && (!ckpt.remainingVids || ckpt.remainingVids.length === 0)) {
+          await clearChatCheckpoint();
+        } else {
+          await saveChatCheckpoint(ckpt, { allowGuest: false });
+        }
+        const refreshedReport = aggregateMessagesIntoStats(updatedMessages, ckpt.streamId || 'stream_chat');
+        renderLiveChatReport(refreshedReport, ckpt.title || 'Live Chat Report');
+        return;
+      }
+
+      // Tail is now 100% unlocked AND remaining streams exist
+      await saveChatCheckpoint(ckpt, { allowGuest: false });
+      const midReport = aggregateMessagesIntoStats(updatedMessages, ckpt.streamId || 'stream_batch');
+      renderLiveChatReport(midReport, ckpt.title || 'Live Chat Report');
+      if (window.TubeMetrixAuth.getCreditsBalance() < 1) {
+        return;
+      }
+    }
+
+    // Step 2: Continue remaining queued streams
+    if (Array.isArray(ckpt.remainingVids) && ckpt.remainingVids.length > 0) {
+      if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
+      const remainingQueue = [...ckpt.remainingVids];
+      const aggregatedData = await batchExtractChatMessages(remainingQueue, {
+        mode: ckpt.mode || 'batch',
+        paidByCredits: true,
+        title: ckpt.title || 'Resumed Batch Extraction',
+        initialMessages: ckpt.unlockedMessages || [],
+        completedBefore: ckpt.completedVids || [],
+        totalPlannedStreams: ckpt.totalPlannedStreams || ((ckpt.completedVids?.length || 0) + remainingQueue.length),
+      });
+      hideProgress();
+      updateChatLiveCreditBar(false);
+      renderLiveChatReport(aggregatedData, ckpt.title || 'Resumed Batch Extraction');
+      updateViewerSessionButton();
+    }
+  }
+
   async function startSingleChatExtraction() {
     const raw = el.chatSingleUrlInput.value.trim();
     const vid = extractVideoId(raw);
@@ -525,6 +817,9 @@
     const paidByCredits = runAuth?.reason === 'credits';
 
     el.startChatSingleBtn.disabled = true;
+    isChatExtractionRunning = true;
+    activeChatPauseRequested = false;
+    updateChatLiveCreditBar(false);
     if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
     if (el.labelExtracted) el.labelExtracted.textContent = 'Extracted Messages';
     setProgress(15, `Connecting to Stream [${vid}]...`, 'Connecting to YouTube InnerTube streaming engine...');
@@ -547,38 +842,93 @@
         throw new Error(res.message || 'No live chat replay was found or chat is disabled for this stream.');
       }
 
-      if (res.data.messages) {
-        res.data.messages.forEach(m => {
-          m.stream_id = m.stream_id || vid;
-        });
-      }
+      const rawMessages = (res.data.messages || []).map((m, idx) => ({
+        ...m,
+        idx: idx + 1,
+        stream_id: m.stream_id || vid,
+      }));
+      const streamTitle = res.title || `Live Stream [${vid}]`;
       state.lastExtractionType = 'chats';
-      if (paidByCredits && res.data.total_messages > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
-        await window.TubeMetrixAuth.settleChatVolumeCredits(res.data.total_messages, vid);
+
+      let allowedCount = rawMessages.length;
+      if (rawMessages.length > 1000) {
+        if (paidByCredits && window.TubeMetrixAuth?.settleChatVolumeCredits) {
+          const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(rawMessages.length, vid);
+          const extraDeducted = Number(settleRes?.deducted || 0);
+          allowedCount = (1 + extraDeducted) * 1000;
+        } else {
+          // Weekly Free allowance covers up to 1,000 messages per single stream
+          allowedCount = 1000;
+        }
       }
 
-      setProgress(100, `Complete!`, `Processed ${res.data.total_messages} messages in ${res.elapsed_sec || 0.5}s`, res.data.total_messages, res.data.unique_chatters, res.data.events_count);
+      const unlockedMessages = rawMessages.slice(0, allowedCount);
+      const lockedTail = rawMessages.slice(allowedCount);
+      const visibleReport = lockedTail.length > 0
+        ? aggregateMessagesIntoStats(unlockedMessages, vid)
+        : {
+            ...res.data,
+            stream_id: res.data.stream_id || vid,
+            total_messages: unlockedMessages.length,
+            messages: unlockedMessages,
+          };
+
+      if (lockedTail.length > 0) {
+        await saveChatCheckpoint(
+          {
+            kind: 'single_overflow',
+            mode: 'single',
+            title: streamTitle,
+            streamId: vid,
+            unlockedMessages,
+            lockedTail,
+            lockedStreamTotal: rawMessages.length,
+            unlockedOnStream: unlockedMessages.length,
+            remainingVids: [],
+            completedVids: [vid],
+            totalPlannedStreams: 1,
+            pauseReason: paidByCredits ? 'credits_exhausted' : 'free_limit',
+          },
+          { allowGuest: !paidByCredits }
+        );
+      } else {
+        await clearChatCheckpoint();
+      }
+
+      const statusTicker = lockedTail.length > 0
+        ? `Unlocked ${unlockedMessages.length.toLocaleString()} of ${rawMessages.length.toLocaleString()} messages (credit cap reached)`
+        : `Processed ${visibleReport.total_messages} messages in ${res.elapsed_sec || 0.5}s`;
+
+      setProgress(
+        100,
+        lockedTail.length > 0 ? 'Partial Limit Reached!' : 'Complete!',
+        statusTicker,
+        visibleReport.total_messages,
+        visibleReport.unique_chatters,
+        visibleReport.events_count
+      );
 
       setTimeout(() => {
         hideProgress();
-        renderLiveChatReport(res.data, res.title || `Live Stream [${vid}]`);
+        renderLiveChatReport(visibleReport, streamTitle);
         updateViewerSessionButton();
-      }, 500);
+      }, 400);
 
     } catch (err) {
       hideProgress();
       alert(`Chat Extraction Error: ${err.message}`);
     } finally {
+      isChatExtractionRunning = false;
       el.startChatSingleBtn.disabled = false;
     }
   }
 
   // Option B: Channel Live Streams
   async function startChannelChatExtraction() {
-    // Server-Verified Credits Pre-Flight Check before scanning channel streams
+    // Require at least 1 credit to begin Channel Date Range scan
     if (window.TubeMetrixAuth) {
       const allowed = typeof window.TubeMetrixAuth.authorizeRun === 'function'
-        ? await window.TubeMetrixAuth.authorizeRun(1, { mode: 'channel', checkOnly: true })
+        ? await window.TubeMetrixAuth.authorizeRun(1, { mode: 'channel', credits: 1, checkOnly: true })
         : window.TubeMetrixAuth.hasCredits();
       if (!allowed) {
         if (typeof window.TubeMetrixAuth.authorizeRun !== 'function') {
@@ -621,25 +971,28 @@
       }
 
       const streams = cData.streams;
-      if (window.TubeMetrixAuth?.authorizeRun) {
-        const ok = await window.TubeMetrixAuth.authorizeRun(streams.length, {
-          mode: 'channel',
-          credits: streams.length,
-        });
-        if (!ok) {
-          hideProgress();
-          return;
-        }
-      }
-      setProgress(25, `Found ${streams.length} Streams`, `Starting batch chat download for ${streams.length} streams...`);
+      const reportTitle = `${cData.channel} (${streams.length} Streams)`;
+      setProgress(20, `Found ${streams.length} Streams`, `Starting stream-by-stream chat extraction (auto-pauses cleanly at 0 CR)...`);
 
-      const aggregatedData = await batchExtractChatMessages(streams.map(s => s.id), { paidByCredits: true });
+      const aggregatedData = await batchExtractChatMessages(streams.map(s => s.id), {
+        mode: 'channel',
+        paidByCredits: true,
+        title: reportTitle,
+      });
       hideProgress();
-      renderLiveChatReport(aggregatedData, `${cData.channel} (${streams.length} Streams Combined)`);
-      updateViewerSessionButton();
+      updateChatLiveCreditBar(false);
+      if (aggregatedData.total_messages > 0 || (aggregatedData.completed_count || 0) > 0) {
+        renderLiveChatReport(aggregatedData, reportTitle);
+        updateViewerSessionButton();
+      } else {
+        window.TubeMetrixAuth?.openCreditsModal?.(
+          'Your balance reached 0 CR before any stream could finish. Top up Credits to run.'
+        );
+      }
 
     } catch (err) {
       hideProgress();
+      updateChatLiveCreditBar(false);
       alert(`Channel Audit Error: ${err.message}`);
     } finally {
       el.startChatChannelBtn.disabled = false;
@@ -652,45 +1005,100 @@
       alert('Please add at least 1 stream to the batch list.');
       return;
     }
+    // Require at least 1 credit to start; claims stream-by-stream and pauses cleanly if balance hits 0
     if (window.TubeMetrixAuth) {
       if (typeof window.TubeMetrixAuth.authorizeRun === 'function') {
-        if (!(await window.TubeMetrixAuth.authorizeRun(state.multiUrlQueue.length, { mode: 'batch', credits: state.multiUrlQueue.length }))) return;
+        if (!(await window.TubeMetrixAuth.authorizeRun(1, { mode: 'batch', credits: 1, checkOnly: true }))) return;
       } else if (typeof window.TubeMetrixAuth.checkQuota === 'function') {
-        if (!window.TubeMetrixAuth.checkQuota(state.multiUrlQueue.length, { mode: 'batch' })) return;
+        if (!window.TubeMetrixAuth.checkQuota(1, { mode: 'batch' })) return;
       }
     }
 
     const queue = [...state.multiUrlQueue];
+    const reportTitle = `Custom URL Batch (${queue.length} Streams)`;
     el.startChatMultiBtn.disabled = true;
     if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
     if (el.labelExtracted) el.labelExtracted.textContent = 'Extracted Messages';
 
     try {
-      const aggregatedData = await batchExtractChatMessages(queue, { paidByCredits: true });
+      const aggregatedData = await batchExtractChatMessages(queue, {
+        mode: 'batch',
+        paidByCredits: true,
+        title: reportTitle,
+      });
       hideProgress();
-      renderLiveChatReport(aggregatedData, `Custom URL Batch (${queue.length} Streams Combined)`);
-      updateViewerSessionButton();
+      updateChatLiveCreditBar(false);
+      if (aggregatedData.total_messages > 0 || (aggregatedData.completed_count || 0) > 0) {
+        renderLiveChatReport(aggregatedData, reportTitle);
+        updateViewerSessionButton();
+      } else {
+        window.TubeMetrixAuth?.openCreditsModal?.(
+          'Insufficient Credits to process the first queued stream. Buy Credits to run.'
+        );
+      }
     } catch (err) {
       hideProgress();
+      updateChatLiveCreditBar(false);
       alert(`Batch Extraction Error: ${err.message}`);
     } finally {
       el.startChatMultiBtn.disabled = false;
     }
   }
 
-  // Helper: Batch Stream Chat Processor
+  // Helper: Batch Stream Chat Processor (Stream-by-Stream Metering + Safe Auto-Pause)
   async function batchExtractChatMessages(vids, options = {}) {
+    const mode = options?.mode || 'batch';
     const paidByCredits = Boolean(options?.paidByCredits);
-    const total = vids.length;
-    let allMessages = [];
-    const uniqueChatters = new Set();
-    const userMsgCounts = {};
-    let totalSc = 0, totalMem = 0, totalJewels = 0;
+    const title = options?.title || `Batch (${vids.length} Streams)`;
+    const initialMessages = Array.isArray(options?.initialMessages) ? options.initialMessages : [];
+    const completedVids = Array.isArray(options?.completedBefore) ? [...options.completedBefore] : [];
+    const totalPlanned = Math.max(vids.length + completedVids.length, Number(options?.totalPlannedStreams || vids.length));
 
-    for (let i = 0; i < total; i++) {
+    activeChatPauseRequested = false;
+    isChatExtractionRunning = true;
+    let allMessages = [...initialMessages];
+    let lockedTail = [];
+    let lockedStreamId = '';
+    let lockedStreamTotal = 0;
+    let unlockedOnStream = 0;
+    let remainingVids = [];
+    let pauseReason = '';
+
+    updateChatLiveCreditBar(true, `Done ${completedVids.length}/${totalPlanned} • Auto-stops at 0 CR`);
+
+    for (let i = 0; i < vids.length; i++) {
+      if (activeChatPauseRequested) {
+        remainingVids = vids.slice(i);
+        pauseReason = 'manual';
+        break;
+      }
+
+      if (paidByCredits && window.TubeMetrixAuth?.authorizeRun) {
+        const streamOk = await window.TubeMetrixAuth.authorizeRun(1, {
+          mode,
+          credits: 1,
+          silent: true,
+        });
+        updateChatLiveCreditBar(true, `Stream ${completedVids.length + 1} of ${totalPlanned}`);
+        if (!streamOk) {
+          remainingVids = vids.slice(i);
+          pauseReason = 'credits_exhausted';
+          break;
+        }
+      }
+
       const vid = vids[i];
-      const pct = Math.round(((i + 1) / total) * 100);
-      setProgress(pct, `Processing Streams: ${i + 1} of ${total} (${pct}%)`, `[Stream ${i + 1}/${total}] Extracting live chat for ${vid}...`, allMessages.length, uniqueChatters.size, totalSc + totalMem + totalJewels);
+      const overallIdx = completedVids.length + 1;
+      const pct = Math.min(99, Math.round((overallIdx / totalPlanned) * 100));
+      const previewStats = aggregateMessagesIntoStats(allMessages, `batch_${totalPlanned}`);
+      setProgress(
+        pct,
+        `Processing Streams: ${overallIdx} of ${totalPlanned} (${pct}%)`,
+        `[Stream ${overallIdx}/${totalPlanned}] Extracting live chat for ${vid}...`,
+        previewStats.total_messages,
+        previewStats.unique_chatters,
+        previewStats.events_count
+      );
 
       try {
         const resp = await fetch(`${API_BASE}/fetch-chat`, {
@@ -702,42 +1110,70 @@
         if (resp.ok) {
           const res = await resp.json();
           if (res.success && res.data && res.data.messages) {
-            if (paidByCredits && res.data.total_messages > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
-              await window.TubeMetrixAuth.settleChatVolumeCredits(res.data.total_messages, vid);
+            const rawMsgs = res.data.messages.map((m) => ({
+              ...m,
+              stream_id: m.stream_id || vid,
+            }));
+
+            let allowedForStream = rawMsgs.length;
+            if (paidByCredits && rawMsgs.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
+              const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(rawMsgs.length, vid);
+              const extraDeducted = Number(settleRes?.deducted || 0);
+              allowedForStream = (1 + extraDeducted) * 1000;
+              updateChatLiveCreditBar(true, `Settled Stream ${overallIdx}/${totalPlanned}`);
             }
-            res.data.messages.forEach(m => {
-              m.idx = allMessages.length + 1;
-              m.stream_id = m.stream_id || vid;
-              allMessages.push(m);
-              uniqueChatters.add(m.author);
-              userMsgCounts[m.author] = (userMsgCounts[m.author] || 0) + 1;
-              if (m.event_type === 'SUPERCHAT' || m.event_type === 'STICKER') totalSc++;
-              else if (m.event_type === 'MEMBERSHIP' || m.event_type === 'GIFT') totalMem++;
-              else if (m.event_type === 'JEWELS') totalJewels++;
-            });
+
+            const unlockedSlice = rawMsgs.slice(0, allowedForStream);
+            unlockedSlice.forEach((m) => allMessages.push(m));
+            completedVids.push(vid);
+
+            if (rawMsgs.length > allowedForStream) {
+              lockedTail = rawMsgs.slice(allowedForStream);
+              lockedStreamId = vid;
+              lockedStreamTotal = rawMsgs.length;
+              unlockedOnStream = unlockedSlice.length;
+              remainingVids = vids.slice(i + 1);
+              pauseReason = 'credits_exhausted';
+              break;
+            }
+          } else {
+            completedVids.push(vid);
           }
+        } else {
+          completedVids.push(vid);
         }
       } catch (e) {
         console.warn(`Failed to process stream ${vid}:`, e);
+        completedVids.push(vid);
       }
     }
 
-    const topChatters = Object.entries(userMsgCounts)
-      .map(([author, count]) => ({ author, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 25);
+    if (lockedTail.length > 0 || remainingVids.length > 0) {
+      await saveChatCheckpoint(
+        {
+          kind: mode === 'channel' ? 'channel' : 'batch',
+          mode,
+          title,
+          streamId: lockedStreamId || `batch_${totalPlanned}`,
+          unlockedMessages: allMessages,
+          lockedTail,
+          lockedStreamTotal,
+          unlockedOnStream,
+          remainingVids,
+          completedVids,
+          totalPlannedStreams: totalPlanned,
+          pauseReason: pauseReason || 'credits_exhausted',
+        },
+        { allowGuest: false }
+      );
+    } else {
+      await clearChatCheckpoint();
+    }
 
-    return {
-      stream_id: `batch_${total}`,
-      total_messages: allMessages.length,
-      unique_chatters: uniqueChatters.size,
-      superchats_count: totalSc,
-      memberships_count: totalMem,
-      jewels_count: totalJewels,
-      events_count: totalSc + totalMem + totalJewels,
-      top_chatters: topChatters,
-      messages: allMessages
-    };
+    const finalStats = aggregateMessagesIntoStats(allMessages, `batch_${totalPlanned}`);
+    finalStats.completed_count = completedVids.length;
+    isChatExtractionRunning = false;
+    return finalStats;
   }
 
   // Option D: Video Comments Downloader
@@ -1398,6 +1834,7 @@
     if (el.badgeModsOnly) el.badgeModsOnly.textContent = modCount;
 
     applyChatFiltersAndRender();
+    renderChatLimitAndResumeBanners();
   }
 
   function applyChatFiltersAndRender() {
@@ -2224,6 +2661,32 @@
     initModeTabs();
     initChatViewer();
     initFilterAndExports();
+
+    if (el.pauseChatBatchBtn) {
+      el.pauseChatBatchBtn.addEventListener('click', () => {
+        activeChatPauseRequested = true;
+        updateChatLiveCreditBar(true, 'Finishing current stream safely before pausing...');
+      });
+    }
+
+    window.addEventListener('tubemetrix:auth-updated', (e) => {
+      if (isChatExtractionRunning) {
+        updateChatLiveCreditBar(true);
+        return;
+      }
+      if (!currentChatCheckpoint || (!e?.detail?.user && !currentChatCheckpoint?.allowGuest)) {
+        if (window.TubeMetrixAuth?.whenReady) {
+          restoreSavedChatCheckpoint();
+        }
+      }
+      renderChatLimitAndResumeBanners();
+    });
+
+    if (window.TubeMetrixAuth?.whenReady) {
+      window.TubeMetrixAuth.whenReady().then(() => restoreSavedChatCheckpoint());
+    } else {
+      setTimeout(() => restoreSavedChatCheckpoint(), 500);
+    }
   });
 
 })();

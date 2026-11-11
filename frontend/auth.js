@@ -295,6 +295,17 @@
     }
     applyRegionPricing(document);
     renderAuthNav();
+    try {
+      window.dispatchEvent(
+        new CustomEvent('tubemetrix:auth-updated', {
+          detail: {
+            user: currentUser ? { ...currentUser } : null,
+            quota: { ...quotaState },
+            creditsBalance: currentUser ? Math.max(0, Number(currentUser.creditsBalance || 0)) : 0,
+          },
+        })
+      );
+    } catch {}
   }
 
   async function syncFromServer() {
@@ -552,6 +563,7 @@
   }
 
   async function signOutUser() {
+    await clearAllCheckpoints();
     try {
       const res = await apiRequest('/api/auth/logout', { method: 'POST', body: '{}' });
       if (res.ok) {
@@ -560,7 +572,7 @@
       }
     } catch {}
     currentUser = null;
-    renderAuthNav();
+    applyServerState({ user: null });
   }
 
   function checkAdSuppression() {
@@ -876,6 +888,7 @@
       Math.floor(Number(options?.credits ?? (count || 1)) || 1)
     );
     const checkOnly = Boolean(options?.checkOnly);
+    const silent = Boolean(options?.silent);
 
     try {
       const res = await apiRequest('/api/quota/consume', {
@@ -895,6 +908,10 @@
 
       if (res.ok && res.data?.allowed) {
         return true;
+      }
+
+      if (silent) {
+        return false;
       }
 
       const reason = res.data?.reason;
@@ -998,6 +1015,230 @@
     return null;
   }
 
+  async function unlockRemainingChatCredits({
+    streamId = '',
+    totalMessages = 0,
+    unlockedCount = 0,
+    creditsNeeded = 1,
+    silent = false,
+  } = {}) {
+    if (!sessionReady) {
+      await syncFromServer();
+    }
+    if (!currentUser) {
+      if (!silent) {
+        openAuthModal(
+          'Sign in with Google and add Credits to unlock the remaining live chat messages cleanly.'
+        );
+      }
+      return { ok: false, reason: 'auth_required', deducted: 0 };
+    }
+
+    const bal = Math.max(0, Number(currentUser.creditsBalance || 0));
+    if (bal < 1) {
+      if (!silent) {
+        const neededDisplay = Math.max(1, Math.floor(Number(creditsNeeded) || 1));
+        openCreditsModal(
+          `Unlocking remaining chats requires up to ${neededDisplay} credit(s) (1 credit = 1,000 extra chats). Your current balance is 0 CR.`
+        );
+      }
+      return { ok: false, reason: 'credits_required', deducted: 0, creditsRemaining: bal };
+    }
+
+    try {
+      const res = await apiRequest('/api/credits/settle', {
+        method: 'POST',
+        body: JSON.stringify({
+          mode: 'unlock',
+          streamId,
+          totalMessages,
+          unlockedCount,
+          creditsNeeded,
+        }),
+      });
+      if (res.ok && res.data?.user) {
+        applyServerState({ user: res.data.user, quota: res.data.quota });
+        return res.data;
+      }
+      if (!silent) {
+        showAuthToast(res.data?.error || 'Could not unlock remaining chats. Please try again.');
+      }
+      return { ok: false, reason: res.data?.error || 'unlock_failed', deducted: 0 };
+    } catch {
+      if (!silent) {
+        showAuthToast('Network error unlocking remaining chats. Please try again.');
+      }
+      return { ok: false, reason: 'network_error', deducted: 0 };
+    }
+  }
+
+  // ── User-Scoped Checkpoint Store (IndexedDB + Safe LocalStorage Fallback) ──
+  const CKPT_DB_NAME = 'TubeMetrixCheckpointsDB';
+  const CKPT_STORE_NAME = 'checkpoints';
+  const CKPT_LS_PREFIX = 'tm_ckpt_';
+  const CKPT_TTL_MS = 48 * 60 * 60 * 1000;
+
+  function openCheckpointDb() {
+    return new Promise((resolve) => {
+      if (typeof indexedDB === 'undefined') {
+        resolve(null);
+        return;
+      }
+      try {
+        const req = indexedDB.open(CKPT_DB_NAME, 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(CKPT_STORE_NAME)) {
+            db.createObjectStore(CKPT_STORE_NAME);
+          }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => resolve(null);
+      } catch {
+        resolve(null);
+      }
+    });
+  }
+
+  async function saveCheckpoint(key, data, { allowGuest = false } = {}) {
+    if (!key || !data || typeof data !== 'object') return false;
+    const ownerId = currentUser?.id || null;
+    if (!ownerId && !allowGuest) return false;
+
+    const wrapped = {
+      ...data,
+      __meta: {
+        userId: ownerId,
+        allowGuest: Boolean(allowGuest),
+        savedAt: Date.now(),
+      },
+    };
+
+    const db = await openCheckpointDb();
+    if (db) {
+      const ok = await new Promise((resolve) => {
+        try {
+          const tx = db.transaction(CKPT_STORE_NAME, 'readwrite');
+          tx.objectStore(CKPT_STORE_NAME).put(wrapped, key);
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => resolve(false);
+        } catch {
+          resolve(false);
+        }
+      });
+      if (ok) {
+        try {
+          localStorage.removeItem(CKPT_LS_PREFIX + key);
+        } catch {}
+        return true;
+      }
+    }
+
+    try {
+      const jsonStr = JSON.stringify(wrapped);
+      if (jsonStr.length < 1_500_000) {
+        localStorage.setItem(CKPT_LS_PREFIX + key, jsonStr);
+        return true;
+      }
+    } catch {}
+    return false;
+  }
+
+  async function loadCheckpoint(key) {
+    if (!key) return null;
+    if (!sessionReady) {
+      await syncFromServer();
+    }
+
+    let record = null;
+    const db = await openCheckpointDb();
+    if (db) {
+      record = await new Promise((resolve) => {
+        try {
+          const tx = db.transaction(CKPT_STORE_NAME, 'readonly');
+          const req = tx.objectStore(CKPT_STORE_NAME).get(key);
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => resolve(null);
+        } catch {
+          resolve(null);
+        }
+      });
+    }
+
+    if (!record) {
+      try {
+        const raw = localStorage.getItem(CKPT_LS_PREFIX + key);
+        if (raw) record = JSON.parse(raw);
+      } catch {}
+    }
+
+    if (!record || typeof record !== 'object') return null;
+
+    const meta = record.__meta || {};
+    if (!meta.savedAt || Date.now() - Number(meta.savedAt) > CKPT_TTL_MS) {
+      await clearCheckpoint(key);
+      return null;
+    }
+
+    const ownerId = meta.userId || null;
+    const activeId = currentUser?.id || null;
+    if (ownerId) {
+      if (!activeId || activeId !== ownerId) {
+        return null;
+      }
+    } else if (!meta.allowGuest) {
+      return null;
+    }
+
+    const clean = { ...record };
+    delete clean.__meta;
+    return clean;
+  }
+
+  async function clearCheckpoint(key) {
+    if (!key) return;
+    try {
+      localStorage.removeItem(CKPT_LS_PREFIX + key);
+    } catch {}
+    const db = await openCheckpointDb();
+    if (db) {
+      await new Promise((resolve) => {
+        try {
+          const tx = db.transaction(CKPT_STORE_NAME, 'readwrite');
+          tx.objectStore(CKPT_STORE_NAME).delete(key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        } catch {
+          resolve();
+        }
+      });
+    }
+  }
+
+  async function clearAllCheckpoints() {
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(CKPT_LS_PREFIX)) keysToRemove.push(k);
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+    } catch {}
+    const db = await openCheckpointDb();
+    if (db) {
+      await new Promise((resolve) => {
+        try {
+          const tx = db.transaction(CKPT_STORE_NAME, 'readwrite');
+          tx.objectStore(CKPT_STORE_NAME).clear();
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        } catch {
+          resolve();
+        }
+      });
+    }
+  }
+
   function incrementUsage() {}
 
   // ── Feature Locks for Channel Date Range & Batch Tabs ──
@@ -1078,12 +1319,20 @@
   window.TubeMetrixAuth = {
     getUser: () => (currentUser ? { ...currentUser } : null),
     isLoggedIn: () => Boolean(currentUser),
+    whenReady: () => (sessionReady ? Promise.resolve() : syncFromServer()),
     getCreditsBalance: () => (currentUser ? Math.max(0, Number(currentUser.creditsBalance || 0)) : 0),
     hasCredits: () => Boolean(currentUser && Number(currentUser.creditsBalance || 0) > 0),
     isPro: () => Boolean(currentUser && Number(currentUser.creditsBalance || 0) > 0),
     getRemainingStreams,
     getLastRunAuth: () => (lastRunAuth ? { ...lastRunAuth } : null),
     settleChatVolumeCredits,
+    unlockRemainingChatCredits,
+    checkpoints: {
+      save: saveCheckpoint,
+      load: loadCheckpoint,
+      clear: clearCheckpoint,
+      clearAll: clearAllCheckpoints,
+    },
     checkQuota: checkQuotaAndGate,
     authorizeRun,
     incrementUsage,

@@ -49,7 +49,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=6.9">
+  <link rel="stylesheet" href="styles.css?v=7.0">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -417,6 +417,9 @@
     </div>
     </div>
 
+    <!-- Saved Pause / Locked Chat Resume Banner -->
+    <div class="tm-resume-banner" id="chatResumeBanner" style="display: none;"></div>
+
     <!-- Live Processing Card -->
     <div class="status-card" id="processingCard" style="display: none;">
       <div class="status-header">
@@ -429,6 +432,15 @@
 
       <div class="progress-track">
         <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+      </div>
+
+      <!-- Live Credit Meter & Pause Control -->
+      <div class="tm-live-credit-bar" id="chatLiveCreditBar" style="display: none;">
+        <div class="tm-live-credit-left">
+          <span class="tm-credit-pill" id="chatLiveCreditPill">💎 Credits: <strong>0 CR</strong></span>
+          <span class="tm-live-meter-note" id="chatLiveMeterNote">Stream-by-stream metering • Stops safely at 0 CR</span>
+        </div>
+        <button type="button" class="btn-pause-run" id="pauseChatBatchBtn">⏸ Pause &amp; Save</button>
       </div>
 
       <div class="ticker-box">
@@ -478,6 +490,9 @@
          RESULTS SECTION 1: LIVE CHAT FEED & LOGS
          ══════════════════════════════════════════ -->
     <section class="results-section" id="resultsChatSection" style="display: none;">
+      <!-- Out-of-Credits Pause / Locked Messages Banner -->
+      <div class="tm-limit-banner" id="chatCreditLimitBanner" style="display: none;"></div>
+
       <div class="kpi-banner">
         <div class="kpi-card highlight">
           <span class="kpi-badge">Total Chat Messages</span>
@@ -983,8 +998,8 @@
     </div>
   </div>
 
-  <script src="auth.js?v=3.2"></script>
-  <script src="chats.js?v=6.5"></script>
+  <script src="auth.js?v=3.3"></script>
+  <script src="chats.js?v=6.6"></script>
   <!-- Adsterra Social Bar Integration -->
   <script data-cfasync="false" src="https://bauval.org/14/1130b0119de2f33b3a0f98fff91280bc"></script>
 </body>
