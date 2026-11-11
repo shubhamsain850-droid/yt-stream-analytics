@@ -8191,8 +8191,9 @@ body.light-mode .glass-cue-btn {
 
 .pricing-price {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 2px;
+  gap: 2px 4px;
   margin-bottom: 10px;
 }
 
@@ -8217,16 +8218,18 @@ body.light-mode .glass-cue-btn {
 }
 
 .price-period {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: #a0aec0;
-  margin-left: 4px;
+  margin-left: 2px;
+  white-space: nowrap;
 }
 
 .price-inr {
-  font-size: 0.78rem;
-  color: #a0aec0;
-  margin-left: 6px;
+  font-size: 0.76rem;
+  color: #94a3b8;
   font-weight: 600;
+  flex-basis: 100%;
+  margin: 2px 0 0 0;
 }
 
 .pricing-desc {
