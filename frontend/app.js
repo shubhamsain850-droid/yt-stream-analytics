@@ -467,28 +467,36 @@ function renderForexInputsGrid() {
 
 // ── Currency Switching ──
 function setupCurrencySwitcher() {
+  const moreSelect = document.getElementById('moreCurrencySelect');
+  const applyCurrencyChoice = (curr) => {
+    if (!curr || !DEFAULT_CURRENCY_RATES[curr]) return;
+    state.currentCurrency = curr;
+    localStorage.setItem('TubeMetrix_currency', curr);
+    elements.currBtns.forEach(b => b.classList.toggle('active', b.dataset.curr === curr));
+    if (moreSelect) {
+      moreSelect.value = ['INR', 'USD', 'EUR'].includes(curr) ? '' : curr;
+    }
+    if (state.results) {
+      renderAllResults(state.results);
+    }
+  };
+
+  // Restore shared currency preference (synced across / and /revenue)
+  const savedCurr = localStorage.getItem('TubeMetrix_currency');
+  if (savedCurr && DEFAULT_CURRENCY_RATES[savedCurr]) {
+    applyCurrencyChoice(savedCurr);
+  }
+
   elements.currBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      elements.currBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const moreSelect = document.getElementById('moreCurrencySelect');
-      if (moreSelect) moreSelect.value = '';
-      state.currentCurrency = btn.dataset.curr;
-      if (state.results) {
-        renderAllResults(state.results);
-      }
+      applyCurrencyChoice(btn.dataset.curr);
     });
   });
 
-  const moreSelect = document.getElementById('moreCurrencySelect');
   if (moreSelect) {
     moreSelect.addEventListener('change', () => {
       if (moreSelect.value) {
-        elements.currBtns.forEach(b => b.classList.remove('active'));
-        state.currentCurrency = moreSelect.value;
-        if (state.results) {
-          renderAllResults(state.results);
-        }
+        applyCurrencyChoice(moreSelect.value);
       }
     });
   }

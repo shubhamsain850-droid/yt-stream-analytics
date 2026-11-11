@@ -13,28 +13,28 @@
   const API_BASE = 'https://shubhamsain858-kickcuttr-api.hf.space/api/youtube';
 
   const CURRENCY_MAP = {
-    INR: { symbol: '₹', rate: 83.2, decimals: 0 },
+    INR: { symbol: '₹', rate: 86.85, decimals: 0 },
     USD: { symbol: '$', rate: 1.0, decimals: 0 },
     EUR: { symbol: '€', rate: 0.92, decimals: 0 },
     GBP: { symbol: '£', rate: 0.79, decimals: 0 },
     CAD: { symbol: 'C$', rate: 1.36, decimals: 0 },
-    AUD: { symbol: 'A$', rate: 1.52, decimals: 0 },
-    SGD: { symbol: 'S$', rate: 1.35, decimals: 0 },
+    AUD: { symbol: 'A$', rate: 1.54, decimals: 0 },
+    SGD: { symbol: 'S$', rate: 1.34, decimals: 0 },
     AED: { symbol: 'د.إ', rate: 3.67, decimals: 0 },
     SAR: { symbol: 'SR', rate: 3.75, decimals: 0 },
-    BRL: { symbol: 'R$', rate: 5.15, decimals: 0 },
-    JPY: { symbol: '¥', rate: 155.0, decimals: 0 },
-    KRW: { symbol: '₩', rate: 1370.0, decimals: 0 },
-    PHP: { symbol: '₱', rate: 58.0, decimals: 0 },
-    PKR: { symbol: 'Rs', rate: 278.0, decimals: 0 },
-    BDT: { symbol: '৳', rate: 117.0, decimals: 0 },
-    RUB: { symbol: '₽', rate: 91.0, decimals: 0 },
-    TRY: { symbol: '₺', rate: 32.5, decimals: 0 },
-    PLN: { symbol: 'zł', rate: 3.95, decimals: 0 },
-    MXN: { symbol: 'Mex$', rate: 17.0, decimals: 0 },
-    IDR: { symbol: 'Rp', rate: 16200.0, decimals: 0 },
-    THB: { symbol: '฿', rate: 36.8, decimals: 0 },
-    VND: { symbol: '₫', rate: 25400.0, decimals: 0 }
+    BRL: { symbol: 'R$', rate: 5.71, decimals: 0 },
+    JPY: { symbol: '¥', rate: 149.7, decimals: 0 },
+    KRW: { symbol: '₩', rate: 1378.6, decimals: 0 },
+    PHP: { symbol: '₱', rate: 57.9, decimals: 0 },
+    PKR: { symbol: 'Rs', rate: 280.2, decimals: 0 },
+    BDT: { symbol: '৳', rate: 120.6, decimals: 0 },
+    RUB: { symbol: '₽', rate: 96.5, decimals: 0 },
+    TRY: { symbol: '₺', rate: 34.7, decimals: 0 },
+    PLN: { symbol: 'zł', rate: 3.98, decimals: 0 },
+    MXN: { symbol: 'Mex$', rate: 20.2, decimals: 0 },
+    IDR: { symbol: 'Rp', rate: 15791.0, decimals: 0 },
+    THB: { symbol: '฿', rate: 35.4, decimals: 0 },
+    VND: { symbol: '₫', rate: 25544.0, decimals: 0 }
   };
 
   const state = {
@@ -217,8 +217,68 @@
   }
 
   // ─────────────────────────────────────────────
-  // CURRENCY SWITCHER
+  // CURRENCY SWITCHER & SHARED LIVE FOREX SYNC
   // ─────────────────────────────────────────────
+
+  function applyInrRatesToCurrencyMap(inrRates) {
+    if (!inrRates || typeof inrRates !== 'object') return;
+    const usdInr = Number(inrRates.USD);
+    if (!usdInr || usdInr <= 0) return;
+    Object.keys(CURRENCY_MAP).forEach(code => {
+      if (code === 'USD') {
+        CURRENCY_MAP[code].rate = 1.0;
+      } else if (code === 'INR') {
+        CURRENCY_MAP[code].rate = usdInr;
+      } else {
+        const codeInr = Number(inrRates[code]);
+        if (codeInr > 0) CURRENCY_MAP[code].rate = usdInr / codeInr;
+      }
+    });
+  }
+
+  async function initForexSync() {
+    try {
+      const savedRates = localStorage.getItem('TubeMetrix_fx_rates');
+      if (savedRates) applyInrRatesToCurrencyMap(JSON.parse(savedRates));
+    } catch (e) {}
+
+    const lastUpdated = localStorage.getItem('TubeMetrix_fx_updated');
+    const twelveHours = 12 * 60 * 60 * 1000;
+    const isStale = !lastUpdated || (Date.now() - new Date(lastUpdated).getTime() > twelveHours);
+    if (!isStale) return;
+
+    try {
+      const res = await fetch('https://open.er-api.com/v6/latest/USD');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.rates && data.rates.INR) {
+        const usdInr = Number(data.rates.INR);
+        Object.keys(CURRENCY_MAP).forEach(code => {
+          if (code === 'USD') CURRENCY_MAP[code].rate = 1.0;
+          else if (data.rates[code]) CURRENCY_MAP[code].rate = Number(data.rates[code]);
+        });
+
+        let existingFx = {};
+        try {
+          const rawFx = localStorage.getItem('TubeMetrix_fx_rates');
+          if (rawFx) existingFx = JSON.parse(rawFx) || {};
+        } catch (e) {}
+        const syncedFx = { ...existingFx, INR: 1.0 };
+        const allCodes = new Set([...Object.keys(CURRENCY_MAP), ...Object.keys(existingFx), 'NZD', 'HKD', 'TWD']);
+        allCodes.forEach(code => {
+          if (code === 'INR') syncedFx.INR = 1.0;
+          else if (data.rates[code] && Number(data.rates[code]) > 0) {
+            syncedFx[code] = Math.round((usdInr / Number(data.rates[code])) * 100) / 100;
+          }
+        });
+        localStorage.setItem('TubeMetrix_fx_rates', JSON.stringify(syncedFx));
+        localStorage.setItem('TubeMetrix_fx_updated', new Date().toISOString());
+        if (state.activeChannelData) renderChannelStats(state.activeChannelData);
+      }
+    } catch (e) {
+      console.warn('Could not sync live forex rates on analytics page:', e);
+    }
+  }
 
   function initCurrency() {
     function setCurr(c) {
@@ -859,6 +919,7 @@
   document.addEventListener('DOMContentLoaded', () => {
   initMobileScrollHints();
     initTheme();
+    initForexSync();
     initCurrency();
     initSearch();
     bindEvents();
