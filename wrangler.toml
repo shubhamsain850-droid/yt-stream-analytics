@@ -1,0 +1,13 @@
+name = "tubemetrix"
+compatibility_date = "2025-11-01"
+pages_build_output_dir = "./frontend"
+
+[vars]
+GOOGLE_CLIENT_ID = "83599777834-drdbj74ur8o1q5isch9avpltjs6a7qj2.apps.googleusercontent.com"
+DODO_ENV = "live"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tubemetrix-db"
+database_id = "c6c10a10-c927-4353-919e-b7e4e3a8e33f"
+

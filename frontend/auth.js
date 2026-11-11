@@ -1,163 +1,195 @@
 /**
- * TubeMetrix — Google Identity Services (GIS) & Subscription Quota Engine
- * Handles Google One-Tap, User Session, Daily Freemium Quota & Pro Gating
+ * TubeMetrix — Server-Verified Google Auth, Quota & Dodo Payments Engine (v2.0)
+ * Zero client-trusted tier/quota state; all sessions, daily limits & PRO unlocks
+ * are verified server-side via Cloudflare Pages Functions + Cloudflare D1.
  */
 
 (function () {
   'use strict';
 
-  // ── Configuration ──
-  // Replace with your Google Cloud Console OAuth Client ID
-  // e.g. "123456789-abcdefg.apps.googleusercontent.com"
-  const GOOGLE_CLIENT_ID = window.TUBEMETRIX_GOOGLE_CLIENT_ID || "83599777834-drdbj74ur8o1q5isch9avpltjs6a7qj2.apps.googleusercontent.com";
+  const GOOGLE_CLIENT_ID =
+    window.TUBEMETRIX_GOOGLE_CLIENT_ID ||
+    '83599777834-drdbj74ur8o1q5isch9avpltjs6a7qj2.apps.googleusercontent.com';
 
   const GUEST_DAILY_LIMIT = 2;
   const FREE_DAILY_LIMIT = 5;
 
-  const STORAGE_KEYS = {
-    USER: 'TubeMetrix_auth_user',
-    TOKEN: 'TubeMetrix_auth_token',
-    QUOTA: 'TubeMetrix_usage_quota'
-  };
+  // Legacy client-storage keys purged on boot so old test unlocks cannot linger
+  const LEGACY_KEYS = [
+    'TubeMetrix_auth_user',
+    'TubeMetrix_auth_token',
+    'TubeMetrix_usage_quota',
+  ];
 
-  // ── State ──
+  // ── Private Server-Backed State (not writable via localStorage) ──
   let currentUser = null;
+  let quotaState = {
+    date: new Date().toISOString().slice(0, 10),
+    guestUsed: 0,
+    userUsed: 0,
+    guestLimit: GUEST_DAILY_LIMIT,
+    freeLimit: FREE_DAILY_LIMIT,
+  };
+  let paymentMeta = {
+    provider: 'dodo',
+    configured: false,
+  };
+  let sessionReady = false;
+  let sessionSyncPromise = null;
+  let pendingCheckoutPlan = null;
 
-  // ── Helper: Get Today's Date String (YYYY-MM-DD) ──
-  function getTodayKey() {
-    return new Date().toISOString().split('T')[0];
+  function purgeLegacyStorage() {
+    try {
+      LEGACY_KEYS.forEach((k) => localStorage.removeItem(k));
+    } catch {}
   }
 
-  // ── Load / Save User Session ──
-  function loadUserSession() {
+  function escapeHtml(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  async function apiRequest(path, options = {}) {
+    const resp = await fetch(path, {
+      credentials: 'include',
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+      },
+    });
+    let data = {};
     try {
-      const stored = localStorage.getItem(STORAGE_KEYS.USER);
-      if (stored) {
-        currentUser = JSON.parse(stored);
-      }
-    } catch (e) {
-      currentUser = null;
+      data = await resp.json();
+    } catch {
+      data = {};
     }
+    return { ok: resp.ok, status: resp.status, data };
   }
 
-  function saveUserSession(user, token) {
-    currentUser = user;
-    try {
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-      if (token) localStorage.setItem(STORAGE_KEYS.TOKEN, token);
-    } catch (e) {
-      console.warn("Could not save session to localStorage:", e);
+  function applyServerState(payload) {
+    if (!payload || typeof payload !== 'object') return;
+    if ('user' in payload) {
+      currentUser = payload.user || null;
+    }
+    if (payload.quota && typeof payload.quota === 'object') {
+      quotaState = {
+        ...quotaState,
+        ...payload.quota,
+      };
+    }
+    if (payload.payments && typeof payload.payments === 'object') {
+      paymentMeta = {
+        ...paymentMeta,
+        ...payload.payments,
+      };
     }
     renderAuthNav();
   }
 
-  function clearUserSession() {
-    currentUser = null;
-    try {
-      localStorage.removeItem(STORAGE_KEYS.USER);
-      localStorage.removeItem(STORAGE_KEYS.TOKEN);
-    } catch (e) {}
-    renderAuthNav();
-  }
-
-  // ── Quota Management (Reset Daily at 00:00) ──
-  function getUsageQuota() {
-    const today = getTodayKey();
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.QUOTA);
-      if (stored) {
-        const q = JSON.parse(stored);
-        if (q.date === today) {
-          return q;
+  async function syncFromServer() {
+    if (sessionSyncPromise) return sessionSyncPromise;
+    sessionSyncPromise = (async () => {
+      try {
+        const res = await apiRequest('/api/auth/me', { method: 'GET' });
+        if (res.ok) {
+          applyServerState(res.data);
         }
+      } catch (e) {
+        console.warn('Session sync warning:', e);
+      } finally {
+        sessionReady = true;
+        sessionSyncPromise = null;
       }
-    } catch (e) {}
-    // Reset for new day
-    const newQuota = { date: today, guestUsed: 0, userUsed: 0 };
-    saveUsageQuota(newQuota);
-    return newQuota;
+    })();
+    return sessionSyncPromise;
   }
 
-  function saveUsageQuota(quota) {
-    try {
-      localStorage.setItem(STORAGE_KEYS.QUOTA, JSON.stringify(quota));
-    } catch (e) {}
-  }
+  // ── Handle Post-Checkout Return (?tm_checkout=return) ──
+  async function handleCheckoutReturnIfNeeded() {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('tm_checkout') !== 'return') return;
 
-  function incrementUsage(count = 1) {
-    const q = getUsageQuota();
-    if (currentUser) {
-      q.userUsed = (q.userUsed || 0) + count;
+    const paymentId = url.searchParams.get('payment_id') || '';
+    const subscriptionId = url.searchParams.get('subscription_id') || '';
+    const sessionId = url.searchParams.get('session_id') || '';
+    const plan = url.searchParams.get('plan') || '';
+
+    // Clean URL params immediately so refresh doesn't re-trigger
+    ['tm_checkout', 'payment_id', 'subscription_id', 'session_id', 'status', 'plan'].forEach((p) =>
+      url.searchParams.delete(p)
+    );
+    window.history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
+
+    showAuthToast('Verifying your payment with Dodo Payments...');
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const res = await apiRequest('/api/checkout/verify', {
+          method: 'POST',
+          body: JSON.stringify({ paymentId, subscriptionId, sessionId, plan }),
+        });
+        if (res.ok && res.data?.verified) {
+          applyServerState({ user: res.data.user });
+          showAuthToast('👑 Welcome to TubeMetrix PRO! Unlimited audits & zero ads unlocked!');
+          return;
+        }
+      } catch {}
+      await new Promise((r) => setTimeout(r, 1800));
+    }
+
+    await syncFromServer();
+    if (currentUser?.tier === 'pro') {
+      showAuthToast('👑 TubeMetrix PRO is active on your account!');
     } else {
-      q.guestUsed = (q.guestUsed || 0) + count;
-    }
-    saveUsageQuota(q);
-    renderAuthNav();
-  }
-
-  function getRemainingStreams() {
-    const q = getUsageQuota();
-    if (!currentUser) {
-      return Math.max(0, GUEST_DAILY_LIMIT - (q.guestUsed || 0));
-    }
-    if (currentUser.tier === 'pro') {
-      return Infinity;
-    }
-    return Math.max(0, FREE_DAILY_LIMIT - (q.userUsed || 0));
-  }
-
-  // ── Parse Google JWT (OpenID Connect Credential) ──
-  function decodeGoogleJwt(jwt) {
-    try {
-      const base64Url = jwt.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      return JSON.parse(jsonPayload);
-    } catch (e) {
-      console.error("Failed to decode Google JWT:", e);
-      return null;
+      showAuthToast('Payment received — PRO activates automatically once confirmed by Dodo webhook.');
     }
   }
 
-  // ── Handle Google Credential Response ──
-  window.handleGoogleCredentialResponse = function (response) {
+  // ── Google Credential Callback ──
+  window.handleGoogleCredentialResponse = async function (response) {
     if (!response || !response.credential) return;
 
-    const payload = decodeGoogleJwt(response.credential);
-    if (!payload || !payload.email) {
-      alert("Google Sign-In failed. Please try again.");
-      return;
+    try {
+      const res = await apiRequest('/api/auth/google', {
+        method: 'POST',
+        body: JSON.stringify({ credential: response.credential }),
+      });
+
+      if (!res.ok || !res.data?.ok) {
+        showAuthToast(res.data?.error || 'Google Sign-In verification failed. Please try again.');
+        return;
+      }
+
+      applyServerState(res.data);
+      closeAuthModal();
+
+      if (pendingCheckoutPlan) {
+        const planToLaunch = pendingCheckoutPlan;
+        pendingCheckoutPlan = null;
+        openProModal();
+        await startDodoCheckout(planToLaunch);
+        return;
+      }
+
+      closeProModal();
+      const firstName = res.data.user?.givenName || 'Creator';
+      const tierMsg =
+        res.data.user?.tier === 'pro'
+          ? 'PRO Unlimited Active 👑'
+          : '5 Free Streams/Day Active';
+      showAuthToast(`Welcome back, ${firstName}! (${tierMsg})`);
+    } catch (err) {
+      showAuthToast('Unable to reach auth server. Please check connection and retry.');
     }
-
-    const user = {
-      id: payload.sub,
-      email: payload.email,
-      name: payload.name || payload.email.split('@')[0],
-      givenName: payload.given_name || payload.name || "Creator",
-      picture: payload.picture || null,
-      tier: 'free', // 'free' or 'pro'
-      createdAt: new Date().toISOString()
-    };
-
-    saveUserSession(user, response.credential);
-
-    // Close any open auth modals
-    closeAuthModal();
-    closeProModal();
-
-    // Trigger subtle success notification
-    showAuthToast(`Welcome back, ${user.givenName}! (5 Free Streams/Day Active)`);
   };
 
   // ── Initialize Google Identity Services (GIS) ──
   function initGoogleIdentity() {
     if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
-      // Retry in 250ms if GIS library still downloading
       setTimeout(initGoogleIdentity, 250);
       return;
     }
@@ -168,20 +200,26 @@
         callback: window.handleGoogleCredentialResponse,
         auto_select: false,
         cancel_on_tap_outside: true,
-        use_fedcm_for_prompt: true
+        use_fedcm_for_prompt: true,
       });
 
-      // Show Google One Tap if user is not logged in
-      if (!currentUser && GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.startsWith("YOUR_GOOGLE")) {
-        google.accounts.id.prompt((notification) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // One Tap dismissed or unsupported in current view
-          }
-        });
+      if (!currentUser && GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.startsWith('YOUR_GOOGLE')) {
+        google.accounts.id.prompt(() => {});
       }
     } catch (err) {
-      console.warn("Google Identity Init Notice:", err);
+      console.warn('Google Identity Init Notice:', err);
     }
+  }
+
+  function formatProExpiryLabel(user) {
+    if (!user?.proExpiresAt) return 'PRO Member (Unlimited)';
+    const ms = Date.parse(user.proExpiresAt);
+    if (Number.isNaN(ms)) return 'PRO Member (Unlimited)';
+    if (user.proPlan === 'day_pass') {
+      const hrs = Math.max(1, Math.ceil((ms - Date.now()) / 3600000));
+      return `24h Day Pass (${hrs}h left)`;
+    }
+    return 'Monthly PRO (Unlimited)';
   }
 
   // ── Render Top Navbar Auth UI ──
@@ -189,11 +227,9 @@
     const container = document.getElementById('authNavContainer');
     if (!container) return;
 
-    const q = getUsageQuota();
-
     if (!currentUser) {
-      // GUEST STATE
-      const rem = Math.max(0, GUEST_DAILY_LIMIT - (q.guestUsed || 0));
+      const used = Number(quotaState.guestUsed || 0);
+      const rem = Math.max(0, GUEST_DAILY_LIMIT - used);
       container.innerHTML = `
         <div class="auth-guest-group">
           <span class="guest-quota-pill" title="Daily Guest Audits Remaining">${rem}/${GUEST_DAILY_LIMIT} Free Left</span>
@@ -212,40 +248,46 @@
       const signInBtn = document.getElementById('navSignInBtn');
       if (signInBtn) {
         signInBtn.addEventListener('click', () => {
-          openAuthModal("Sign in to TubeMetrix to get 5 free daily stream audits and save your history.");
+          pendingCheckoutPlan = null;
+          openAuthModal('Sign in to TubeMetrix to get 5 free daily stream audits and link your PRO pass securely.');
         });
       }
     } else {
-      // LOGGED IN STATE
       const isPro = currentUser.tier === 'pro';
-      const used = q.userUsed || 0;
-      const limit = isPro ? '∞' : FREE_DAILY_LIMIT;
+      const used = Number(quotaState.userUsed || 0);
       const pct = isPro ? 100 : Math.min(100, Math.round((used / FREE_DAILY_LIMIT) * 100));
-      const avatarSrc = currentUser.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=ff0033&color=fff&rounded=true`;
+      const safeName = escapeHtml(currentUser.name || 'Creator');
+      const safeEmail = escapeHtml(currentUser.email || '');
+      const rawAvatar =
+        currentUser.picture ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name || 'Creator')}&background=ff0033&color=fff&rounded=true`;
+      const safeAvatar = escapeHtml(rawAvatar);
+      const proLabel = escapeHtml(formatProExpiryLabel(currentUser));
 
       container.innerHTML = `
         <div class="user-profile-menu" id="userProfileMenu">
           <button class="user-avatar-btn" id="userAvatarBtn" type="button" aria-label="Open User Menu">
-            <img src="${avatarSrc}" alt="${currentUser.name}" class="user-avatar-img">
+            <img src="${safeAvatar}" alt="${safeName}" class="user-avatar-img">
             <span class="user-tier-badge ${isPro ? 'badge-pro' : 'badge-free'}">${isPro ? 'PRO' : 'FREE'}</span>
           </button>
 
-          <!-- Dropdown Card -->
           <div class="user-dropdown-card" id="userDropdownCard" style="display: none;">
             <div class="user-dropdown-header">
-              <img src="${avatarSrc}" alt="${currentUser.name}" class="dropdown-avatar-img">
+              <img src="${safeAvatar}" alt="${safeName}" class="dropdown-avatar-img">
               <div class="dropdown-user-info">
-                <span class="user-display-name">${currentUser.name}</span>
-                <span class="user-display-email">${currentUser.email}</span>
+                <span class="user-display-name">${safeName}</span>
+                <span class="user-display-email">${safeEmail}</span>
               </div>
             </div>
 
             <div class="dropdown-tier-status">
               <span class="tier-label">Current Tier:</span>
-              <span class="tier-val ${isPro ? 'text-gold' : 'text-cyan'}">${isPro ? '👑 PRO Member (Unlimited)' : 'Standard Free Plan'}</span>
+              <span class="tier-val ${isPro ? 'text-gold' : 'text-cyan'}">${isPro ? '👑 ' + proLabel : 'Standard Free Plan'}</span>
             </div>
 
-            ${!isPro ? `
+            ${
+              !isPro
+                ? `
               <div class="user-quota-box">
                 <div class="quota-row">
                   <span>Today's Audits:</span>
@@ -260,12 +302,14 @@
                 <span>👑 Upgrade to PRO</span>
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </button>
-            ` : `
+            `
+                : `
               <div class="pro-perks-box">
                 <span>⚡ Unlimited Audits Active</span>
                 <span>💎 100% Ad-Free Fast Lane</span>
               </div>
-            `}
+            `
+            }
 
             <div class="dropdown-divider"></div>
 
@@ -277,7 +321,6 @@
         </div>
       `;
 
-      // Dropdown toggle
       const avatarBtn = document.getElementById('userAvatarBtn');
       const dropdownCard = document.getElementById('userDropdownCard');
       if (avatarBtn && dropdownCard) {
@@ -296,7 +339,6 @@
         });
       }
 
-      // Upgrade button in menu
       const upgradeBtn = document.getElementById('dropdownUpgradeBtn');
       if (upgradeBtn) {
         upgradeBtn.addEventListener('click', () => {
@@ -305,31 +347,43 @@
         });
       }
 
-      // Sign out button
       const signOutBtn = document.getElementById('dropdownSignOutBtn');
       if (signOutBtn) {
-        signOutBtn.addEventListener('click', () => {
-          clearUserSession();
-          showAuthToast("Signed out successfully.");
+        signOutBtn.addEventListener('click', async () => {
+          await signOutUser();
+          showAuthToast('Signed out successfully.');
         });
       }
     }
 
-    // Ad Suppression for PRO Members
     checkAdSuppression();
     updateProLocks();
+  }
+
+  async function signOutUser() {
+    try {
+      const res = await apiRequest('/api/auth/logout', { method: 'POST', body: '{}' });
+      if (res.ok) {
+        applyServerState(res.data);
+        return;
+      }
+    } catch {}
+    currentUser = null;
+    renderAuthNav();
   }
 
   function checkAdSuppression() {
     if (currentUser && currentUser.tier === 'pro') {
       const adScript = document.querySelector('script[src*="bauval.org"]');
       if (adScript) adScript.remove();
-      const adElements = document.querySelectorAll('iframe[src*="bauval"], div[id*="at-cv-lightbox"], div[class*="adsterra"], div[class*="social-bar"]');
-      adElements.forEach(el => el.remove());
+      const adElements = document.querySelectorAll(
+        'iframe[src*="bauval"], div[id*="at-cv-lightbox"], div[class*="adsterra"], div[class*="social-bar"]'
+      );
+      adElements.forEach((el) => el.remove());
     }
   }
 
-  // ── Auth Modal (Guest Limit Reached / Sign In) ──
+  // ── Auth Modal (Google Sign-In Only) ──
   function openAuthModal(subtitle = null) {
     let backdrop = document.getElementById('tmAuthModalBackdrop');
     if (!backdrop) {
@@ -339,15 +393,16 @@
       document.body.appendChild(backdrop);
     }
 
-    const defaultSub = "You've reached your daily free guest limit (2 streams). Sign in with Google to get 5 more free streams today + save audit history!";
+    const defaultSub =
+      "You've reached your daily free guest limit (2 streams). Sign in with Google to get 5 free streams daily and secure cloud sync!";
 
     backdrop.innerHTML = `
       <div class="tm-modal-card">
-        <button class="tm-modal-close" id="closeAuthModalBtn">&times;</button>
+        <button class="tm-modal-close" id="closeAuthModalBtn" type="button">&times;</button>
         <div class="tm-modal-header">
           <div class="tm-brand-pill">TubeMetrix Auth</div>
           <h2 class="tm-modal-title">Sign in to TubeMetrix</h2>
-          <p class="tm-modal-subtitle">${subtitle || defaultSub}</p>
+          <p class="tm-modal-subtitle">${escapeHtml(subtitle || defaultSub)}</p>
         </div>
 
         <div class="tm-benefits-list">
@@ -356,16 +411,15 @@
             <span class="benefit-text"><strong>5 Free Stream Audits Daily</strong> (Instead of 2 guest streams)</span>
           </div>
           <div class="benefit-item">
-            <span class="benefit-icon">⚡</span>
-            <span class="benefit-text"><strong>Custom URL Batch Export</strong> (Unlimited batch queue)</span>
+            <span class="benefit-icon">🔒</span>
+            <span class="benefit-text"><strong>Verified PRO Sync</strong> across Desktop &amp; Mobile devices</span>
           </div>
           <div class="benefit-item">
             <span class="benefit-icon">📊</span>
-            <span class="benefit-text"><strong>Saved Session Reports</strong> &amp; One-Click Excel Exports</span>
+            <span class="benefit-text"><strong>Multi-Currency Reports</strong> &amp; One-Click CSV/Excel Exports</span>
           </div>
         </div>
 
-        <!-- Google Official Button Container -->
         <div class="google-button-wrapper" id="modalGoogleBtnWrap">
           <button class="btn-google-action" id="triggerGoogleSignInBtn" type="button">
             <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
@@ -378,28 +432,25 @@
           </button>
         </div>
 
-        <!-- Dev / Test Sandbox Trigger -->
-        <div class="auth-test-sandbox">
-          <span class="sandbox-hint">Developer Test Mode:</span>
-          <button class="btn-test-login" id="testFreeLoginBtn" type="button">Test as Free User</button>
-          <button class="btn-test-login btn-test-pro" id="testProLoginBtn" type="button">Test as PRO Member 👑</button>
-        </div>
-
         <div class="tm-modal-footer">
-          <span>By continuing, you agree to TubeMetrix Terms &amp; Privacy Policy.</span>
+          <span>By continuing, you agree to TubeMetrix <a href="/terms" style="color:inherit;text-decoration:underline;">Terms</a> &amp; <a href="/privacy" style="color:inherit;text-decoration:underline;">Privacy Policy</a>.</span>
         </div>
       </div>
     `;
 
     backdrop.style.display = 'flex';
 
-    // Close listeners
-    document.getElementById('closeAuthModalBtn').onclick = closeAuthModal;
+    document.getElementById('closeAuthModalBtn').onclick = () => {
+      pendingCheckoutPlan = null;
+      closeAuthModal();
+    };
     backdrop.onclick = (e) => {
-      if (e.target === backdrop) closeAuthModal();
+      if (e.target === backdrop) {
+        pendingCheckoutPlan = null;
+        closeAuthModal();
+      }
     };
 
-    // Google Sign in trigger & official button render
     const googleBtnWrap = document.getElementById('modalGoogleBtnWrap');
     if (googleBtnWrap && typeof google !== 'undefined' && google.accounts && google.accounts.id) {
       try {
@@ -408,10 +459,10 @@
           size: 'large',
           text: 'continue_with',
           shape: 'pill',
-          width: 320
+          width: 320,
         });
       } catch (e) {
-        console.warn("Could not render official Google button:", e);
+        console.warn('Could not render official Google button:', e);
       }
     } else {
       const googleBtn = document.getElementById('triggerGoogleSignInBtn');
@@ -420,43 +471,10 @@
           if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
             google.accounts.id.prompt();
           } else {
-            alert("Connecting to Google Identity Services. Please make sure pop-ups are allowed.");
+            showAuthToast('Connecting to Google Sign-In... Please allow third-party sign-in prompts.');
           }
         };
       }
-    }
-
-    // Developer Test buttons for instant verification
-    const testFree = document.getElementById('testFreeLoginBtn');
-    if (testFree) {
-      testFree.onclick = () => {
-        saveUserSession({
-          id: 'test_user_free_123',
-          name: 'Demo Creator',
-          givenName: 'Demo',
-          email: 'creator@demo.com',
-          picture: null,
-          tier: 'free'
-        }, 'mock_token');
-        closeAuthModal();
-        showAuthToast('Signed in as Free Creator (5 Free Streams/Day)!');
-      };
-    }
-
-    const testPro = document.getElementById('testProLoginBtn');
-    if (testPro) {
-      testPro.onclick = () => {
-        saveUserSession({
-          id: 'test_user_pro_999',
-          name: 'Pro Streamer',
-          givenName: 'VIP',
-          email: 'vip@creator.pro',
-          picture: null,
-          tier: 'pro'
-        }, 'mock_pro_token');
-        closeAuthModal();
-        showAuthToast('Signed in as PRO Member (Unlimited Audits & Zero Ads)! 👑');
-      };
     }
   }
 
@@ -465,8 +483,84 @@
     if (backdrop) backdrop.style.display = 'none';
   }
 
-  // ── Pro Pricing Modal (Free Limit Reached / Upgrade) ──
-  function openProModal() {
+  function setProCheckoutStatus(message, isError = false) {
+    const box = document.getElementById('tmCheckoutStatus');
+    if (!box) return;
+    if (!message) {
+      box.style.display = 'none';
+      box.textContent = '';
+      return;
+    }
+    box.style.display = 'block';
+    box.className = `tm-checkout-status ${isError ? 'is-error' : 'is-info'}`;
+    box.textContent = message;
+  }
+
+  async function startDodoCheckout(plan) {
+    if (!currentUser) {
+      pendingCheckoutPlan = plan;
+      closeProModal();
+      openAuthModal(
+        'Sign in with Google first so your PRO pass is safely tied to your account — checkout opens automatically right after.'
+      );
+      return;
+    }
+
+    const buttons = document.querySelectorAll('.btn-checkout-plan');
+    const targetBtn = document.querySelector(`.btn-checkout-plan[data-plan="${plan}"]`);
+    const origText = targetBtn ? targetBtn.textContent : '';
+
+    buttons.forEach((b) => {
+      b.disabled = true;
+    });
+    if (targetBtn) {
+      targetBtn.textContent = 'Opening Secure Checkout...';
+    }
+    setProCheckoutStatus('');
+
+    try {
+      const res = await apiRequest('/api/checkout/create', {
+        method: 'POST',
+        body: JSON.stringify({
+          plan,
+          returnPath: window.location.pathname || '/',
+        }),
+      });
+
+      if (res.ok && res.data?.checkoutUrl) {
+        window.location.href = res.data.checkoutUrl;
+        return;
+      }
+
+      if (res.status === 401 || res.data?.error === 'auth_required') {
+        pendingCheckoutPlan = plan;
+        closeProModal();
+        openAuthModal('Please sign in with Google to continue to checkout.');
+        return;
+      }
+
+      if (res.status === 503 || res.data?.setupRequired) {
+        setProCheckoutStatus(
+          'Checkout is wired for Dodo Payments — live keys & Product IDs are pending setup by the site admin.',
+          false
+        );
+      } else {
+        setProCheckoutStatus(res.data?.error || 'Could not start checkout. Please try again.', true);
+      }
+    } catch (err) {
+      setProCheckoutStatus('Network error reaching payment server. Please retry.', true);
+    } finally {
+      buttons.forEach((b) => {
+        b.disabled = false;
+      });
+      if (targetBtn && origText) {
+        targetBtn.textContent = origText;
+      }
+    }
+  }
+
+  // ── Pro Pricing Modal ──
+  function openProModal(customSubtitle = null) {
     let backdrop = document.getElementById('tmProModalBackdrop');
     if (!backdrop) {
       backdrop = document.createElement('div');
@@ -475,14 +569,19 @@
       document.body.appendChild(backdrop);
     }
 
+    const defaultSub =
+      'Audit hundreds of streams simultaneously, unlock full channel histories, and enjoy 100% ad-free processing.';
+
     backdrop.innerHTML = `
       <div class="tm-modal-card tm-pro-card">
-        <button class="tm-modal-close" id="closeProModalBtn">&times;</button>
+        <button class="tm-modal-close" id="closeProModalBtn" type="button">&times;</button>
         <div class="tm-modal-header">
           <div class="tm-pro-pill">👑 PRO MEMBERSHIP</div>
           <h2 class="tm-modal-title">Unlock Unlimited Stream Audits</h2>
-          <p class="tm-modal-subtitle">Audit hundreds of streams simultaneously, unlock full channel histories, and enjoy 100% ad-free processing.</p>
+          <p class="tm-modal-subtitle">${escapeHtml(customSubtitle || defaultSub)}</p>
         </div>
+
+        <div id="tmCheckoutStatus" class="tm-checkout-status" style="display: none;"></div>
 
         <div class="pro-pricing-grid">
           <!-- 24-Hour Day Pass -->
@@ -524,7 +623,7 @@
 
         <div class="tm-guarantee-note">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-          <span>Instant Activation • Cancel Anytime with 1-Click • Powered by Lemon Squeezy &amp; Stripe</span>
+          <span>Instant Activation • Cards, Apple Pay &amp; India UPI • Powered by Dodo Payments</span>
         </div>
       </div>
     `;
@@ -536,11 +635,9 @@
       if (e.target === backdrop) closeProModal();
     };
 
-    // Checkout buttons handler
-    backdrop.querySelectorAll('.btn-checkout-plan').forEach(btn => {
+    backdrop.querySelectorAll('.btn-checkout-plan').forEach((btn) => {
       btn.onclick = () => {
-        const plan = btn.dataset.plan;
-        alert(`Redirecting to secure Lemon Squeezy checkout for [${plan}]. Integration will be activated once payment keys are configured.`);
+        startDodoCheckout(btn.dataset.plan);
       };
     });
   }
@@ -563,30 +660,74 @@
     toast.classList.add('visible');
     setTimeout(() => {
       toast.classList.remove('visible');
-    }, 4000);
+    }, 4500);
   }
 
-  // ── Gatekeeper: Check Quota Before Any Processing ──
-  function checkQuotaAndGate(streamCount = 1) {
-    // Pro users are always unlimited
-    if (currentUser && currentUser.tier === 'pro') {
-      return true;
+  // ── Server-Side Gatekeeper (Async Authoritative Check & Atomic Consume) ──
+  async function authorizeRun(streamCount = 1, options = {}) {
+    const requirePro = Boolean(options?.requirePro);
+    if (!sessionReady) {
+      await syncFromServer();
     }
 
-    const q = getUsageQuota();
+    try {
+      const res = await apiRequest('/api/quota/consume', {
+        method: 'POST',
+        body: JSON.stringify({
+          count: Math.max(0, Math.floor(Number(streamCount) || 0)),
+          requirePro,
+        }),
+      });
 
+      if (res.data) {
+        applyServerState({ user: res.data.user, quota: res.data.quota });
+      }
+
+      if (res.ok && res.data?.allowed) {
+        return true;
+      }
+
+      const reason = res.data?.reason;
+      if (reason === 'pro_required') {
+        openProModal();
+        return false;
+      }
+      if (reason === 'guest_limit') {
+        const used = res.data?.quota?.guestUsed ?? quotaState.guestUsed;
+        openAuthModal(
+          `Daily Guest Limit Reached (${used}/${GUEST_DAILY_LIMIT} streams used). Sign in with Google to get ${FREE_DAILY_LIMIT} free audits today!`
+        );
+        return false;
+      }
+      if (reason === 'free_limit') {
+        openProModal(
+          `Daily Free Limit Reached (${FREE_DAILY_LIMIT}/${FREE_DAILY_LIMIT} audits used today). Upgrade to PRO or get a $0.99 Day Pass for unlimited streams!`
+        );
+        return false;
+      }
+
+      showAuthToast(res.data?.error || 'Unable to verify daily quota. Please try again.');
+      return false;
+    } catch (err) {
+      showAuthToast('Network error verifying quota. Please check your connection.');
+      return false;
+    }
+  }
+
+  // Synchronous UI pre-check (actual execution goes through authorizeRun)
+  function checkQuotaAndGate(streamCount = 1) {
+    if (currentUser && currentUser.tier === 'pro') return true;
     if (!currentUser) {
-      // Guest Check (Max 2 streams/day)
-      const used = q.guestUsed || 0;
+      const used = Number(quotaState.guestUsed || 0);
       if (used + streamCount > GUEST_DAILY_LIMIT) {
-        openAuthModal(`Daily Guest Limit Reached! You have used ${used} of ${GUEST_DAILY_LIMIT} free streams today. Sign in with Google to get 5 more free audits!`);
+        openAuthModal(
+          `Daily Guest Limit Reached (${used}/${GUEST_DAILY_LIMIT} streams). Sign in with Google for ${FREE_DAILY_LIMIT} free audits/day!`
+        );
         return false;
       }
       return true;
     }
-
-    // Logged-in Free User Check (Max 5 streams/day)
-    const used = q.userUsed || 0;
+    const used = Number(quotaState.userUsed || 0);
     if (used + streamCount > FREE_DAILY_LIMIT) {
       openProModal();
       return false;
@@ -594,17 +735,26 @@
     return true;
   }
 
+  function getRemainingStreams() {
+    if (currentUser && currentUser.tier === 'pro') return Infinity;
+    if (!currentUser) {
+      return Math.max(0, GUEST_DAILY_LIMIT - Number(quotaState.guestUsed || 0));
+    }
+    return Math.max(0, FREE_DAILY_LIMIT - Number(quotaState.userUsed || 0));
+  }
+
+  // Server already consumes quota atomically in authorizeRun; kept as safe UI refresh no-op
+  function incrementUsage() {}
 
   // ── Pro Feature Locks for Bulk Channel Audits ──
   function updateProLocks() {
-    const isPro = currentUser && currentUser.tier === 'pro';
+    const isPro = Boolean(currentUser && currentUser.tier === 'pro');
 
-    // 1. Tab Badges
     const pills = [
       document.getElementById('channelTabProPill'),
-      document.getElementById('channelChatTabProPill')
+      document.getElementById('channelChatTabProPill'),
     ];
-    pills.forEach(pill => {
+    pills.forEach((pill) => {
       if (pill) {
         if (isPro) {
           pill.className = 'tab-pro-pill unlocked';
@@ -616,36 +766,30 @@
       }
     });
 
-    // 2. Lock Banners & Form Controls
     const lockBanners = [
       document.getElementById('channelProLock'),
-      document.getElementById('channelChatProLock')
+      document.getElementById('channelChatProLock'),
     ];
     const formControls = [
       document.getElementById('channelFormControls'),
-      document.getElementById('channelChatFormControls')
+      document.getElementById('channelChatFormControls'),
     ];
 
-    lockBanners.forEach(banner => {
+    lockBanners.forEach((banner) => {
       if (banner) banner.style.display = isPro ? 'none' : 'block';
     });
 
-    formControls.forEach(ctrl => {
+    formControls.forEach((ctrl) => {
       if (ctrl) {
-        if (isPro) {
-          ctrl.classList.remove('panel-pro-locked');
-        } else {
-          ctrl.classList.add('panel-pro-locked');
-        }
+        ctrl.classList.toggle('panel-pro-locked', !isPro);
       }
     });
 
-    // 3. Attach listeners to Unlock Buttons
     const unlockBtns = [
       document.getElementById('unlockChannelProBtn'),
-      document.getElementById('unlockChatChannelProBtn')
+      document.getElementById('unlockChatChannelProBtn'),
     ];
-    unlockBtns.forEach(btn => {
+    unlockBtns.forEach((btn) => {
       if (btn && !btn.dataset.wired) {
         btn.dataset.wired = 'true';
         btn.addEventListener('click', () => {
@@ -654,12 +798,11 @@
       }
     });
 
-    // 4. Attach listeners to "Try 1 Single Stream for Free"
     const switchBtns = [
       document.getElementById('switchSingleStreamBtn'),
-      document.getElementById('switchChatSingleStreamBtn')
+      document.getElementById('switchChatSingleStreamBtn'),
     ];
-    switchBtns.forEach(btn => {
+    switchBtns.forEach((btn) => {
       if (btn && !btn.dataset.wired) {
         btn.dataset.wired = 'true';
         btn.addEventListener('click', () => {
@@ -669,33 +812,36 @@
       }
     });
 
-    // 5. Refresh Custom URL Batch limits UI
     if (typeof window.refreshMultiBatchUI === 'function') {
-      try { window.refreshMultiBatchUI(); } catch (e) {}
+      try {
+        window.refreshMultiBatchUI();
+      } catch {}
     }
   }
 
   // ── Public Global API ──
   window.TubeMetrixAuth = {
-    getUser: () => currentUser,
-    isLoggedIn: () => !!currentUser,
-    isPro: () => !!(currentUser && currentUser.tier === 'pro'),
-    getRemainingStreams: getRemainingStreams,
+    getUser: () => (currentUser ? { ...currentUser } : null),
+    isLoggedIn: () => Boolean(currentUser),
+    isPro: () => Boolean(currentUser && currentUser.tier === 'pro'),
+    getRemainingStreams,
     checkQuota: checkQuotaAndGate,
-    incrementUsage: incrementUsage,
-    openAuthModal: openAuthModal,
-    openProModal: openProModal,
-    signOut: clearUserSession,
-    updateProLocks: updateProLocks
+    authorizeRun,
+    incrementUsage,
+    refreshSession: syncFromServer,
+    openAuthModal,
+    openProModal,
+    signOut: signOutUser,
+    updateProLocks,
   };
 
   // ── Init on DOM Ready ──
-  document.addEventListener('DOMContentLoaded', () => {
-    loadUserSession();
+  document.addEventListener('DOMContentLoaded', async () => {
+    purgeLegacyStorage();
     renderAuthNav();
-    initGoogleIdentity();
     updateProLocks();
+    await syncFromServer();
+    await handleCheckoutReturnIfNeeded();
+    initGoogleIdentity();
   });
-
 })();
-

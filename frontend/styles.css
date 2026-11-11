@@ -8084,53 +8084,44 @@ body.light-mode .glass-cue-btn {
   background: #f7fafc;
 }
 
-/* Dev sandbox */
-.auth-test-sandbox {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  background: rgba(0, 242, 254, 0.05);
-  border: 1px dashed rgba(0, 242, 254, 0.3);
-  border-radius: 10px;
+/* Checkout status notice */
+.tm-checkout-status {
   margin-bottom: 14px;
-}
-
-.sandbox-hint {
-  font-size: 0.72rem;
-  color: #00f2fe;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
   font-weight: 600;
-  width: 100%;
   text-align: center;
+  line-height: 1.45;
 }
 
-.btn-test-login {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #cbd5e0;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 5px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s;
+.tm-checkout-status.is-info {
+  background: rgba(0, 242, 254, 0.08);
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  color: #67e8f9;
 }
 
-.btn-test-login:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
+.tm-checkout-status.is-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
 }
 
-.btn-test-pro {
-  background: rgba(255, 215, 0, 0.12);
-  border-color: rgba(255, 215, 0, 0.3);
-  color: #ffd700;
+[data-theme="light"] .tm-checkout-status.is-info {
+  background: rgba(2, 132, 199, 0.08);
+  border-color: rgba(2, 132, 199, 0.3);
+  color: #0369a1;
 }
 
-.btn-test-pro:hover {
-  background: rgba(255, 215, 0, 0.22);
+[data-theme="light"] .tm-checkout-status.is-error {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #b91c1c;
+}
+
+.btn-checkout-plan:disabled {
+  opacity: 0.65;
+  cursor: wait;
 }
 
 .tm-modal-footer {

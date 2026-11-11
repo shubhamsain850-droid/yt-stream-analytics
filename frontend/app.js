@@ -759,10 +759,17 @@ function setupChannelMode() {
   });
 
   elements.startChannelBtn.addEventListener('click', async () => {
-    // PRO Gatekeeper for Bulk Channel Auditing
-    if (window.TubeMetrixAuth && !window.TubeMetrixAuth.isPro()) {
-      window.TubeMetrixAuth.openProModal();
-      return;
+    // Server-Verified PRO Gatekeeper for Bulk Channel Auditing
+    if (window.TubeMetrixAuth) {
+      const allowed = typeof window.TubeMetrixAuth.authorizeRun === 'function'
+        ? await window.TubeMetrixAuth.authorizeRun(0, { requirePro: true })
+        : window.TubeMetrixAuth.isPro();
+      if (!allowed) {
+        if (typeof window.TubeMetrixAuth.authorizeRun !== 'function') {
+          window.TubeMetrixAuth.openProModal();
+        }
+        return;
+      }
     }
     const channel = elements.channelUrlInput.value.trim();
     if (!channel) {
@@ -1292,10 +1299,16 @@ function stopProgressSimulation() {
 const CONCURRENCY_LIMIT = 3;
 
 async function startProcessing(urls, label = null) {
-  // Auth Quota Gatekeeper
-  if (window.TubeMetrixAuth && typeof window.TubeMetrixAuth.checkQuota === 'function') {
-    if (!window.TubeMetrixAuth.checkQuota(urls.length)) {
-      return;
+  // Server-Verified Auth & Quota Gatekeeper
+  if (window.TubeMetrixAuth) {
+    if (typeof window.TubeMetrixAuth.authorizeRun === 'function') {
+      if (!(await window.TubeMetrixAuth.authorizeRun(urls.length))) {
+        return;
+      }
+    } else if (typeof window.TubeMetrixAuth.checkQuota === 'function') {
+      if (!window.TubeMetrixAuth.checkQuota(urls.length)) {
+        return;
+      }
     }
   }
   // 1. Session Isolation Reset (Zero cross-session pollution)

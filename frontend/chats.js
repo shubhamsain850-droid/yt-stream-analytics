@@ -386,7 +386,7 @@
     }
   }
 
-  function updateViewerSessionButton() {}
+  function updateViewerSessionButton() { }
 
   // ─────────────────────────────────────────────
   // 3. CUSTOM URL BATCH QUEUE (Free: 3, PRO: Unlimited)
@@ -517,14 +517,18 @@
 
   // Option A: Single Stream Live Chat
   async function startSingleChatExtraction() {
-    if (window.TubeMetrixAuth && typeof window.TubeMetrixAuth.checkQuota === 'function') {
-      if (!window.TubeMetrixAuth.checkQuota(1)) return;
-    }
     const raw = el.chatSingleUrlInput.value.trim();
     const vid = extractVideoId(raw);
     if (!vid) {
       alert('Please enter a valid YouTube Live Stream URL or Video ID.');
       return;
+    }
+    if (window.TubeMetrixAuth) {
+      if (typeof window.TubeMetrixAuth.authorizeRun === 'function') {
+        if (!(await window.TubeMetrixAuth.authorizeRun(1))) return;
+      } else if (typeof window.TubeMetrixAuth.checkQuota === 'function') {
+        if (!window.TubeMetrixAuth.checkQuota(1)) return;
+      }
     }
 
     el.startChatSingleBtn.disabled = true;
@@ -578,10 +582,17 @@
 
   // Option B: Channel Live Streams
   async function startChannelChatExtraction() {
-    // PRO Gatekeeper for Bulk Channel Auditing
-    if (window.TubeMetrixAuth && !window.TubeMetrixAuth.isPro()) {
-      window.TubeMetrixAuth.openProModal();
-      return;
+    // Server-Verified PRO Gatekeeper for Bulk Channel Auditing
+    if (window.TubeMetrixAuth) {
+      const allowed = typeof window.TubeMetrixAuth.authorizeRun === 'function'
+        ? await window.TubeMetrixAuth.authorizeRun(0, { requirePro: true })
+        : window.TubeMetrixAuth.isPro();
+      if (!allowed) {
+        if (typeof window.TubeMetrixAuth.authorizeRun !== 'function') {
+          window.TubeMetrixAuth.openProModal();
+        }
+        return;
+      }
     }
     const channelUrl = el.chatChannelUrlInput.value.trim();
     if (!channelUrl) {
@@ -634,12 +645,16 @@
 
   // Option C: Multi-URL Batch
   async function startMultiChatExtraction() {
-    if (window.TubeMetrixAuth && typeof window.TubeMetrixAuth.checkQuota === 'function') {
-      if (!window.TubeMetrixAuth.checkQuota(state.multiUrlQueue.length)) return;
-    }
     if (state.multiUrlQueue.length === 0) {
       alert('Please add at least 1 stream to the batch list.');
       return;
+    }
+    if (window.TubeMetrixAuth) {
+      if (typeof window.TubeMetrixAuth.authorizeRun === 'function') {
+        if (!(await window.TubeMetrixAuth.authorizeRun(state.multiUrlQueue.length))) return;
+      } else if (typeof window.TubeMetrixAuth.checkQuota === 'function') {
+        if (!window.TubeMetrixAuth.checkQuota(state.multiUrlQueue.length)) return;
+      }
     }
 
     const queue = [...state.multiUrlQueue];
@@ -838,7 +853,7 @@
       });
     }
 
-        // Live Search Input
+    // Live Search Input
     if (el.vmSearchInput) {
       el.vmSearchInput.addEventListener('input', (e) => {
         const val = e.target.value;
@@ -969,7 +984,7 @@
               messages: directJson
             };
           }
-        } catch (err) {}
+        } catch (err) { }
 
         if (!parsed) {
           const lines = text.split('\n');
@@ -2075,7 +2090,7 @@
       try {
         const parsed = JSON.parse(line);
         walk(parsed);
-      } catch (e) {}
+      } catch (e) { }
     });
 
     const topChatters = Object.entries(userMsgCounts)
@@ -2192,7 +2207,7 @@
   // INITIALIZE ON DOM READY
   // ─────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
-  initMobileScrollHints();
+    initMobileScrollHints();
     initTheme();
     initCurrency();
     initModeTabs();
