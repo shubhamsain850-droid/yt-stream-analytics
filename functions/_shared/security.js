@@ -3,8 +3,8 @@
  * Runs natively on Cloudflare Pages Functions (Web Crypto API, zero npm dependencies).
  */
 
-export const GUEST_DAILY_LIMIT = 2;
-export const FREE_DAILY_LIMIT = 5;
+export const GUEST_WEEKLY_LIMIT = 2;
+export const FREE_WEEKLY_LIMIT = 3;
 export const SESSION_COOKIE_NAME = 'tm_session';
 export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
 
@@ -26,6 +26,43 @@ export function jsonResponse(payload, status = 200, extraHeaders = {}) {
 
 export function getTodayUtc() {
   return new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * Returns ISO-8601 UTC week identifier (e.g. '2026-W46') so weekly free quotas reset Monday 00:00 UTC.
+ */
+export function getWeekKeyUtc(date = new Date()) {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
+export function getRequestCountry(request) {
+  const cfCountry =
+    request?.cf?.country && typeof request.cf.country === 'string'
+      ? request.cf.country.trim().toUpperCase()
+      : '';
+  const hasEdgeRay = Boolean(request?.headers?.get('CF-Ray'));
+  if (!hasEdgeRay) {
+    try {
+      const host = new URL(request.url).hostname;
+      if (host === '127.0.0.1' || host === 'localhost') {
+        const devCountry = request?.headers?.get('CF-IPCountry');
+        if (devCountry && typeof devCountry === 'string' && devCountry.trim()) {
+          return devCountry.trim().toUpperCase();
+        }
+      }
+    } catch {}
+  }
+  if (cfCountry) return cfCountry;
+  const headerCountry = request?.headers?.get('CF-IPCountry');
+  if (headerCountry && typeof headerCountry === 'string' && headerCountry.trim()) {
+    return headerCountry.trim().toUpperCase();
+  }
+  return 'XX';
 }
 
 export function getClientIp(request) {

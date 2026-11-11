@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS users (
   tier TEXT NOT NULL DEFAULT 'free',
   pro_plan TEXT,
   pro_expires_at TEXT,
+  credits_balance INTEGER NOT NULL DEFAULT 0,
+  total_purchased_credits INTEGER NOT NULL DEFAULT 0,
   dodo_customer_id TEXT,
   dodo_subscription_id TEXT,
   created_at TEXT NOT NULL,
@@ -50,3 +52,15 @@ CREATE TABLE IF NOT EXISTS webhook_events (
   processed_at TEXT NOT NULL
 );
 
+
+CREATE TABLE IF NOT EXISTS credit_ledger (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  delta INTEGER NOT NULL,
+  reason TEXT NOT NULL,
+  ref_id TEXT UNIQUE,
+  meta_json TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_credit_ledger_user ON credit_ledger(user_id, created_at);

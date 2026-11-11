@@ -1,11 +1,12 @@
 import { jsonResponse } from '../../_shared/security.js';
 import {
-  grantProAccess,
+  grantCreditPurchase,
   markWebhookProcessed,
-  revokeProAccess,
+  revokeCreditPurchase,
 } from '../../_shared/db.js';
 import {
-  resolvePlanFromProductId,
+  getCreditPack,
+  resolvePackFromProductId,
   verifyDodoWebhookSignature,
 } from '../../_shared/dodo.js';
 import { assertServerConfigured } from '../../_shared/context.js';
@@ -54,51 +55,37 @@ export async function onRequestPost({ request, env }) {
         .toLowerCase() || null;
     const customerId = data?.customer?.customer_id || data?.customer_id || null;
     const paymentId = data?.payment_id || null;
-    const subscriptionId = data?.subscription_id || null;
     const sessionId = data?.checkout_session_id || data?.session_id || null;
     const productId =
       data?.product_id ||
       (Array.isArray(data?.product_cart) ? data.product_cart[0]?.product_id : null);
 
-    if (
-      eventType === 'payment.succeeded' ||
-      eventType === 'subscription.active' ||
-      eventType === 'subscription.renewed'
-    ) {
-      let plan = metadata?.plan || resolvePlanFromProductId(env, productId);
-      if (eventType.startsWith('subscription.') || subscriptionId) {
-        plan = 'monthly_pro';
-      }
+    if (eventType === 'payment.succeeded') {
+      const fromProd = resolvePackFromProductId(env, productId);
+      const fromMeta = metadata?.pack_id ? String(metadata.pack_id) : metadata?.plan ? String(metadata.plan) : '';
+      const packId =
+        fromProd || (getCreditPack(fromMeta) ? fromMeta : 'credits_10');
 
-      await grantProAccess(env.DB, {
+      await grantCreditPurchase(env.DB, {
         userId,
         email,
-        plan,
+        packId,
         paymentId,
         sessionId,
-        subscriptionId,
         customerId,
         rawEventType: eventType,
       });
     } else if (
-      eventType === 'subscription.cancelled' ||
-      eventType === 'subscription.expired' ||
-      eventType === 'subscription.failed' ||
       eventType === 'refund.succeeded' ||
       eventType === 'dispute.opened'
     ) {
-      const keepUntilIso =
-        eventType === 'subscription.cancelled' && data?.cancel_at_next_billing_date
-          ? data?.next_billing_date || null
-          : null;
-
-      await revokeProAccess(env.DB, {
+      await revokeCreditPurchase(env.DB, {
         userId,
-        subscriptionId,
+        paymentId,
+        sessionId,
         email,
-        status: eventType.split('.')[0] === 'refund' ? 'refunded' : 'cancelled',
+        status: eventType.startsWith('refund') ? 'refunded' : 'disputed',
         rawEventType: eventType,
-        keepUntilIso,
       });
     }
 
@@ -107,4 +94,3 @@ export async function onRequestPost({ request, env }) {
     return jsonResponse({ error: err.message || 'Webhook processing error.' }, 500);
   }
 }
-

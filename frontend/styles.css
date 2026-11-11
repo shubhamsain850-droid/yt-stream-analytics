@@ -7940,8 +7940,25 @@ body.light-mode .glass-cue-btn {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
 }
 
-.tm-pro-card {
-  max-width: 480px;
+.tm-pro-card,
+.tm-credits-modal-card {
+  max-width: 920px;
+  width: min(94vw, 920px);
+  max-height: 94vh;
+  overflow-y: auto;
+  padding: 24px 26px;
+}
+
+.tm-credits-modal-card .tm-modal-header {
+  margin-bottom: 14px;
+}
+
+.tm-credits-modal-card .pricing-card {
+  padding: 18px 16px;
+}
+
+.tm-credits-modal-card .pricing-desc {
+  margin: 0 0 10px 0;
 }
 
 @keyframes modalScaleUp {
@@ -8130,12 +8147,180 @@ body.light-mode .glass-cue-btn {
   color: #718096;
 }
 
-/* Pro Pricing Grid */
-.pro-pricing-grid {
+/* Pro / Credit Packs Pricing Grid */
+.pro-pricing-grid,
+.tm-credits-grid,
+.public-credits-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 20px;
+}
+
+.public-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  max-width: 1020px;
+  margin: 18px auto 0;
+}
+
+@media (max-width: 900px) {
+  .pro-pricing-grid,
+  .tm-credits-grid,
+  .public-pricing-grid,
+  .public-credits-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tm-free-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  max-width: 1020px;
+  margin: 18px auto 0;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+[data-theme="light"] .tm-free-strip {
+  background: #f1f5f9;
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+.tm-free-strip-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 320px;
+}
+
+.tm-free-strip-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+[data-theme="light"] .tm-free-strip-badge {
+  color: #0369a1;
+  background: rgba(14, 165, 233, 0.14);
+}
+
+.tm-free-strip-text {
+  font-size: 0.84rem;
+  color: var(--text-secondary, #cbd5e0);
+  line-height: 1.45;
+}
+
+[data-theme="light"] .tm-free-strip-text {
+  color: #334155;
+}
+
+.tm-free-strip-btn {
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.14);
+  color: #e0f2fe;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+[data-theme="light"] .tm-free-strip-btn {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+
+.tm-india-promo-banner {
+  display: block;
+  text-align: center;
+  padding: 9px 14px;
+  margin-top: 12px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.tm-india-promo-banner.is-active {
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.42);
+  color: #6ee7b7;
+}
+
+[data-theme="light"] .tm-india-promo-banner.is-active {
+  background: rgba(16, 185, 129, 0.12);
+  color: #065f46;
+}
+
+.tm-india-promo-banner.is-claimed,
+.tm-india-promo-banner.is-preview {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fde68a;
+}
+
+[data-theme="light"] .tm-india-promo-banner.is-claimed,
+[data-theme="light"] .tm-india-promo-banner.is-preview {
+  color: #92400e;
+}
+
+.pricing-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.tm-pack-discount-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #6ee7b7;
+  white-space: nowrap;
+}
+
+[data-theme="light"] .tm-pack-discount-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: #047857;
+}
+
+.pricing-credits-headline {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #38bdf8;
+  margin-bottom: 8px;
+}
+
+[data-theme="light"] .pricing-credits-headline {
+  color: #0284c7;
+}
+
+.price-strike {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-decoration: line-through;
+  margin-right: 4px;
 }
 
 .pricing-card {
@@ -8250,9 +8435,8 @@ body.light-mode .glass-cue-btn {
 }
 
 .pricing-features li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  display: block;
+  line-height: 1.45;
 }
 
 .btn-checkout-plan {
@@ -8325,20 +8509,6 @@ body.light-mode .glass-cue-btn {
 
 [data-theme="light"] .tm-region-btn:not(.active) {
   color: #475569;
-}
-
-.public-pricing-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-  max-width: 780px;
-  margin: 22px auto 0;
-}
-
-@media (max-width: 820px) {
-  .public-pricing-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .public-pricing-note {

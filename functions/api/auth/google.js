@@ -1,12 +1,17 @@
 import {
   buildSessionCookie,
   getClientIp,
+  getRequestCountry,
   hashGuestSubject,
   jsonResponse,
   signSessionToken,
   verifyGoogleIdToken,
 } from '../../_shared/security.js';
-import { buildQuotaSnapshot, upsertGoogleUser } from '../../_shared/db.js';
+import {
+  buildQuotaSnapshot,
+  isIndiaFirstPurchaseEligible,
+  upsertGoogleUser,
+} from '../../_shared/db.js';
 import { assertServerConfigured } from '../../_shared/context.js';
 
 export async function onRequestPost({ request, env }) {
@@ -36,11 +41,24 @@ export async function onRequestPost({ request, env }) {
       env.SESSION_SECRET
     );
 
+    const country = getRequestCountry(request);
     const guestSubjectKey = await hashGuestSubject(getClientIp(request), env.SESSION_SECRET);
-    const quota = await buildQuotaSnapshot(env.DB, user, guestSubjectKey);
+    const [quota, indiaFirstPurchaseEligible] = await Promise.all([
+      buildQuotaSnapshot(env.DB, user, guestSubjectKey),
+      isIndiaFirstPurchaseEligible(env.DB, user, country),
+    ]);
 
     return jsonResponse(
-      { ok: true, user, quota },
+      {
+        ok: true,
+        user,
+        quota,
+        region: {
+          country,
+          isIndia: country === 'IN',
+          indiaFirstPurchaseEligible,
+        },
+      },
       200,
       { 'Set-Cookie': buildSessionCookie(sessionToken, request.url) }
     );
@@ -48,4 +66,3 @@ export async function onRequestPost({ request, env }) {
     return jsonResponse({ error: err.message || 'Google Sign-In verification failed.' }, 401);
   }
 }
-

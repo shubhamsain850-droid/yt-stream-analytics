@@ -1,8 +1,9 @@
 /**
- * Cloudflare D1 Persistence Layer for Users, Quota & Payments
+ * Cloudflare D1 Persistence Layer for Users, Weekly Free Quota, Credits & Payments
  */
 
-import { FREE_DAILY_LIMIT, GUEST_DAILY_LIMIT, getTodayUtc } from './security.js';
+import { FREE_WEEKLY_LIMIT, GUEST_WEEKLY_LIMIT, getWeekKeyUtc } from './security.js';
+import { getCreditPack } from './dodo.js';
 
 export function serializeUser(row) {
   if (!row) return null;
@@ -12,38 +13,15 @@ export function serializeUser(row) {
     name: row.name,
     givenName: row.given_name,
     picture: row.picture || null,
-    tier: row.tier === 'pro' ? 'pro' : 'free',
-    proPlan: row.pro_plan || null,
-    proExpiresAt: row.pro_expires_at || null,
+    creditsBalance: Math.max(0, Number(row.credits_balance || 0)),
+    totalPurchasedCredits: Math.max(0, Number(row.total_purchased_credits || 0)),
   };
 }
 
-/**
- * Loads user and automatically expires past-due PRO subscriptions when past pro_expires_at.
- */
 export async function resolveActiveUser(db, userId) {
   if (!userId) return null;
   const row = await db.prepare('SELECT * FROM users WHERE id = ?1').bind(userId).first();
-  if (!row) return null;
-
-  if (row.tier === 'pro' && row.pro_expires_at) {
-    const expMs = Date.parse(row.pro_expires_at);
-    if (!Number.isNaN(expMs) && expMs <= Date.now()) {
-      const nowIso = new Date().toISOString();
-      await db
-        .prepare(
-          "UPDATE users SET tier = 'free', pro_plan = NULL, pro_expires_at = NULL, updated_at = ?1 WHERE id = ?2"
-        )
-        .bind(nowIso, row.id)
-        .run();
-      row.tier = 'free';
-      row.pro_plan = null;
-      row.pro_expires_at = null;
-      row.updated_at = nowIso;
-    }
-  }
-
-  return serializeUser(row);
+  return row ? serializeUser(row) : null;
 }
 
 export async function findUserByEmail(db, email) {
@@ -53,11 +31,11 @@ export async function findUserByEmail(db, email) {
     .prepare('SELECT * FROM users WHERE LOWER(email) = ?1')
     .bind(normalized)
     .first();
-  return row ? resolveActiveUser(db, row.id) : null;
+  return row ? serializeUser(row) : null;
 }
 
 /**
- * Inserts or updates Google user profile without resetting active PRO tier or expiry.
+ * Inserts or updates Google user profile without touching existing credit balance.
  */
 export async function upsertGoogleUser(db, claims) {
   const nowIso = new Date().toISOString();
@@ -84,21 +62,50 @@ export async function upsertGoogleUser(db, claims) {
   return resolveActiveUser(db, id);
 }
 
-export async function getSubjectUsageCount(db, subjectKey, dateKey = getTodayUtc()) {
+export async function hasCompletedPurchase(db, userId) {
+  if (!userId) return false;
+  const uRow = await db
+    .prepare('SELECT total_purchased_credits FROM users WHERE id = ?1')
+    .bind(userId)
+    .first();
+  if (Number(uRow?.total_purchased_credits || 0) > 0) {
+    return true;
+  }
+  const pRow = await db
+    .prepare(
+      "SELECT COUNT(*) AS cnt FROM payments WHERE user_id = ?1 AND status IN ('succeeded', 'active', 'completed')"
+    )
+    .bind(userId)
+    .first();
+  return Number(pRow?.cnt || 0) > 0;
+}
+
+export async function isIndiaFirstPurchaseEligible(db, user, countryCode) {
+  if (String(countryCode || '').toUpperCase() !== 'IN') {
+    return false;
+  }
+  if (!user?.id) {
+    return true;
+  }
+  const prior = await hasCompletedPurchase(db, user.id);
+  return !prior;
+}
+
+export async function getSubjectUsageCount(db, subjectKey, weekKey = getWeekKeyUtc()) {
   const row = await db
     .prepare('SELECT used_count FROM daily_usage WHERE subject_key = ?1 AND usage_date = ?2')
-    .bind(subjectKey, dateKey)
+    .bind(subjectKey, weekKey)
     .first();
   return row ? Number(row.used_count || 0) : 0;
 }
 
 /**
- * Atomically checks and consumes `amount` audits up to `limit` for a subject on `dateKey`.
+ * Atomically checks and consumes `amount` single-stream weekly runs up to `limit` for `weekKey`.
  */
-export async function consumeSubjectQuota(db, subjectKey, dateKey, amount, limit) {
+export async function consumeSubjectQuota(db, subjectKey, weekKey, amount, limit) {
   const count = Math.max(0, Math.floor(Number(amount) || 0));
   if (count === 0) {
-    const used = await getSubjectUsageCount(db, subjectKey, dateKey);
+    const used = await getSubjectUsageCount(db, subjectKey, weekKey);
     return {
       allowed: used <= limit,
       used,
@@ -112,7 +119,7 @@ export async function consumeSubjectQuota(db, subjectKey, dateKey, amount, limit
     .prepare(
       'INSERT OR IGNORE INTO daily_usage (subject_key, usage_date, used_count, updated_at) VALUES (?1, ?2, 0, ?3)'
     )
-    .bind(subjectKey, dateKey, nowIso)
+    .bind(subjectKey, weekKey, nowIso)
     .run();
 
   const updated = await db
@@ -122,7 +129,7 @@ export async function consumeSubjectQuota(db, subjectKey, dateKey, amount, limit
        WHERE subject_key = ?1 AND usage_date = ?2 AND (used_count + ?4) <= ?5
        RETURNING used_count`
     )
-    .bind(subjectKey, dateKey, nowIso, count, limit)
+    .bind(subjectKey, weekKey, nowIso, count, limit)
     .first();
 
   if (updated) {
@@ -135,7 +142,7 @@ export async function consumeSubjectQuota(db, subjectKey, dateKey, amount, limit
     };
   }
 
-  const currentUsed = await getSubjectUsageCount(db, subjectKey, dateKey);
+  const currentUsed = await getSubjectUsageCount(db, subjectKey, weekKey);
   return {
     allowed: false,
     used: currentUsed,
@@ -145,42 +152,115 @@ export async function consumeSubjectQuota(db, subjectKey, dateKey, amount, limit
 }
 
 export async function buildQuotaSnapshot(db, user, guestSubjectKey) {
-  const dateKey = getTodayUtc();
+  const weekKey = getWeekKeyUtc();
   if (!user) {
-    const guestUsed = await getSubjectUsageCount(db, guestSubjectKey, dateKey);
+    const guestUsed = await getSubjectUsageCount(db, guestSubjectKey, weekKey);
     return {
-      date: dateKey,
+      period: 'weekly',
+      week: weekKey,
       guestUsed,
       userUsed: 0,
-      guestLimit: GUEST_DAILY_LIMIT,
-      freeLimit: FREE_DAILY_LIMIT,
-      remaining: Math.max(0, GUEST_DAILY_LIMIT - guestUsed),
+      guestLimit: GUEST_WEEKLY_LIMIT,
+      freeLimit: FREE_WEEKLY_LIMIT,
+      remaining: Math.max(0, GUEST_WEEKLY_LIMIT - guestUsed),
     };
   }
 
-  if (user.tier === 'pro') {
-    return {
-      date: dateKey,
-      guestUsed: 0,
-      userUsed: 0,
-      guestLimit: GUEST_DAILY_LIMIT,
-      freeLimit: FREE_DAILY_LIMIT,
-      remaining: null,
-    };
-  }
-
-  const userUsed = await getSubjectUsageCount(db, `user:${user.id}`, dateKey);
+  const userUsed = await getSubjectUsageCount(db, `user:${user.id}`, weekKey);
   return {
-    date: dateKey,
+    period: 'weekly',
+    week: weekKey,
     guestUsed: 0,
     userUsed,
-    guestLimit: GUEST_DAILY_LIMIT,
-    freeLimit: FREE_DAILY_LIMIT,
-    remaining: Math.max(0, FREE_DAILY_LIMIT - userUsed),
+    guestLimit: GUEST_WEEKLY_LIMIT,
+    freeLimit: FREE_WEEKLY_LIMIT,
+    remaining: Math.max(0, FREE_WEEKLY_LIMIT - userUsed),
   };
 }
 
-export async function recordPendingCheckout(db, { sessionId, userId, email, plan }) {
+/**
+ * Atomically deducts credits from a signed-in user and writes an audit row in credit_ledger.
+ */
+export async function consumeUserCredits(
+  db,
+  userId,
+  creditsNeeded,
+  { reason = 'run_consume', meta = null, clampToBalance = false, refId = null } = {}
+) {
+  const amount = Math.max(0, Math.floor(Number(creditsNeeded) || 0));
+  if (!userId) {
+    return { allowed: false, deducted: 0, balance: 0 };
+  }
+
+  const row = await db
+    .prepare('SELECT credits_balance FROM users WHERE id = ?1')
+    .bind(userId)
+    .first();
+  if (!row) {
+    return { allowed: false, deducted: 0, balance: 0 };
+  }
+
+  const currentBalance = Math.max(0, Number(row.credits_balance || 0));
+  if (amount === 0) {
+    return { allowed: true, deducted: 0, balance: currentBalance };
+  }
+
+  const toDeduct = clampToBalance ? Math.min(amount, currentBalance) : amount;
+  if (toDeduct === 0) {
+    return {
+      allowed: Boolean(clampToBalance),
+      deducted: 0,
+      balance: currentBalance,
+    };
+  }
+
+  const nowIso = new Date().toISOString();
+  const updated = await db
+    .prepare(
+      `UPDATE users
+       SET credits_balance = credits_balance - ?2, updated_at = ?3
+       WHERE id = ?1 AND credits_balance >= ?2
+       RETURNING credits_balance`
+    )
+    .bind(userId, toDeduct, nowIso)
+    .first();
+
+  if (!updated) {
+    const latest = await db
+      .prepare('SELECT credits_balance FROM users WHERE id = ?1')
+      .bind(userId)
+      .first();
+    return {
+      allowed: false,
+      deducted: 0,
+      balance: Math.max(0, Number(latest?.credits_balance || 0)),
+    };
+  }
+
+  await db
+    .prepare(
+      `INSERT INTO credit_ledger (id, user_id, delta, reason, ref_id, meta_json, created_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`
+    )
+    .bind(
+      crypto.randomUUID(),
+      userId,
+      -toDeduct,
+      reason,
+      refId || null,
+      meta ? JSON.stringify(meta) : null,
+      nowIso
+    )
+    .run();
+
+  return {
+    allowed: true,
+    deducted: toDeduct,
+    balance: Math.max(0, Number(updated.credits_balance || 0)),
+  };
+}
+
+export async function recordPendingCheckout(db, { sessionId, userId, email, packId }) {
   const nowIso = new Date().toISOString();
   await db
     .prepare(
@@ -188,11 +268,11 @@ export async function recordPendingCheckout(db, { sessionId, userId, email, plan
        VALUES (?1, ?2, ?3, ?4, 'dodo', ?1, 'pending', ?5, ?5)
        ON CONFLICT(id) DO UPDATE SET updated_at = excluded.updated_at`
     )
-    .bind(sessionId, userId, email || null, plan, nowIso)
+    .bind(sessionId, userId, email || null, packId, nowIso)
     .run();
 }
 
-export async function getLatestPendingCheckoutForUser(db, userId) {
+export async function getLatestCheckoutForUser(db, userId) {
   return db
     .prepare(
       "SELECT * FROM payments WHERE user_id = ?1 AND provider = 'dodo' ORDER BY created_at DESC LIMIT 1"
@@ -202,26 +282,30 @@ export async function getLatestPendingCheckoutForUser(db, userId) {
 }
 
 /**
- * Unlocks PRO access for verified payments/subscriptions in D1.
+ * Idempotently grants prepaid credits for a verified Dodo purchase.
  */
-export async function grantProAccess(
+export async function grantCreditPurchase(
   db,
-  { userId, email, plan, paymentId, sessionId, subscriptionId, customerId, expiresAt, rawEventType }
+  { userId, email, packId, paymentId, sessionId, customerId, rawEventType }
 ) {
+  const pack = getCreditPack(packId);
+  if (!pack) {
+    throw new Error('Invalid or unknown credit pack.');
+  }
+
   const nowIso = new Date().toISOString();
-  let resolvedUser = userId ? await db.prepare('SELECT * FROM users WHERE id = ?1').bind(userId).first() : null;
+  let resolvedUser = userId
+    ? await db.prepare('SELECT * FROM users WHERE id = ?1').bind(userId).first()
+    : null;
 
   if (!resolvedUser && sessionId) {
-    const pRow = await db.prepare('SELECT user_id FROM payments WHERE session_id = ?1').bind(sessionId).first();
+    const pRow = await db
+      .prepare('SELECT user_id FROM payments WHERE session_id = ?1 LIMIT 1')
+      .bind(sessionId)
+      .first();
     if (pRow?.user_id) {
       resolvedUser = await db.prepare('SELECT * FROM users WHERE id = ?1').bind(pRow.user_id).first();
     }
-  }
-  if (!resolvedUser && subscriptionId) {
-    resolvedUser = await db
-      .prepare('SELECT * FROM users WHERE dodo_subscription_id = ?1')
-      .bind(subscriptionId)
-      .first();
   }
   if (!resolvedUser && email) {
     resolvedUser = await db
@@ -234,45 +318,99 @@ export async function grantProAccess(
     return null;
   }
 
-  const normalizedPlan = 'monthly_pro';
-  let nextExpiryIso = expiresAt || null;
+  // Prevent duplicate crediting across paymentId / sessionId / webhook+verify race
+  if (paymentId) {
+    const paidByPay = await db
+      .prepare("SELECT id FROM payments WHERE payment_id = ?1 AND status = 'succeeded' LIMIT 1")
+      .bind(paymentId)
+      .first();
+    if (paidByPay) {
+      return {
+        alreadyGranted: true,
+        creditsAdded: 0,
+        user: await resolveActiveUser(db, resolvedUser.id),
+      };
+    }
+  }
+  if (sessionId) {
+    const paidBySess = await db
+      .prepare("SELECT id FROM payments WHERE session_id = ?1 AND status = 'succeeded' LIMIT 1")
+      .bind(sessionId)
+      .first();
+    if (paidBySess) {
+      return {
+        alreadyGranted: true,
+        creditsAdded: 0,
+        user: await resolveActiveUser(db, resolvedUser.id),
+      };
+    }
+  }
 
-  if (!nextExpiryIso) {
-    const durationMs = 35 * 24 * 60 * 60 * 1000; // 35-day buffer refreshed by recurring webhooks
-    nextExpiryIso = new Date(Date.now() + durationMs).toISOString();
+  const payRef = paymentId ? `pay:${paymentId}` : null;
+  const sessRef = sessionId ? `sess:${sessionId}` : null;
+  const primaryRef = payRef || sessRef || `evt:${crypto.randomUUID()}`;
+
+  if (payRef && sessRef) {
+    const existingLedger = await db
+      .prepare('SELECT id FROM credit_ledger WHERE ref_id = ?1 OR ref_id = ?2 LIMIT 1')
+      .bind(payRef, sessRef)
+      .first();
+    if (existingLedger) {
+      return {
+        alreadyGranted: true,
+        creditsAdded: 0,
+        user: await resolveActiveUser(db, resolvedUser.id),
+      };
+    }
+  }
+
+  const ledgerRes = await db
+    .prepare(
+      `INSERT OR IGNORE INTO credit_ledger (id, user_id, delta, reason, ref_id, meta_json, created_at)
+       VALUES (?1, ?2, ?3, 'purchase', ?4, ?5, ?6)`
+    )
+    .bind(
+      crypto.randomUUID(),
+      resolvedUser.id,
+      pack.credits,
+      primaryRef,
+      JSON.stringify({ packId: pack.id, paymentId: paymentId || null, sessionId: sessionId || null }),
+      nowIso
+    )
+    .run();
+
+  const inserted = Boolean(ledgerRes?.meta?.changes && ledgerRes.meta.changes > 0);
+  if (!inserted) {
+    return {
+      alreadyGranted: true,
+      creditsAdded: 0,
+      user: await resolveActiveUser(db, resolvedUser.id),
+    };
   }
 
   await db
     .prepare(
       `UPDATE users
-       SET tier = 'pro',
-           pro_plan = ?1,
-           pro_expires_at = ?2,
-           dodo_customer_id = COALESCE(?3, dodo_customer_id),
-           dodo_subscription_id = COALESCE(?4, dodo_subscription_id),
-           updated_at = ?5
-       WHERE id = ?6`
+       SET credits_balance = credits_balance + ?1,
+           total_purchased_credits = total_purchased_credits + ?1,
+           dodo_customer_id = COALESCE(?2, dodo_customer_id),
+           updated_at = ?3
+       WHERE id = ?4`
     )
-    .bind(
-      normalizedPlan,
-      nextExpiryIso,
-      customerId || null,
-      subscriptionId || null,
-      nowIso,
-      resolvedUser.id
-    )
+    .bind(pack.credits, customerId || null, nowIso, resolvedUser.id)
     .run();
 
-  const recordId = paymentId || sessionId || subscriptionId || `dodo_${Date.now()}`;
+  const recordId = paymentId || sessionId || `dodo_${Date.now()}`;
   await db
     .prepare(
       `INSERT INTO payments (
          id, user_id, email, plan, provider, session_id, payment_id, subscription_id, status, raw_event_type, created_at, updated_at
-       ) VALUES (?1, ?2, ?3, ?4, 'dodo', ?5, ?6, ?7, 'succeeded', ?8, ?9, ?9)
+       ) VALUES (?1, ?2, ?3, ?4, 'dodo', ?5, ?6, NULL, 'succeeded', ?7, ?8, ?8)
        ON CONFLICT(id) DO UPDATE SET
+         plan = excluded.plan,
          status = 'succeeded',
+         session_id = COALESCE(excluded.session_id, payments.session_id),
          payment_id = COALESCE(excluded.payment_id, payments.payment_id),
-         subscription_id = COALESCE(excluded.subscription_id, payments.subscription_id),
          raw_event_type = excluded.raw_event_type,
          updated_at = excluded.updated_at`
     )
@@ -280,29 +418,64 @@ export async function grantProAccess(
       recordId,
       resolvedUser.id,
       email || resolvedUser.email,
-      normalizedPlan,
+      pack.id,
       sessionId || null,
       paymentId || null,
-      subscriptionId || null,
-      rawEventType || null,
+      rawEventType || 'payment.succeeded',
       nowIso
     )
     .run();
 
-  return resolveActiveUser(db, resolvedUser.id);
+  if (sessionId && sessionId !== recordId) {
+    await db
+      .prepare(
+        `UPDATE payments
+         SET status = 'succeeded',
+             payment_id = COALESCE(?1, payment_id),
+             plan = ?2,
+             raw_event_type = ?3,
+             updated_at = ?4
+         WHERE session_id = ?5`
+      )
+      .bind(paymentId || null, pack.id, rawEventType || 'payment.succeeded', nowIso, sessionId)
+      .run();
+  }
+
+  return {
+    alreadyGranted: false,
+    creditsAdded: pack.credits,
+    user: await resolveActiveUser(db, resolvedUser.id),
+  };
 }
 
-export async function revokeProAccess(
+/**
+ * Reverses credits idempotently on Dodo refund.succeeded or dispute.opened events.
+ */
+export async function revokeCreditPurchase(
   db,
-  { userId, subscriptionId, email, status = 'cancelled', rawEventType, keepUntilIso = null }
+  { userId, paymentId, sessionId, email, status = 'refunded', rawEventType }
 ) {
   const nowIso = new Date().toISOString();
-  let target = userId ? await db.prepare('SELECT * FROM users WHERE id = ?1').bind(userId).first() : null;
-  if (!target && subscriptionId) {
-    target = await db
-      .prepare('SELECT * FROM users WHERE dodo_subscription_id = ?1')
-      .bind(subscriptionId)
+
+  let paymentRow = null;
+  if (paymentId) {
+    paymentRow = await db
+      .prepare('SELECT * FROM payments WHERE payment_id = ?1 LIMIT 1')
+      .bind(paymentId)
       .first();
+  }
+  if (!paymentRow && sessionId) {
+    paymentRow = await db
+      .prepare('SELECT * FROM payments WHERE session_id = ?1 LIMIT 1')
+      .bind(sessionId)
+      .first();
+  }
+
+  let target = userId
+    ? await db.prepare('SELECT * FROM users WHERE id = ?1').bind(userId).first()
+    : null;
+  if (!target && paymentRow?.user_id) {
+    target = await db.prepare('SELECT * FROM users WHERE id = ?1').bind(paymentRow.user_id).first();
   }
   if (!target && email) {
     target = await db
@@ -312,28 +485,51 @@ export async function revokeProAccess(
   }
   if (!target) return null;
 
-  const keepMs = keepUntilIso ? Date.parse(keepUntilIso) : 0;
-  if (keepUntilIso && !Number.isNaN(keepMs) && keepMs > Date.now()) {
-    await db
-      .prepare('UPDATE users SET pro_expires_at = ?1, updated_at = ?2 WHERE id = ?3')
-      .bind(new Date(keepMs).toISOString(), nowIso, target.id)
-      .run();
-  } else {
+  const pack = getCreditPack(paymentRow?.plan || 'credits_10');
+  const clawbackCredits = pack ? pack.credits : 10;
+  const refundRef = `refund:${paymentId || sessionId || crypto.randomUUID()}`;
+
+  const ledgerRes = await db
+    .prepare(
+      `INSERT OR IGNORE INTO credit_ledger (id, user_id, delta, reason, ref_id, meta_json, created_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`
+    )
+    .bind(
+      crypto.randomUUID(),
+      target.id,
+      -clawbackCredits,
+      status,
+      refundRef,
+      JSON.stringify({ paymentId: paymentId || null, sessionId: sessionId || null, rawEventType }),
+      nowIso
+    )
+    .run();
+
+  if (ledgerRes?.meta?.changes && ledgerRes.meta.changes > 0) {
     await db
       .prepare(
-        "UPDATE users SET tier = 'free', pro_plan = NULL, pro_expires_at = NULL, updated_at = ?1 WHERE id = ?2"
+        `UPDATE users
+         SET credits_balance = MAX(0, credits_balance - ?1),
+             updated_at = ?2
+         WHERE id = ?3`
       )
-      .bind(nowIso, target.id)
+      .bind(clawbackCredits, nowIso, target.id)
       .run();
   }
 
-  if (subscriptionId) {
+  if (paymentId) {
     await db
       .prepare(
-        `UPDATE payments SET status = ?1, raw_event_type = ?2, updated_at = ?3
-         WHERE subscription_id = ?4`
+        'UPDATE payments SET status = ?1, raw_event_type = ?2, updated_at = ?3 WHERE payment_id = ?4'
       )
-      .bind(status, rawEventType || status, nowIso, subscriptionId)
+      .bind(status, rawEventType || status, nowIso, paymentId)
+      .run();
+  } else if (sessionId) {
+    await db
+      .prepare(
+        'UPDATE payments SET status = ?1, raw_event_type = ?2, updated_at = ?3 WHERE session_id = ?4'
+      )
+      .bind(status, rawEventType || status, nowIso, sessionId)
       .run();
   }
 
@@ -351,4 +547,3 @@ export async function markWebhookProcessed(db, webhookId, eventType) {
     .run();
   return Boolean(res?.meta?.changes && res.meta.changes > 0);
 }
-

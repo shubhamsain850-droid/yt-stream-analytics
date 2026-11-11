@@ -1,11 +1,15 @@
-import { jsonResponse } from '../../_shared/security.js';
-import { getLatestPendingCheckoutForUser, grantProAccess } from '../../_shared/db.js';
+import { getRequestCountry, jsonResponse } from '../../_shared/security.js';
 import {
+  getLatestCheckoutForUser,
+  grantCreditPurchase,
+  isIndiaFirstPurchaseEligible,
+} from '../../_shared/db.js';
+import {
+  getCreditPack,
   getDodoConfig,
-  resolvePlanFromProductId,
+  resolvePackFromProductId,
   retrieveDodoCheckoutSession,
   retrieveDodoPayment,
-  retrieveDodoSubscription,
 } from '../../_shared/dodo.js';
 import { resolveRequestIdentity } from '../../_shared/context.js';
 
@@ -21,6 +25,15 @@ function matchesUser(entity, user) {
   return false;
 }
 
+function resolvePackId(env, productId, metaPack, pendingPack, bodyPack) {
+  const fromProd = resolvePackFromProductId(env, productId);
+  if (fromProd) return fromProd;
+  for (const candidate of [metaPack, pendingPack, bodyPack]) {
+    if (getCreditPack(candidate)) return candidate;
+  }
+  return 'credits_10';
+}
+
 export async function onRequestPost({ request, env }) {
   try {
     const { user } = await resolveRequestIdentity(request, env);
@@ -28,11 +41,7 @@ export async function onRequestPost({ request, env }) {
       return jsonResponse({ error: 'auth_required', message: 'Sign in required.' }, 401);
     }
 
-    // Already verified active PRO (e.g. webhook already arrived before redirect completed)
-    if (user.tier === 'pro') {
-      return jsonResponse({ ok: true, verified: true, user });
-    }
-
+    const country = getRequestCountry(request);
     const cfg = getDodoConfig(env);
     if (!cfg.apiKey) {
       return jsonResponse({ ok: false, verified: false, user, reason: 'payment_not_configured' });
@@ -46,40 +55,54 @@ export async function onRequestPost({ request, env }) {
     }
 
     let paymentId = typeof body?.paymentId === 'string' ? body.paymentId.trim() : '';
-    let subscriptionId = typeof body?.subscriptionId === 'string' ? body.subscriptionId.trim() : '';
     let sessionId = typeof body?.sessionId === 'string' ? body.sessionId.trim() : '';
+    const requestedPack = typeof (body?.packId || body?.plan) === 'string' ? String(body?.packId || body?.plan).trim() : '';
 
-    const latestPending = await getLatestPendingCheckoutForUser(env.DB, user.id);
-    if (!sessionId && latestPending?.session_id) {
-      sessionId = latestPending.session_id;
+    const latestCheckout = await getLatestCheckoutForUser(env.DB, user.id);
+    if (!sessionId && latestCheckout?.session_id && latestCheckout?.status === 'pending') {
+      sessionId = latestCheckout.session_id;
     }
 
-    // 1. Check checkout session directly if we have one
-    if (!paymentId && !subscriptionId && sessionId) {
+    // 1. Check checkout session directly via GET /checkouts/{id}
+    if (sessionId) {
       try {
         const sess = await retrieveDodoCheckoutSession(env, sessionId);
-        if (sess?.payment_id) paymentId = sess.payment_id;
-        if (sess?.subscription_id) subscriptionId = sess.subscription_id;
+        if (sess?.payment_id && !paymentId) paymentId = sess.payment_id;
         const sessStatus = String(sess?.payment_status || sess?.status || '').toLowerCase();
-        if (sessStatus === 'succeeded' && (matchesUser(sess, user) || latestPending?.user_id === user.id)) {
-          const plan =
-            sess?.metadata?.plan ||
-            latestPending?.plan ||
-            body?.plan ||
-            'monthly_pro';
-          const updatedUser = await grantProAccess(env.DB, {
+        if (sessStatus === 'succeeded' && (matchesUser(sess, user) || latestCheckout?.user_id === user.id)) {
+          const prodId = sess?.product_cart?.[0]?.product_id || sess?.product_id;
+          const packId = resolvePackId(
+            env,
+            prodId,
+            sess?.metadata?.pack_id,
+            latestCheckout?.plan,
+            requestedPack
+          );
+          const granted = await grantCreditPurchase(env.DB, {
             userId: user.id,
             email: user.email,
-            plan,
+            packId,
             paymentId: paymentId || null,
             sessionId,
-            subscriptionId: subscriptionId || null,
+            customerId: sess?.customer?.customer_id || null,
             rawEventType: 'checkout.verify_session',
           });
-          return jsonResponse({ ok: true, verified: true, user: updatedUser });
+          const updatedUser = granted?.user || user;
+          const indiaFirstPurchaseEligible = await isIndiaFirstPurchaseEligible(
+            env.DB,
+            updatedUser,
+            country
+          );
+          return jsonResponse({
+            ok: true,
+            verified: true,
+            creditsAdded: granted?.creditsAdded || 0,
+            user: updatedUser,
+            region: { country, isIndia: country === 'IN', indiaFirstPurchaseEligible },
+          });
         }
       } catch {
-        // Fall through to payment/subscription direct verification if IDs provided
+        // Fall through to payment verification
       }
     }
 
@@ -87,54 +110,49 @@ export async function onRequestPost({ request, env }) {
     if (paymentId) {
       const payment = await retrieveDodoPayment(env, paymentId);
       const status = String(payment?.status || '').toLowerCase();
-      if (status === 'succeeded' && (matchesUser(payment, user) || latestPending?.user_id === user.id)) {
-        const productId = payment?.product_cart?.[0]?.product_id || payment?.product_id;
-        const plan =
-          payment?.metadata?.plan ||
-          latestPending?.plan ||
-          resolvePlanFromProductId(env, productId);
-        const updatedUser = await grantProAccess(env.DB, {
+      if (status === 'succeeded' && (matchesUser(payment, user) || latestCheckout?.user_id === user.id)) {
+        const prodId = payment?.product_cart?.[0]?.product_id || payment?.product_id;
+        const packId = resolvePackId(
+          env,
+          prodId,
+          payment?.metadata?.pack_id,
+          latestCheckout?.plan,
+          requestedPack
+        );
+        const granted = await grantCreditPurchase(env.DB, {
           userId: user.id,
           email: user.email,
-          plan,
+          packId,
           paymentId,
-          sessionId: sessionId || null,
-          subscriptionId: payment?.subscription_id || subscriptionId || null,
+          sessionId: sessionId || payment?.checkout_session_id || null,
           customerId: payment?.customer?.customer_id || null,
           rawEventType: 'checkout.verify_payment',
         });
-        return jsonResponse({ ok: true, verified: true, user: updatedUser });
+        const updatedUser = granted?.user || user;
+        const indiaFirstPurchaseEligible = await isIndiaFirstPurchaseEligible(
+          env.DB,
+          updatedUser,
+          country
+        );
+        return jsonResponse({
+          ok: true,
+          verified: true,
+          creditsAdded: granted?.creditsAdded || 0,
+          user: updatedUser,
+          region: { country, isIndia: country === 'IN', indiaFirstPurchaseEligible },
+        });
       }
     }
 
-    // 3. Verify subscription directly via GET /subscriptions/{id}
-    if (subscriptionId) {
-      const sub = await retrieveDodoSubscription(env, subscriptionId);
-      const status = String(sub?.status || '').toLowerCase();
-      if ((status === 'active' || status === 'on_hold') && (matchesUser(sub, user) || latestPending?.user_id === user.id)) {
-        if (status === 'active') {
-          const updatedUser = await grantProAccess(env.DB, {
-            userId: user.id,
-            email: user.email,
-            plan: 'monthly_pro',
-            sessionId: sessionId || null,
-            subscriptionId,
-            customerId: sub?.customer?.customer_id || null,
-            rawEventType: 'checkout.verify_subscription',
-          });
-          return jsonResponse({ ok: true, verified: true, user: updatedUser });
-        }
-      }
-    }
-
+    const indiaFirstPurchaseEligible = await isIndiaFirstPurchaseEligible(env.DB, user, country);
     return jsonResponse({
       ok: true,
       verified: false,
       pending: true,
       user,
+      region: { country, isIndia: country === 'IN', indiaFirstPurchaseEligible },
     });
   } catch (err) {
     return jsonResponse({ error: err.message || 'Verification failed.' }, 500);
   }
 }
-

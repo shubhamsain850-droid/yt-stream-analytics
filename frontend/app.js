@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TubeMetrix — YouTube Live Stream Earning, Super Chat, Memberships & Jewels Analytics
  * Connected to live FastAPI backend on Hugging Face: https://shubhamsain858-kickcuttr-api.hf.space
  */
@@ -724,7 +724,7 @@ function setupSingleMode() {
       elements.singleUrlInput.focus();
       return;
     }
-    startProcessing([url]);
+    startProcessing([url], null, { mode: 'single' });
   });
 }
 
@@ -759,14 +759,14 @@ function setupChannelMode() {
   });
 
   elements.startChannelBtn.addEventListener('click', async () => {
-    // Server-Verified PRO Gatekeeper for Bulk Channel Auditing
+    // Server-Verified Credits Gatekeeper (Pre-flight check before scanning channel streams)
     if (window.TubeMetrixAuth) {
       const allowed = typeof window.TubeMetrixAuth.authorizeRun === 'function'
-        ? await window.TubeMetrixAuth.authorizeRun(0, { requirePro: true })
-        : window.TubeMetrixAuth.isPro();
+        ? await window.TubeMetrixAuth.authorizeRun(1, { mode: 'channel', checkOnly: true })
+        : window.TubeMetrixAuth.hasCredits();
       if (!allowed) {
         if (typeof window.TubeMetrixAuth.authorizeRun !== 'function') {
-          window.TubeMetrixAuth.openProModal();
+          window.TubeMetrixAuth.openCreditsModal();
         }
         return;
       }
@@ -799,7 +799,7 @@ function setupChannelMode() {
       const resJson = await resp.json();
       if (resJson.success && resJson.streams && resJson.streams.length > 0) {
         let urls = resJson.streams.map(s => s.url);
-        startProcessing(urls, `Channel: ${channel} (${urls.length} Streams Found)`);
+        startProcessing(urls, `Channel: ${channel} (${urls.length} Streams Found)`, { mode: 'channel' });
         return;
       } else {
         alert("No streams found matching the specified date range on this channel.");
@@ -813,41 +813,39 @@ function setupChannelMode() {
   });
 }
 
-// ── Option C (Multi-URL Batch - Max 25 Streams) ──
+// ── Option C (Multi-URL Batch - Credits System) ──
 const MAX_MULTI_STREAMS = 500;
 
 function setupMultiMode() {
-  const FREE_CUSTOM_URL_LIMIT = 3;
-
   function updateMultiBadgeAndUI() {
-    const isPro = window.TubeMetrixAuth && window.TubeMetrixAuth.isPro();
+    const auth = window.TubeMetrixAuth;
+    const credits = auth && typeof auth.getCreditsBalance === 'function' ? auth.getCreditsBalance() : 0;
+    const hasCredits = credits > 0;
     const count = state.multiUrlQueue.length;
     elements.multiTabBadge.textContent = `${count} Added`;
     elements.queueCount.textContent = `${count} Added`;
     elements.startMultiBtn.disabled = count === 0;
     elements.clearAllUrlsBtn.style.display = count > 0 ? 'inline-block' : 'none';
 
-    // Dynamic Pill for Free vs PRO
     if (elements.batchLimitNotice) {
-      if (isPro) {
+      if (hasCredits) {
         elements.batchLimitNotice.className = 'batch-limit-pill pro-pill';
-        elements.batchLimitNotice.textContent = '👑 Unlimited Batch Queue';
+        elements.batchLimitNotice.textContent = `💎 ${credits} Credits Available (1 Cr / stream)`;
       } else {
         elements.batchLimitNotice.className = 'batch-limit-pill';
-        elements.batchLimitNotice.textContent = 'Daily Free Limit: Add 3 URLs';
+        elements.batchLimitNotice.textContent = '💎 Credits Required (No Free Quota)';
       }
     }
     if (elements.batchQueueLimitText) {
-      elements.batchQueueLimitText.textContent = isPro
-        ? 'Streams in Batch (Unlimited)'
-        : `Streams in Batch (${count}/${FREE_CUSTOM_URL_LIMIT} Free)`;
+      const estCredits = count > 0 ? count : 0;
+      elements.batchQueueLimitText.textContent = `Streams in Batch (${count} Added • ${estCredits} Credit${estCredits === 1 ? '' : 's'} Est.)`;
     }
 
     if (count === 0) {
       elements.urlQueueList.innerHTML = `
         <div class="empty-queue-hint">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (${isPro ? '👑 Unlimited Batch Queue' : 'Daily Free Limit: Add 3 URLs'}).</span>
+          <span>No streams added yet. Paste YouTube URLs above and click <strong>"Add Stream"</strong> (${hasCredits ? `💎 ${credits} Credits Ready` : 'Requires Credits • No Free Quota'}).</span>
         </div>`;
       return;
     }
@@ -875,28 +873,11 @@ function setupMultiMode() {
     const rawVal = elements.multiUrlInput.value.trim();
     if (!rawVal) return;
 
-    const isPro = window.TubeMetrixAuth && window.TubeMetrixAuth.isPro();
-    const currentCount = state.multiUrlQueue.length;
-
-    // Check if free user is already at the limit
-    if (!isPro && currentCount >= FREE_CUSTOM_URL_LIMIT) {
-      if (window.TubeMetrixAuth) {
-        window.TubeMetrixAuth.openProModal("Free Batch Limit Reached! You have added 3 streams. Upgrade to Creator PRO to queue unlimited custom streams!");
-      } else {
-        alert("Free limit reached (3 streams). Upgrade to PRO for unlimited custom streams!");
-      }
-      return;
-    }
-
-    // Support single URL or multiple pasted URLs
     const items = rawVal.split(/[\r\n,\s]+/).map(u => u.trim()).filter(Boolean);
     let addedCount = 0;
     let duplicateCount = 0;
 
     for (const url of items) {
-      if (!isPro && state.multiUrlQueue.length >= FREE_CUSTOM_URL_LIMIT) {
-        break;
-      }
       if (state.multiUrlQueue.length >= MAX_MULTI_STREAMS) {
         break;
       }
@@ -912,11 +893,7 @@ function setupMultiMode() {
     elements.multiUrlInput.focus();
     updateMultiBadgeAndUI();
 
-    if (!isPro && state.multiUrlQueue.length >= FREE_CUSTOM_URL_LIMIT && items.length > addedCount) {
-      if (window.TubeMetrixAuth) {
-        window.TubeMetrixAuth.openProModal(`Added ${addedCount} stream(s) (Free limit: 3 streams reached). Upgrade to PRO to add all streams simultaneously!`);
-      }
-    } else if (addedCount === 0 && duplicateCount > 0) {
+    if (addedCount === 0 && duplicateCount > 0) {
       alert('The entered stream URL is already in your batch list.');
     }
   }
@@ -933,14 +910,13 @@ function setupMultiMode() {
     }
   });
 
-  // Expose to window for auth refresh and initialize immediately on load
   window.refreshMultiBatchUI = updateMultiBadgeAndUI;
   updateMultiBadgeAndUI();
 
   elements.startMultiBtn.addEventListener('click', () => {
     if (state.multiUrlQueue.length === 0) return;
     const batch = state.multiUrlQueue.slice(0, MAX_MULTI_STREAMS);
-    startProcessing(batch, `Custom URL Batch (${batch.length} Streams)`);
+    startProcessing(batch, `Custom URL Batch (${batch.length} Streams)`, { mode: 'batch' });
   });
 }
 
@@ -1298,15 +1274,16 @@ function stopProgressSimulation() {
 // ── 6. High-Performance Processing Engine (Safe Concurrency Pool & Live Streaming UI) ──
 const CONCURRENCY_LIMIT = 3;
 
-async function startProcessing(urls, label = null) {
-  // Server-Verified Auth & Quota Gatekeeper
+async function startProcessing(urls, label = null, options = {}) {
+  const mode = options?.mode || 'single';
+  // Server-Verified Auth, Weekly Single Quota & Credits Gatekeeper
   if (window.TubeMetrixAuth) {
     if (typeof window.TubeMetrixAuth.authorizeRun === 'function') {
-      if (!(await window.TubeMetrixAuth.authorizeRun(urls.length))) {
+      if (!(await window.TubeMetrixAuth.authorizeRun(urls.length, { mode, credits: urls.length }))) {
         return;
       }
     } else if (typeof window.TubeMetrixAuth.checkQuota === 'function') {
-      if (!window.TubeMetrixAuth.checkQuota(urls.length)) {
+      if (!window.TubeMetrixAuth.checkQuota(urls.length, { mode })) {
         return;
       }
     }

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -42,14 +42,14 @@
   {"@context":"https://schema.org","@type":"WebApplication","name":"TubeMetrix — YouTube Live Chat & Comments Downloader","url":"https://tubemetrix.net/chats","description":"Download YouTube live stream chat replays with timestamps, Superchats and Memberships. Bulk export comments from any YouTube video to CSV or Excel.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["YouTube Live Chat Replay Downloader","YouTube Comments Bulk Export","Superchat Filter & Export","Custom URL Batch Download","In-Browser Chat Viewer","CSV and Excel Export"]}
   </script>
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How to download YouTube live chat replay?","acceptedAnswer":{"@type":"Answer","text":"Paste your YouTube live stream URL into TubeMetrix Live Chat Downloader. The tool fetches the complete chat replay with timestamps, Superchats, and Memberships. Export to CSV, Excel, or TXT instantly."}},{"@type":"Question","name":"Can I export YouTube comments to Excel or CSV?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix supports one-click export of all YouTube video comments to Excel (.xls), CSV, TXT, and JSON. Use Option D (Video Comments) to download comments from any public YouTube video."}},{"@type":"Question","name":"What is the maximum number of live streams I can batch export?","acceptedAnswer":{"@type":"Answer","text":"Free users can queue up to 3 custom live stream URLs daily using Custom URL Batch Export, while PRO members get an unlimited batch queue and full Channel Multi Live Chat Export."}},{"@type":"Question","name":"How to filter Superchats from live chat logs?","acceptedAnswer":{"@type":"Answer","text":"After downloading, open the in-browser Chat Viewer and use the Event Type filter to show only Superchats. Set a minimum Superchat amount filter and sort by highest value."}},{"@type":"Question","name":"Does TubeMetrix work with YouTube Shorts comments?","acceptedAnswer":{"@type":"Answer","text":"Yes, TubeMetrix can download comments from YouTube Shorts, regular videos, and live stream replays. Simply paste the YouTube Shorts URL into the Video Comments tab."}}]}
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How to download YouTube live chat replay?","acceptedAnswer":{"@type":"Answer","text":"Paste your YouTube live stream URL into TubeMetrix Live Chat Downloader. The tool fetches the complete chat replay with timestamps, Superchats, and Memberships. Export to CSV, Excel, or TXT instantly."}},{"@type":"Question","name":"Can I export YouTube comments to Excel or CSV?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix supports one-click export of all YouTube video comments to Excel (.xls), CSV, TXT, and JSON. Use Option D (Video Comments) to download comments from any public YouTube video."}},{"@type":"Question","name":"What are the free limits and credit rates for live chat exports?","acceptedAnswer":{"@type":"Answer","text":"Single Stream mode includes 2 free runs per week as a Guest and 3 free runs per week when signed in with Google (covering Single Live Chat or Single Video Comments up to 1,000). Custom URL Batch Export and Channel Multi Live Chat Export run on prepaid never-expiring Credits at $0.60 per 2,000 chats (1 Credit = 1,000 chats)."}},{"@type":"Question","name":"How to filter Superchats from live chat logs?","acceptedAnswer":{"@type":"Answer","text":"After downloading, open the in-browser Chat Viewer and use the Event Type filter to show only Superchats. Set a minimum Superchat amount filter and sort by highest value."}},{"@type":"Question","name":"Does TubeMetrix work with YouTube Shorts comments?","acceptedAnswer":{"@type":"Answer","text":"Yes, TubeMetrix can download comments from YouTube Shorts, regular videos, and live stream replays. Simply paste the YouTube Shorts URL into the Video Comments tab."}}]}
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=6.7">
+  <link rel="stylesheet" href="styles.css?v=6.8">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -167,7 +167,7 @@
               <line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
             <span>Multi Live Chat Export</span>
-            <span class="tab-pro-pill" id="channelChatTabProPill">👑 PRO</span>
+            <span class="tab-pro-pill" id="channelChatTabProPill">💎 CREDITS</span>
           </button>
           <button class="tab-btn" data-mode="multi">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -240,30 +240,30 @@
           or date-filtered live streams of any YouTube channel in one go.</span>
       </div>
 
-      <!-- PRO Feature Lock Banner -->
+      <!-- Credits Feature Lock Banner -->
       <div class="pro-panel-lock-banner" id="channelChatProLock">
         <div class="pro-lock-content">
           <div class="pro-lock-icon-wrap">
-            <span class="pro-lock-crown">👑</span>
-            <span class="pro-lock-badge">PRO FEATURE</span>
+            <span class="pro-lock-crown">💎</span>
+            <span class="pro-lock-badge">PAY-AS-YOU-GO CREDITS</span>
           </div>
-          <h3 class="pro-lock-title">Unlock Bulk Channel Chat Replay Downloader</h3>
+          <h3 class="pro-lock-title">Unlock Bulk Channel &amp; Date Range Chat Downloader</h3>
           <p class="pro-lock-desc">
-            Download complete live chat logs, Superchats, and Member messages for up to 500+ streams of any channel
-            simultaneously.
+            Download complete live chat logs, Superchats, and Member messages across any channel date window using
+            never-expiring prepaid credits ($0.60 per 2,000 chats • zero subscriptions).
           </p>
           <div class="pro-lock-perks">
-            <span class="pro-perk-item">✓ Unlimited Bulk Chat Replays</span>
+            <span class="pro-perk-item">✓ 1 Credit = 1,000 Chats (min 1 Cr/stream)</span>
             <span class="pro-perk-item">✓ Highlighted Superchats &amp; Memberships</span>
             <span class="pro-perk-item">✓ 100% Ad-Free Experience</span>
-            <span class="pro-perk-item">✓ Full JSON / CSV Batch Export</span>
+            <span class="pro-perk-item">✓ Full JSON / CSV / Excel Batch Export</span>
           </div>
           <div class="pro-lock-actions">
             <button class="btn-unlock-pro" type="button" id="unlockChatChannelProBtn">
-              <span data-tm-price-target="banner-pro">⚡ Upgrade to Creator PRO ($8.99/mo)</span>
+              <span data-tm-price-target="banner-credits">💎 Buy Credits ($2.99 for 10 Credits)</span>
             </button>
             <button class="btn-lock-free-switch" type="button" id="switchChatSingleStreamBtn">
-              Try 1 Single Stream for Free →
+              Try Free Single Stream (2–3 / Wk) →
             </button>
           </div>
         </div>
@@ -324,7 +324,7 @@
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
         <label class="input-label" for="chatMultiUrlInput" style="margin-bottom: 0;">Paste Stream Link &amp; Click 'Add
           Stream'</label>
-        <span class="batch-limit-pill" id="chatBatchLimitNotice">Daily Free Limit: Add 3 URLs</span>
+        <span class="batch-limit-pill" id="chatBatchLimitNotice">💎 Credits Required (No Free Quota)</span>
       </div>
       <div class="input-row">
         <div class="input-wrapper">
@@ -347,7 +347,7 @@
       <div class="url-queue-header">
         <div class="queue-counter">
           <span class="count-badge" id="chatQueueCount">0 Added</span>
-          <span class="count-text" id="chatBatchQueueLimitText">Streams in Batch (0/3 Free)</span>
+          <span class="count-text" id="chatBatchQueueLimitText">Streams in Batch (0 Added • 0 Credits Base)</span>
         </div>
         <button class="btn-clear" id="clearAllChatUrlsBtn" type="button" style="display: none;">Clear All</button>
       </div>
@@ -359,8 +359,7 @@
             <line x1="12" y1="8" x2="12" y2="12"></line>
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
-          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (Daily Free
-            Limit: Add 3 URLs).</span>
+          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (Requires Credits • No Free Quota).</span>
         </div>
       </div>
 
@@ -399,10 +398,12 @@
         <div class="limit-select-wrapper">
           <label for="commentsLimitSelect" class="limit-label">Limit:</label>
           <select id="commentsLimitSelect" class="limit-select">
-            <option value="100">100 Comments</option>
-            <option value="300" selected>300 Comments</option>
-            <option value="500">500 Comments</option>
-            <option value="1000">1,000 Comments</option>
+            <option value="100">100 Comments (Free / 1 Cr)</option>
+            <option value="300" selected>300 Comments (Free / 1 Cr)</option>
+            <option value="500">500 Comments (Free / 1 Cr)</option>
+            <option value="1000">1,000 Comments (Free / 1 Cr)</option>
+            <option value="2000">2,000 Comments (2 Credits • $0.60)</option>
+            <option value="5000">5,000 Comments (5 Credits)</option>
           </select>
         </div>
 
@@ -811,11 +812,11 @@
             style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
             <summary
               style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
-              What is the maximum number of live streams I can batch export? <span class="faq-icon">+</span></summary>
-            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Free users can
-              queue up to 3 custom live stream URLs daily using Custom URL Batch Export. PRO members unlock an
-              unlimited batch queue as well as Multi Live Chat Export to fetch streams from an entire channel within a
-              custom date range.</p>
+              What are the free limits and credit rates for live chat exports? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Single Stream
+              mode includes 2 free runs per week as a Guest and 3 free runs per week after Google Sign-In (for single
+              chat replays or up to 1,000 video comments). Custom URL Batch Export and Multi Live Chat Export (Date
+              Range) use never-expiring prepaid Credits at $0.60 per 2,000 chats (1 Credit = 1,000 chats).</p>
           </details>
           <details
             style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
@@ -982,8 +983,8 @@
     </div>
   </div>
 
-  <script src="auth.js?v=2.4"></script>
-  <script src="chats.js?v=6.4"></script>
+  <script src="auth.js?v=3.0"></script>
+  <script src="chats.js?v=6.5"></script>
   <!-- Adsterra Social Bar Integration -->
   <script data-cfasync="false" src="https://bauval.org/14/1130b0119de2f33b3a0f98fff91280bc"></script>
 </body>

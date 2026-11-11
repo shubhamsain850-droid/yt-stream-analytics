@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TubeMetrix — YouTube Live Chat & Comments Downloader & Interactive View Engine
  * High-Speed In-Memory Client Engine (100% Client-Side Processing & Offline Viewer)
  */
@@ -389,24 +389,16 @@
   function updateViewerSessionButton() { }
 
   // ─────────────────────────────────────────────
-  // 3. CUSTOM URL BATCH QUEUE (Free: 3, PRO: Unlimited)
+  // 3. CUSTOM URL BATCH QUEUE (Credits System Only)
   // ─────────────────────────────────────────────
-  const FREE_CUSTOM_URL_LIMIT = 3;
+  const MAX_CUSTOM_URLS = 500;
 
   function addUrlToChatQueue() {
     const raw = el.chatMultiUrlInput.value.trim();
     if (!raw) return;
 
-    const isPro = window.TubeMetrixAuth && window.TubeMetrixAuth.isPro();
-    const currentCount = state.multiUrlQueue.length;
-
-    // Gatekeeper: Max 3 streams for Free / Guest users
-    if (!isPro && currentCount >= FREE_CUSTOM_URL_LIMIT) {
-      if (window.TubeMetrixAuth) {
-        window.TubeMetrixAuth.openProModal("Free Batch Limit Reached! You have queued 3 streams. Upgrade to Creator PRO to download unlimited stream chats!");
-      } else {
-        alert("Free limit reached (3 streams). Upgrade to PRO for unlimited custom stream chat downloads!");
-      }
+    if (state.multiUrlQueue.length >= MAX_CUSTOM_URLS) {
+      alert(`Maximum batch limit reached (${MAX_CUSTOM_URLS} streams).`);
       return;
     }
 
@@ -429,28 +421,27 @@
   }
 
   function updateMultiChatQueueUI() {
-    const isPro = window.TubeMetrixAuth && window.TubeMetrixAuth.isPro();
+    const auth = window.TubeMetrixAuth;
+    const credits = auth && typeof auth.getCreditsBalance === 'function' ? auth.getCreditsBalance() : 0;
+    const hasCredits = credits > 0;
     const count = state.multiUrlQueue.length;
     if (el.chatQueueCount) el.chatQueueCount.textContent = `${count} Added`;
     if (el.multiTabBadge) el.multiTabBadge.textContent = `${count} Added`;
     if (el.startChatMultiBtn) el.startChatMultiBtn.disabled = count === 0;
     if (el.clearAllChatUrlsBtn) el.clearAllChatUrlsBtn.style.display = count > 0 ? 'inline-block' : 'none';
 
-    // Dynamic Pill & Subtext for Free vs PRO
     const batchNotice = el.chatBatchLimitNotice || document.querySelector('.mode-panel#panel-multi .batch-limit-pill');
     if (batchNotice) {
-      if (isPro) {
+      if (hasCredits) {
         batchNotice.className = 'batch-limit-pill pro-pill';
-        batchNotice.textContent = '👑 Unlimited Batch Queue';
+        batchNotice.textContent = `💎 ${credits} Credits Available (1 Cr / 1k chats)`;
       } else {
         batchNotice.className = 'batch-limit-pill';
-        batchNotice.textContent = 'Daily Free Limit: Add 3 URLs';
+        batchNotice.textContent = '💎 Credits Required (No Free Quota)';
       }
     }
     if (el.chatBatchQueueLimitText) {
-      el.chatBatchQueueLimitText.textContent = isPro
-        ? 'Streams in Batch (Unlimited)'
-        : `Streams in Batch (${count}/${FREE_CUSTOM_URL_LIMIT} Free)`;
+      el.chatBatchQueueLimitText.textContent = `Streams in Batch (${count} Added • ${count} Credit${count === 1 ? '' : 's'} Base)`;
     }
 
     if (!el.chatUrlQueueList) return;
@@ -459,7 +450,7 @@
       el.chatUrlQueueList.innerHTML = `
         <div class="empty-queue-hint">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (${isPro ? '👑 Unlimited Batch Queue' : 'Daily Free Limit: Add 3 URLs'}).</span>
+          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (${hasCredits ? `💎 ${credits} Credits Ready — 1 Credit / 1k chats` : 'Requires Credits • No Free Quota'}).</span>
         </div>`;
       return;
     }
@@ -525,11 +516,13 @@
     }
     if (window.TubeMetrixAuth) {
       if (typeof window.TubeMetrixAuth.authorizeRun === 'function') {
-        if (!(await window.TubeMetrixAuth.authorizeRun(1))) return;
+        if (!(await window.TubeMetrixAuth.authorizeRun(1, { mode: 'single', credits: 1 }))) return;
       } else if (typeof window.TubeMetrixAuth.checkQuota === 'function') {
-        if (!window.TubeMetrixAuth.checkQuota(1)) return;
+        if (!window.TubeMetrixAuth.checkQuota(1, { mode: 'single' })) return;
       }
     }
+    const runAuth = window.TubeMetrixAuth?.getLastRunAuth ? window.TubeMetrixAuth.getLastRunAuth() : null;
+    const paidByCredits = runAuth?.reason === 'credits';
 
     el.startChatSingleBtn.disabled = true;
     if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
@@ -560,8 +553,8 @@
         });
       }
       state.lastExtractionType = 'chats';
-      if (window.TubeMetrixAuth && typeof window.TubeMetrixAuth.incrementUsage === 'function') {
-        window.TubeMetrixAuth.incrementUsage(1);
+      if (paidByCredits && res.data.total_messages > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
+        await window.TubeMetrixAuth.settleChatVolumeCredits(res.data.total_messages, vid);
       }
 
       setProgress(100, `Complete!`, `Processed ${res.data.total_messages} messages in ${res.elapsed_sec || 0.5}s`, res.data.total_messages, res.data.unique_chatters, res.data.events_count);
@@ -582,14 +575,14 @@
 
   // Option B: Channel Live Streams
   async function startChannelChatExtraction() {
-    // Server-Verified PRO Gatekeeper for Bulk Channel Auditing
+    // Server-Verified Credits Pre-Flight Check before scanning channel streams
     if (window.TubeMetrixAuth) {
       const allowed = typeof window.TubeMetrixAuth.authorizeRun === 'function'
-        ? await window.TubeMetrixAuth.authorizeRun(0, { requirePro: true })
-        : window.TubeMetrixAuth.isPro();
+        ? await window.TubeMetrixAuth.authorizeRun(1, { mode: 'channel', checkOnly: true })
+        : window.TubeMetrixAuth.hasCredits();
       if (!allowed) {
         if (typeof window.TubeMetrixAuth.authorizeRun !== 'function') {
-          window.TubeMetrixAuth.openProModal();
+          window.TubeMetrixAuth.openCreditsModal();
         }
         return;
       }
@@ -628,9 +621,19 @@
       }
 
       const streams = cData.streams;
+      if (window.TubeMetrixAuth?.authorizeRun) {
+        const ok = await window.TubeMetrixAuth.authorizeRun(streams.length, {
+          mode: 'channel',
+          credits: streams.length,
+        });
+        if (!ok) {
+          hideProgress();
+          return;
+        }
+      }
       setProgress(25, `Found ${streams.length} Streams`, `Starting batch chat download for ${streams.length} streams...`);
 
-      const aggregatedData = await batchExtractChatMessages(streams.map(s => s.id));
+      const aggregatedData = await batchExtractChatMessages(streams.map(s => s.id), { paidByCredits: true });
       hideProgress();
       renderLiveChatReport(aggregatedData, `${cData.channel} (${streams.length} Streams Combined)`);
       updateViewerSessionButton();
@@ -651,9 +654,9 @@
     }
     if (window.TubeMetrixAuth) {
       if (typeof window.TubeMetrixAuth.authorizeRun === 'function') {
-        if (!(await window.TubeMetrixAuth.authorizeRun(state.multiUrlQueue.length))) return;
+        if (!(await window.TubeMetrixAuth.authorizeRun(state.multiUrlQueue.length, { mode: 'batch', credits: state.multiUrlQueue.length }))) return;
       } else if (typeof window.TubeMetrixAuth.checkQuota === 'function') {
-        if (!window.TubeMetrixAuth.checkQuota(state.multiUrlQueue.length)) return;
+        if (!window.TubeMetrixAuth.checkQuota(state.multiUrlQueue.length, { mode: 'batch' })) return;
       }
     }
 
@@ -663,7 +666,7 @@
     if (el.labelExtracted) el.labelExtracted.textContent = 'Extracted Messages';
 
     try {
-      const aggregatedData = await batchExtractChatMessages(queue);
+      const aggregatedData = await batchExtractChatMessages(queue, { paidByCredits: true });
       hideProgress();
       renderLiveChatReport(aggregatedData, `Custom URL Batch (${queue.length} Streams Combined)`);
       updateViewerSessionButton();
@@ -676,7 +679,8 @@
   }
 
   // Helper: Batch Stream Chat Processor
-  async function batchExtractChatMessages(vids) {
+  async function batchExtractChatMessages(vids, options = {}) {
+    const paidByCredits = Boolean(options?.paidByCredits);
     const total = vids.length;
     let allMessages = [];
     const uniqueChatters = new Set();
@@ -698,6 +702,9 @@
         if (resp.ok) {
           const res = await resp.json();
           if (res.success && res.data && res.data.messages) {
+            if (paidByCredits && res.data.total_messages > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
+              await window.TubeMetrixAuth.settleChatVolumeCredits(res.data.total_messages, vid);
+            }
             res.data.messages.forEach(m => {
               m.idx = allMessages.length + 1;
               m.stream_id = m.stream_id || vid;
@@ -712,10 +719,6 @@
         }
       } catch (e) {
         console.warn(`Failed to process stream ${vid}:`, e);
-      } finally {
-        if (window.TubeMetrixAuth && typeof window.TubeMetrixAuth.incrementUsage === 'function') {
-          window.TubeMetrixAuth.incrementUsage(1);
-        }
       }
     }
 
@@ -747,6 +750,14 @@
     }
 
     const limit = parseInt(el.commentsLimitSelect.value, 10) || 300;
+    const creditsNeeded = Math.max(1, Math.ceil(limit / 1000));
+    if (window.TubeMetrixAuth) {
+      if (typeof window.TubeMetrixAuth.authorizeRun === 'function') {
+        if (!(await window.TubeMetrixAuth.authorizeRun(1, { mode: 'single', credits: creditsNeeded }))) return;
+      } else if (typeof window.TubeMetrixAuth.checkQuota === 'function') {
+        if (!window.TubeMetrixAuth.checkQuota(1, { mode: 'single' })) return;
+      }
+    }
     el.startCommentsBtn.disabled = true;
     if (el.resultsCommentsSection) el.resultsCommentsSection.style.display = 'none';
     if (el.labelExtracted) el.labelExtracted.textContent = 'Comments Downloaded';

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -42,14 +42,14 @@
   {"@context":"https://schema.org","@type":"WebApplication","name":"TubeMetrix — YouTube Live Stream Earnings Auditor","url":"https://tubemetrix.net/","description":"Calculate exact YouTube live stream earnings from Super Chats, Memberships and YouTube Jewels. Export to CSV, Excel and TXT.","applicationCategory":"FinanceApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["YouTube Super Chat Revenue Calculator","YouTube Jewels to INR Converter","YouTube Membership Earnings Tracker","Bulk Live Stream Batch Export","Multi-Currency Forex Conversion","CSV and Excel Export"]}
   </script>
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much do YouTubers earn from Super Chats?","acceptedAnswer":{"@type":"Answer","text":"YouTubers keep approximately 70% of Super Chat revenue after YouTube's 30% cut. TubeMetrix calculates exact net creator earnings for every stream."}},{"@type":"Question","name":"How to calculate YouTube live stream revenue?","acceptedAnswer":{"@type":"Answer","text":"Paste your YouTube live stream URL into TubeMetrix. The tool fetches all Super Chats, Memberships, and YouTube Jewels gifts and calculates total gross and net creator earnings."}},{"@type":"Question","name":"What are YouTube Jewels and how much are they worth?","acceptedAnswer":{"@type":"Answer","text":"YouTube Jewels are virtual gifts sent during live streams in India. The creator rate is approximately ₹1.20 per jewel. TubeMetrix automatically converts all jewel gifts to INR/USD."}},{"@type":"Question","name":"Can I export YouTube Super Chat data to Excel?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix exports full Super Chat logs, Membership records, and Jewels data to Excel (.xls), CSV, and Notepad (.txt) with one click."}},{"@type":"Question","name":"Does TubeMetrix support bulk export for multiple streams?","acceptedAnswer":{"@type":"Answer","text":"Yes, three modes: Single Stream, Channel & Date Range (PRO), and Custom URL Batch (free up to 3 URLs daily, or unlimited queue for PRO members)."}}]}
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much do YouTubers earn from Super Chats?","acceptedAnswer":{"@type":"Answer","text":"YouTubers keep approximately 70% of Super Chat revenue after YouTube's 30% cut. TubeMetrix calculates exact net creator earnings for every stream."}},{"@type":"Question","name":"How to calculate YouTube live stream revenue?","acceptedAnswer":{"@type":"Answer","text":"Paste your YouTube live stream URL into TubeMetrix. The tool fetches all Super Chats, Memberships, and YouTube Jewels gifts and calculates total gross and net creator earnings."}},{"@type":"Question","name":"What are YouTube Jewels and how much are they worth?","acceptedAnswer":{"@type":"Answer","text":"YouTube Jewels are virtual gifts sent during live streams in India. The creator rate is approximately ₹1.20 per jewel. TubeMetrix automatically converts all jewel gifts to INR/USD."}},{"@type":"Question","name":"Can I export YouTube Super Chat data to Excel?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix exports full Super Chat logs, Membership records, and Jewels data to Excel (.xls), CSV, and Notepad (.txt) with one click."}},{"@type":"Question","name":"Does TubeMetrix support free audits and bulk credit packs?","acceptedAnswer":{"@type":"Answer","text":"Yes! Single Stream mode gives 2 free audits/week as a Guest and 3 free audits/week with Google Sign-In. Custom URL Batch and Channel Date Range run on pay-as-you-go prepaid Credits starting at $0.60 per 2,000 chats (1 Credit = 1,000 chats) with no recurring subscriptions."}}]}
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=6.7">
+  <link rel="stylesheet" href="styles.css?v=6.8">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -197,7 +197,7 @@
               <line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
             <span>Channel &amp; Date Range</span>
-            <span class="tab-pro-pill" id="channelTabProPill">👑 PRO</span>
+            <span class="tab-pro-pill" id="channelTabProPill">💎 CREDITS</span>
           </button>
           <button class="tab-btn" data-mode="multi">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -249,30 +249,30 @@
 
     <!-- Mode B: Bulk Channel & Date Range Input -->
     <div class="mode-panel" id="panel-channel">
-      <!-- PRO Feature Lock Banner -->
+      <!-- Credits Feature Lock Banner -->
       <div class="pro-panel-lock-banner" id="channelProLock">
         <div class="pro-lock-content">
           <div class="pro-lock-icon-wrap">
-            <span class="pro-lock-crown">👑</span>
-            <span class="pro-lock-badge">PRO FEATURE</span>
+            <span class="pro-lock-crown">💎</span>
+            <span class="pro-lock-badge">PAY-AS-YOU-GO CREDITS</span>
           </div>
-          <h3 class="pro-lock-title">Unlock Bulk Channel Stream Auditing</h3>
+          <h3 class="pro-lock-title">Unlock Bulk Channel &amp; Date Range Auditing</h3>
           <p class="pro-lock-desc">
-            Audit all 100, 200, 500+ streams of any YouTube channel, filter by custom date ranges, and export complete
-            consolidated Superchat earnings &amp; metrics.
+            Audit streams across any YouTube channel date window and export consolidated Super Chat, Jewels &amp;
+            Membership reports using never-expiring prepaid credits ($0.60 per 2,000 chats • no monthly subscription).
           </p>
           <div class="pro-lock-perks">
-            <span class="pro-perk-item">✓ Unlimited Bulk Streams</span>
+            <span class="pro-perk-item">✓ 1 Credit = 1 Stream / 1k Chats</span>
             <span class="pro-perk-item">✓ Custom Date Range Filtering</span>
             <span class="pro-perk-item">✓ 100% Ad-Free Experience</span>
-            <span class="pro-perk-item">✓ One-Click Excel / CSV Export</span>
+            <span class="pro-perk-item">✓ Credits Never Expire</span>
           </div>
           <div class="pro-lock-actions">
             <button class="btn-unlock-pro" type="button" id="unlockChannelProBtn">
-              <span data-tm-price-target="banner-pro">⚡ Upgrade to Creator PRO ($8.99/mo)</span>
+              <span data-tm-price-target="banner-credits">💎 Buy Credits ($2.99 for 10 Credits)</span>
             </button>
             <button class="btn-lock-free-switch" type="button" id="switchSingleStreamBtn">
-              Try 1 Single Stream for Free →
+              Try Free Single Stream (2–3 / Wk) →
             </button>
           </div>
         </div>
@@ -327,7 +327,7 @@
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
         <label class="input-label" for="multiUrlInput" style="margin-bottom: 0;">Paste Stream Link &amp; Click 'Add
           Stream'</label>
-        <span class="batch-limit-pill" id="batchLimitNotice">Daily Free Limit: Add 3 URLs</span>
+        <span class="batch-limit-pill" id="batchLimitNotice">💎 Credits Required (No Free Quota)</span>
       </div>
       <div class="input-row">
         <div class="input-wrapper">
@@ -350,7 +350,7 @@
       <div class="url-queue-header">
         <div class="queue-counter">
           <span class="count-badge" id="queueCount">0 Added</span>
-          <span class="count-text" id="batchQueueLimitText">Streams in Batch (0/3 Free)</span>
+          <span class="count-text" id="batchQueueLimitText">Streams in Batch (0 Added • 0 Credits Est.)</span>
         </div>
         <button class="btn-clear" id="clearAllUrlsBtn" type="button" style="display: none;">Clear All</button>
       </div>
@@ -362,8 +362,7 @@
             <line x1="12" y1="8" x2="12" y2="12"></line>
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
-          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (Daily Free
-            Limit: Add 3 URLs).</span>
+          <span>No streams added yet. Paste YouTube URLs above and click <strong>"Add Stream"</strong> (Requires Credits • No Free Quota).</span>
         </div>
       </div>
 
@@ -751,54 +750,99 @@
       </div>
     </section>
 
-    <!-- Public Transparent Pricing (Free & PRO Plans) -->
-    <section class="public-pricing-section" id="pricing" aria-label="TubeMetrix Pricing Plans">
+    <!-- Public Transparent Pricing (Weekly Free Single Stream & Credit Packs) -->
+    <section class="public-pricing-section" id="pricing" aria-label="TubeMetrix Credit Packs &amp; Free Limits">
       <div style="text-align: center;">
-        <h2 style="font-size: 1.45rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Simple, Transparent Pricing</h2>
-        <p style="font-size: 0.92rem; color: var(--text-secondary); margin: 0;">Start with free daily stream audits or unlock unlimited bulk channel &amp; ad-free processing.</p>
+        <h2 style="font-size: 1.45rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Pay-As-You-Go Credits — Zero Subscriptions</h2>
+        <p style="font-size: 0.92rem; color: var(--text-secondary); margin: 0;">Start free on Single Streams (2/week Guest • 3/week Google Sign-In) or buy never-expiring credits ($0.60 per 2,000 chats) for Batch &amp; Date Range.</p>
         <div class="tm-region-toggle" role="group" aria-label="Display currency">
           <button type="button" class="tm-region-btn" data-tm-region-btn="USD" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.setPricingRegion('USD')">🌍 Global (USD)</button>
           <button type="button" class="tm-region-btn" data-tm-region-btn="INR" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.setPricingRegion('INR')">🇮🇳 India (INR)</button>
         </div>
+        <div class="tm-india-promo-banner" data-tm-promo-banner style="display: none; max-width: 720px; margin: 12px auto 0;"></div>
       </div>
 
-      <div class="public-pricing-grid">
-        <div class="pricing-card">
-          <div class="pricing-plan-name">Starter Free Tier</div>
-          <div class="pricing-price">
-            <span class="price-symbol">$</span><span class="price-amount">0</span>
-            <span class="price-period">/ Free Forever</span>
+      <div class="tm-free-strip">
+        <div class="tm-free-strip-left">
+          <span class="tm-free-strip-badge">FREE WEEKLY TIER • SINGLE STREAM ONLY</span>
+          <div class="tm-free-strip-text">
+            <strong>2 Free Single Streams / week</strong> (Guest) • <strong>3 Free Single Streams / week</strong> (Google Sign-In) — includes Single Live Chat &amp; Video Comments up to 1,000. Custom URL Batch &amp; Date Range require Credits.
           </div>
-          <p class="pricing-desc">Test Super Chat, Jewels &amp; Chat tools before upgrading.</p>
+        </div>
+        <button class="tm-free-strip-btn" type="button" onclick="window.TubeMetrixAuth && (window.TubeMetrixAuth.isLoggedIn() ? window.TubeMetrixAuth.openCreditsModal() : window.TubeMetrixAuth.openAuthModal('Sign in with Google to get 3 free single streams every week!'))">Sign In Free (3/Wk)</button>
+      </div>
+
+      <div class="public-pricing-grid public-credits-grid">
+        <div class="pricing-card">
+          <div class="pricing-card-top">
+            <div class="pricing-plan-name">Starter Pack</div>
+            <span class="tm-pack-discount-badge" data-tm-pack-badge="credits_10" style="display:none;">🇮🇳 50% OFF 1st Order</span>
+          </div>
+          <div class="pricing-credits-headline">💎 10 Credits</div>
+          <div class="pricing-price">
+            <span class="price-strike" data-tm-pack-strike="credits_10" style="display:none;">₹99</span>
+            <span class="price-symbol" data-tm-pack-symbol="credits_10">$</span><span class="price-amount" data-tm-pack-amount="credits_10">2.99</span>
+            <span class="price-period">/ one-time</span>
+            <span class="price-inr" data-tm-pack-sub="credits_10">$0.60 per 2k chats • Never expires</span>
+          </div>
+          <p class="pricing-desc">Great for occasional streams, comment downloads &amp; creator checks.</p>
           <ul class="pricing-features">
-            <li>✓ 2 Daily Audits (Guest) • 5 Daily (Google Sign-In)</li>
-            <li>✓ Up to 3 URLs in Custom URL Batch</li>
-            <li>✓ Multi-Currency Forex &amp; CSV/Excel Export</li>
+            <li>✓ <strong>10 Credits</strong> (= 10,000 chats/comments)</li>
+            <li>✓ Never Expire • Use Any Time</li>
+            <li>✓ Single, Custom URL Batch &amp; Date Range</li>
           </ul>
-          <button class="btn-checkout-plan" type="button" onclick="window.TubeMetrixAuth && (window.TubeMetrixAuth.isLoggedIn() ? window.TubeMetrixAuth.openProModal() : window.TubeMetrixAuth.openAuthModal('Sign in with Google for 5 free daily stream audits!'))">Start Free With Google</button>
+          <button class="btn-checkout-plan" type="button" data-tm-pack-cta="credits_10" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.startCheckout('credits_10')">Buy 10 Credits ($2.99)</button>
         </div>
 
         <div class="pricing-card card-featured">
-          <div class="featured-ribbon">CREATOR PRO</div>
-          <div class="pricing-plan-name">Monthly Creator Pro</div>
-          <div class="pricing-price">
-            <span class="price-symbol" data-tm-price-target="pro-symbol">$</span><span class="price-amount" data-tm-price-target="pro-amount">8.99</span>
-            <span class="price-period" data-tm-price-target="pro-period">/ month</span>
-            <span class="price-inr" data-tm-price-target="pro-sub">Global creator plan • Cards &amp; Apple Pay</span>
+          <div class="featured-ribbon">MOST POPULAR</div>
+          <div class="pricing-card-top">
+            <div class="pricing-plan-name">Creator Pack</div>
+            <span class="tm-pack-discount-badge" data-tm-pack-badge="credits_30" style="display:none;">🇮🇳 40% OFF 1st Order</span>
           </div>
-          <p class="pricing-desc">For creators, editors, talent agencies &amp; channel managers.</p>
+          <div class="pricing-credits-headline">💎 30 Credits</div>
+          <div class="pricing-price">
+            <span class="price-strike" data-tm-pack-strike="credits_30" style="display:none;">₹249</span>
+            <span class="price-symbol" data-tm-pack-symbol="credits_30">$</span><span class="price-amount" data-tm-pack-amount="credits_30">6.99</span>
+            <span class="price-period">/ one-time</span>
+            <span class="price-inr" data-tm-pack-sub="credits_30">~$0.47 per 2k chats (Save 22%) • Never expires</span>
+          </div>
+          <p class="pricing-desc">Best value for active live streamers, editors &amp; channel audits.</p>
           <ul class="pricing-features">
-            <li>✓ Unlimited Daily Audits Every Month</li>
-            <li>✓ Full Channel History &amp; 3x Parallel Workers</li>
-            <li>✓ 100% Ad-Free + VIP Priority Support</li>
+            <li>✓ <strong>30 Credits</strong> (= 30,000 chats/comments)</li>
+            <li>✓ Custom URL Batch &amp; Full Channel History</li>
+            <li>✓ 100% Ad-Free + Priority Throughput</li>
           </ul>
-          <button class="btn-checkout-plan btn-checkout-featured" type="button" data-tm-price-target="pro-cta-public" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.openProModal()">Upgrade to PRO ($8.99/mo)</button>
+          <button class="btn-checkout-plan btn-checkout-featured" type="button" data-tm-pack-cta="credits_30" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.startCheckout('credits_30')">Buy 30 Credits ($6.99)</button>
+        </div>
+
+        <div class="pricing-card">
+          <div class="featured-ribbon">BEST VALUE</div>
+          <div class="pricing-card-top">
+            <div class="pricing-plan-name">Agency Pack</div>
+            <span class="tm-pack-discount-badge" data-tm-pack-badge="credits_100" style="display:none;">🇮🇳 29% OFF 1st Order</span>
+          </div>
+          <div class="pricing-credits-headline">💎 100 Credits</div>
+          <div class="pricing-price">
+            <span class="price-strike" data-tm-pack-strike="credits_100" style="display:none;">₹699</span>
+            <span class="price-symbol" data-tm-pack-symbol="credits_100">$</span><span class="price-amount" data-tm-pack-amount="credits_100">19.99</span>
+            <span class="price-period">/ one-time</span>
+            <span class="price-inr" data-tm-pack-sub="credits_100">~$0.40 per 2k chats (Save 33%) • Never expires</span>
+          </div>
+          <p class="pricing-desc">High-volume archive audits for talent managers, MCNs &amp; researchers.</p>
+          <ul class="pricing-features">
+            <li>✓ <strong>100 Credits</strong> (= 100,000 chats/comments)</li>
+            <li>✓ Bulk Parallel Batch Engine &amp; Exports</li>
+            <li>✓ 100% Ad-Free + VIP Queue Speed</li>
+          </ul>
+          <button class="btn-checkout-plan" type="button" data-tm-pack-cta="credits_100" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.startCheckout('credits_100')">Buy 100 Credits ($19.99)</button>
         </div>
       </div>
 
       <p class="public-pricing-note">
-        Payments processed globally by Merchant of Record (Dodo Payments — Cards, Apple Pay &amp; India UPI).
-        <strong>All purchases are strictly final &amp; non-refundable</strong> — test free daily audits first. See <a href="/terms" style="color: #60a5fa;">Terms &amp; No-Refund Policy</a> • Support: <a href="mailto:support@tubemetrix.net" style="color: #60a5fa;">support@tubemetrix.net</a>
+        1 Credit = 1,000 chats/comments ($0.60 per 2,000 chats • minimum 1 Credit per stream) • Credits never expire.
+        Payments processed globally by Dodo Payments (Cards, Apple Pay &amp; India UPI).
+        <strong>All purchases are strictly final &amp; non-refundable</strong> — test free weekly single streams first. See <a href="/terms" style="color: #60a5fa;">Terms &amp; No-Refund Policy</a> • Support: <a href="mailto:support@tubemetrix.net" style="color: #60a5fa;">support@tubemetrix.net</a>
       </p>
     </section>
 
@@ -855,9 +899,9 @@
               style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
               Does TubeMetrix support bulk export for multiple live streams? <span class="faq-icon">+</span></summary>
             <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Yes!
-              TubeMetrix has three modes: (A) Single Stream — paste one URL, (B) Channel & Date Range (PRO) —
-              automatically fetches all streams from a channel within a date window, and (C) Custom URL Batch — add up
-              to 3 stream links free daily, or unlock an unlimited batch queue with PRO.</p>
+              TubeMetrix has three modes: (A) Single Stream — free up to 2 streams/week (Guest) or 3 streams/week (Google
+              Sign-In), (B) Channel &amp; Date Range (Credits), and (C) Custom URL Batch (Credits). Prepaid credits start
+              at $0.60 per 2,000 chats (1 Credit = 1,000 chats) and never expire.</p>
           </details>
         </div>
       </div>
@@ -938,8 +982,8 @@
     </div>
   </footer>
 
-  <script src="auth.js?v=2.4"></script>
-  <script src="app.js?v=6.4"></script>
+  <script src="auth.js?v=3.0"></script>
+  <script src="app.js?v=6.5"></script>
   <!-- Adsterra Social Bar Integration -->
   <script data-cfasync="false" src="https://bauval.org/14/1130b0119de2f33b3a0f98fff91280bc"></script>
 </body>
