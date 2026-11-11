@@ -324,7 +324,7 @@
     const sessionId = url.searchParams.get('session_id') || '';
     const packId = url.searchParams.get('pack') || url.searchParams.get('plan') || '';
 
-    ['tm_checkout', 'payment_id', 'subscription_id', 'session_id', 'status', 'plan', 'pack'].forEach(
+    ['tm_checkout', 'payment_id', 'subscription_id', 'session_id', 'status', 'plan', 'pack', 'email'].forEach(
       (p) => url.searchParams.delete(p)
     );
     window.history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
@@ -464,9 +464,13 @@
 
       container.innerHTML = `
         <div class="user-profile-menu" id="userProfileMenu">
-          <button class="user-avatar-btn" id="userAvatarBtn" type="button" aria-label="Open User Menu">
+          <button class="user-avatar-btn ${credits > 0 ? 'has-credits' : 'no-credits'}" id="userAvatarBtn" type="button" aria-label="Open User Menu" title="Account & Credits (${credits} CR)">
             <img src="${safeAvatar}" alt="${safeName}" class="user-avatar-img">
-            <span class="user-tier-badge ${credits > 0 ? 'badge-pro' : 'badge-free'}" id="navCreditBadge">${credits} CR</span>
+            <span class="user-credit-chip ${credits > 0 ? 'chip-active' : 'chip-empty'}">
+              <span class="user-credit-gem" aria-hidden="true">💎</span>
+              <span class="user-tier-badge ${credits > 0 ? 'badge-pro' : 'badge-free'}" id="navCreditBadge">${credits} CR</span>
+            </span>
+            <svg class="user-menu-caret" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
 
           <div class="user-dropdown-card" id="userDropdownCard" style="display: none;">

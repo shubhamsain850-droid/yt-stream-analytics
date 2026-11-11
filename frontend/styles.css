@@ -7656,49 +7656,130 @@ body.light-mode .glass-cue-btn {
 .user-avatar-btn {
   display: inline-flex;
   align-items: center;
+  gap: 7px;
   position: relative;
-  background: transparent;
-  border: none;
+  height: 36px;
+  padding: 3px 10px 3px 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #e2e8f0;
   cursor: pointer;
-  padding: 2px;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
+  transition: transform 0.18s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-theme="light"] .user-avatar-btn {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.13);
+  color: #1e293b;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.user-avatar-btn.has-credits {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.14), rgba(16, 185, 129, 0.1));
+  border-color: rgba(251, 191, 36, 0.42);
+  box-shadow: 0 2px 14px rgba(245, 158, 11, 0.18);
+}
+
+[data-theme="light"] .user-avatar-btn.has-credits {
+  background: linear-gradient(135deg, #fffbeb, #f0fdf4);
+  border-color: rgba(217, 119, 6, 0.36);
+  box-shadow: 0 2px 10px rgba(217, 119, 6, 0.12);
+}
+
+.user-avatar-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(251, 191, 36, 0.65);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.24);
 }
 
 .user-avatar-img {
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(255, 23, 68, 0.7);
-  box-shadow: 0 0 10px rgba(255, 23, 68, 0.3);
+  flex-shrink: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
   transition: transform 0.2s;
 }
 
-.user-avatar-btn:hover .user-avatar-img {
-  transform: scale(1.05);
+[data-theme="light"] .user-avatar-img {
+  border-color: rgba(15, 23, 42, 0.16);
+}
+
+.user-avatar-btn.has-credits .user-avatar-img {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18);
+}
+
+.user-credit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.user-credit-chip.chip-active {
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+}
+
+[data-theme="light"] .user-credit-chip.chip-active {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-color: rgba(217, 119, 6, 0.32);
+}
+
+.user-credit-chip.chip-empty {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+}
+
+[data-theme="light"] .user-credit-chip.chip-empty {
+  background: #e0f2fe;
+  border-color: rgba(2, 132, 199, 0.22);
+}
+
+.user-credit-gem {
+  font-size: 0.72rem;
+  line-height: 1;
 }
 
 .user-tier-badge {
-  position: absolute;
-  bottom: -2px;
-  right: -4px;
-  font-size: 0.58rem;
+  position: static;
+  font-size: 0.72rem;
   font-weight: 800;
-  padding: 1px 5px;
-  border-radius: 8px;
+  letter-spacing: 0.35px;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  border: 1px solid rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 .badge-free {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  color: #0d1b2a;
+  color: #7dd3fc;
+}
+
+[data-theme="light"] .badge-free {
+  color: #0369a1;
 }
 
 .badge-pro {
-  background: linear-gradient(135deg, #ffd700, #ff8800);
-  color: #000;
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+  color: #fcd34d;
+}
+
+[data-theme="light"] .badge-pro {
+  color: #92400e;
+}
+
+.user-menu-caret {
+  opacity: 0.65;
+  flex-shrink: 0;
+  margin-left: -1px;
 }
 
 /* User Profile Dropdown Card */
@@ -8900,6 +8981,31 @@ body {
   .btn-auth-signin {
     font-size: 0.76rem !important;
     padding: 5px 11px !important;
+  }
+
+  .user-avatar-btn {
+    height: 32px !important;
+    padding: 2px 8px 2px 3px !important;
+    gap: 5px !important;
+  }
+
+  .user-avatar-img {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .user-credit-chip {
+    padding: 3px 6px !important;
+    gap: 3px !important;
+  }
+
+  .user-tier-badge {
+    font-size: 0.66rem !important;
+  }
+
+  .user-menu-caret {
+    width: 10px !important;
+    height: 10px !important;
   }
 
   .theme-toggle-btn {
