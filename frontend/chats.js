@@ -73,6 +73,8 @@
     chatMultiUrlInput: document.getElementById('chatMultiUrlInput'),
     addChatUrlBtn: document.getElementById('addChatUrlBtn'),
     chatQueueCount: document.getElementById('chatQueueCount'),
+    chatBatchLimitNotice: document.getElementById('chatBatchLimitNotice'),
+    chatBatchQueueLimitText: document.getElementById('chatBatchQueueLimitText'),
     clearAllChatUrlsBtn: document.getElementById('clearAllChatUrlsBtn'),
     chatUrlQueueList: document.getElementById('chatUrlQueueList'),
     startChatMultiBtn: document.getElementById('startChatMultiBtn'),
@@ -331,6 +333,10 @@
       });
     }
 
+    // Initialize Free vs PRO queue UI on page load & expose for auth refresh
+    window.refreshMultiBatchUI = updateMultiChatQueueUI;
+    updateMultiChatQueueUI();
+
     // Action Triggers
     if (el.startChatSingleBtn) el.startChatSingleBtn.addEventListener('click', startSingleChatExtraction);
     if (el.startChatChannelBtn) el.startChatChannelBtn.addEventListener('click', startChannelChatExtraction);
@@ -420,12 +426,6 @@
     el.chatMultiUrlInput.value = '';
     el.chatMultiUrlInput.focus();
     updateMultiChatQueueUI();
-
-    if (!isPro && state.multiUrlQueue.length >= FREE_CUSTOM_URL_LIMIT) {
-      if (window.TubeMetrixAuth) {
-        window.TubeMetrixAuth.openProModal("You have reached the free batch limit of 3 streams. Upgrade to PRO to add unlimited streams!");
-      }
-    }
   }
 
   function updateMultiChatQueueUI() {
@@ -436,23 +436,21 @@
     if (el.startChatMultiBtn) el.startChatMultiBtn.disabled = count === 0;
     if (el.clearAllChatUrlsBtn) el.clearAllChatUrlsBtn.style.display = count > 0 ? 'inline-block' : 'none';
 
-    // Dynamic Pill for Free vs PRO
-    const batchNotice = document.querySelector('.mode-panel#panel-multi .batch-limit-pill');
+    // Dynamic Pill & Subtext for Free vs PRO
+    const batchNotice = el.chatBatchLimitNotice || document.querySelector('.mode-panel#panel-multi .batch-limit-pill');
     if (batchNotice) {
       if (isPro) {
         batchNotice.className = 'batch-limit-pill pro-pill';
-        batchNotice.innerHTML = '👑 Unlimited Batch Queue (PRO)';
+        batchNotice.textContent = '👑 Unlimited Batch Queue';
       } else {
         batchNotice.className = 'batch-limit-pill';
-        batchNotice.innerHTML = `Free Tier: ${count}/${FREE_CUSTOM_URL_LIMIT} Streams Limit (<a href="javascript:void(0)" id="upgradeChatBatchLnk" style="color: #fbbf24; text-decoration: underline; font-weight: 700;">👑 Upgrade for Unlimited</a>)`;
-        const upBtn = document.getElementById('upgradeChatBatchLnk');
-        if (upBtn) {
-          upBtn.onclick = (e) => {
-            e.preventDefault();
-            if (window.TubeMetrixAuth) window.TubeMetrixAuth.openProModal("Unlock unlimited custom stream chat downloads with PRO or Day Pass!");
-          };
-        }
+        batchNotice.textContent = 'Daily Free Limit: Add 3 URLs';
       }
+    }
+    if (el.chatBatchQueueLimitText) {
+      el.chatBatchQueueLimitText.textContent = isPro
+        ? 'Streams in Batch (Unlimited)'
+        : `Streams in Batch (${count}/${FREE_CUSTOM_URL_LIMIT} Free)`;
     }
 
     if (!el.chatUrlQueueList) return;
@@ -461,7 +459,7 @@
       el.chatUrlQueueList.innerHTML = `
         <div class="empty-queue-hint">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (Free: 3 streams, PRO: Unlimited).</span>
+          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (${isPro ? '👑 Unlimited Batch Queue' : 'Daily Free Limit: Add 3 URLs'}).</span>
         </div>`;
       return;
     }
@@ -652,7 +650,7 @@
     try {
       const aggregatedData = await batchExtractChatMessages(queue);
       hideProgress();
-      renderLiveChatReport(aggregatedData, `Multi-URL Batch (${queue.length} Streams Combined)`);
+      renderLiveChatReport(aggregatedData, `Custom URL Batch (${queue.length} Streams Combined)`);
       updateViewerSessionButton();
     } catch (err) {
       hideProgress();

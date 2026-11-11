@@ -152,6 +152,8 @@ const elements = {
   multiUrlInput: document.getElementById('multiUrlInput'),
   addUrlBtn: document.getElementById('addUrlBtn'),
   queueCount: document.getElementById('queueCount'),
+  batchLimitNotice: document.getElementById('batchLimitNotice'),
+  batchQueueLimitText: document.getElementById('batchQueueLimitText'),
   clearAllUrlsBtn: document.getElementById('clearAllUrlsBtn'),
   urlQueueList: document.getElementById('urlQueueList'),
   startMultiBtn: document.getElementById('startMultiBtn'),
@@ -814,25 +816,23 @@ function setupMultiMode() {
     if (elements.batchLimitNotice) {
       if (isPro) {
         elements.batchLimitNotice.className = 'batch-limit-pill pro-pill';
-        elements.batchLimitNotice.innerHTML = '👑 Unlimited Batch Queue (PRO)';
+        elements.batchLimitNotice.textContent = '👑 Unlimited Batch Queue';
       } else {
         elements.batchLimitNotice.className = 'batch-limit-pill';
-        elements.batchLimitNotice.innerHTML = `Free Tier: ${count}/${FREE_CUSTOM_URL_LIMIT} Streams Limit (<a href="javascript:void(0)" id="upgradeBatchLnk" style="color: #fbbf24; text-decoration: underline; font-weight: 700;">👑 Upgrade for Unlimited</a>)`;
-        const upBtn = document.getElementById('upgradeBatchLnk');
-        if (upBtn) {
-          upBtn.onclick = (e) => {
-            e.preventDefault();
-            if (window.TubeMetrixAuth) window.TubeMetrixAuth.openProModal("Unlock unlimited custom stream queueing with PRO or Day Pass!");
-          };
-        }
+        elements.batchLimitNotice.textContent = 'Daily Free Limit: Add 3 URLs';
       }
+    }
+    if (elements.batchQueueLimitText) {
+      elements.batchQueueLimitText.textContent = isPro
+        ? 'Streams in Batch (Unlimited)'
+        : `Streams in Batch (${count}/${FREE_CUSTOM_URL_LIMIT} Free)`;
     }
 
     if (count === 0) {
       elements.urlQueueList.innerHTML = `
         <div class="empty-queue-hint">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (Free: 3 streams, PRO: Unlimited).</span>
+          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (${isPro ? '👑 Unlimited Batch Queue' : 'Daily Free Limit: Add 3 URLs'}).</span>
         </div>`;
       return;
     }
@@ -918,13 +918,14 @@ function setupMultiMode() {
     }
   });
 
-  // Expose to window for auth refresh
+  // Expose to window for auth refresh and initialize immediately on load
   window.refreshMultiBatchUI = updateMultiBadgeAndUI;
+  updateMultiBadgeAndUI();
 
   elements.startMultiBtn.addEventListener('click', () => {
     if (state.multiUrlQueue.length === 0) return;
     const batch = state.multiUrlQueue.slice(0, MAX_MULTI_STREAMS);
-    startProcessing(batch, `Multi-URL Batch (${batch.length} Streams)`);
+    startProcessing(batch, `Custom URL Batch (${batch.length} Streams)`);
   });
 }
 

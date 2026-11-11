@@ -262,12 +262,12 @@
       <div class="mode-panel" id="panel-multi">
         <div class="panel-banner-hint">
           <span class="hint-icon">📑</span>
-          <span class="hint-text"><strong>Custom URL Batch Export:</strong> Queue custom YouTube live stream URLs below to download all their live chats together in batch without limits.</span>
+          <span class="hint-text"><strong>Custom URL Batch Export:</strong> Queue custom YouTube live stream URLs below to download all their live chats together in batch.</span>
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <label class="input-label" for="chatMultiUrlInput" style="margin-bottom: 0;">Paste Stream Link &amp; Click 'Add Stream'</label>
-          <span class="batch-limit-pill">Unlimited Batch Queue</span>
+          <span class="batch-limit-pill" id="chatBatchLimitNotice">Daily Free Limit: Add 3 URLs</span>
         </div>
         <div class="input-row">
           <div class="input-wrapper">
@@ -284,7 +284,7 @@
         <div class="url-queue-header">
           <div class="queue-counter">
             <span class="count-badge" id="chatQueueCount">0 Added</span>
-            <span class="count-text">Streams in Batch (No Limit)</span>
+            <span class="count-text" id="chatBatchQueueLimitText">Streams in Batch (0/3 Free)</span>
           </div>
           <button class="btn-clear" id="clearAllChatUrlsBtn" type="button" style="display: none;">Clear All</button>
         </div>
@@ -292,7 +292,7 @@
         <div class="url-queue-list" id="chatUrlQueueList">
           <div class="empty-queue-hint">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong>.</span>
+            <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (Daily Free Limit: Add 3 URLs).</span>
           </div>
         </div>
 

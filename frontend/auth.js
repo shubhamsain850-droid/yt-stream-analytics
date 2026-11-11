@@ -357,7 +357,7 @@
           </div>
           <div class="benefit-item">
             <span class="benefit-icon">⚡</span>
-            <span class="benefit-text"><strong>Custom URL Batch Export</strong> (Queue up to 50 streams)</span>
+            <span class="benefit-text"><strong>Custom URL Batch Export</strong> (Unlimited batch queue)</span>
           </div>
           <div class="benefit-item">
             <span class="benefit-icon">📊</span>
