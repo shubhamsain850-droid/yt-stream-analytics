@@ -9500,7 +9500,125 @@ body.light-mode .btn-resume-dismiss {
   color: #4b5563;
 }
 
+/* Pre-flight Credit / Volume Estimator Bar & Processing Elapsed Timer */
+.tm-preflight-cost-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 11px 14px;
+  border-radius: 12px;
+  margin: 12px 0 4px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #d1fae5;
+}
+
+.tm-preflight-cost-bar.is-warn {
+  background: rgba(245, 158, 11, 0.13);
+  border-color: rgba(245, 158, 11, 0.42);
+  color: #fef3c7;
+}
+
+.tm-preflight-cost-bar.is-danger {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(248, 113, 113, 0.46);
+  color: #fee2e2;
+}
+
+.tm-preflight-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 220px;
+}
+
+.tm-preflight-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.tm-preflight-sub {
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+
+.tm-preflight-buy-btn {
+  padding: 8px 14px;
+  border-radius: 9px;
+  border: 1px solid rgba(251, 191, 36, 0.55);
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.79rem;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.tm-preflight-buy-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+.status-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tm-elapsed-pill {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #cbd5e1;
+  white-space: nowrap;
+}
+
+[data-theme="light"] .tm-preflight-cost-bar,
+body.light-mode .tm-preflight-cost-bar {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(5, 150, 105, 0.3);
+  color: #065f46;
+}
+
+[data-theme="light"] .tm-preflight-cost-bar.is-warn,
+body.light-mode .tm-preflight-cost-bar.is-warn {
+  background: #fffbeb;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+[data-theme="light"] .tm-preflight-cost-bar.is-danger,
+body.light-mode .tm-preflight-cost-bar.is-danger {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+[data-theme="light"] .tm-elapsed-pill,
+body.light-mode .tm-elapsed-pill {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
 @media (max-width: 640px) {
+  .tm-preflight-buy-btn {
+    width: 100%;
+    text-align: center;
+  }
+
   .tm-resume-banner,
   .tm-limit-banner {
     padding: 14px;

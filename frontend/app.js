@@ -156,11 +156,13 @@ const elements = {
   batchQueueLimitText: document.getElementById('batchQueueLimitText'),
   clearAllUrlsBtn: document.getElementById('clearAllUrlsBtn'),
   urlQueueList: document.getElementById('urlQueueList'),
+  earningsBatchCostBar: document.getElementById('earningsBatchCostBar'),
   startMultiBtn: document.getElementById('startMultiBtn'),
 
   // Processing Card
   processingCard: document.getElementById('processingCard'),
   statusTitle: document.getElementById('statusTitle'),
+  processingElapsedBadge: document.getElementById('processingElapsedBadge'),
   progressPercent: document.getElementById('progressPercent'),
   progressBarFill: document.getElementById('progressBarFill'),
   statusTicker: document.getElementById('statusTicker'),
@@ -264,6 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.addEventListener('tubemetrix:auth-updated', (e) => {
+    window.refreshMultiBatchUI?.();
     if (state.processing) {
       updateEarningsLiveCreditBar(true);
       return;
@@ -277,7 +280,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if (window.TubeMetrixAuth?.whenReady) {
-    window.TubeMetrixAuth.whenReady().then(() => restoreSavedEarningsCheckpoint());
+    window.TubeMetrixAuth.whenReady().then(() => {
+      restoreSavedEarningsCheckpoint();
+      window.refreshMultiBatchUI?.();
+    });
   }
 });
 
@@ -843,6 +849,70 @@ function setupChannelMode() {
   });
 }
 
+function renderEarningsBatchPreflightBar(count, credits, loggedIn) {
+  const bar = elements.earningsBatchCostBar;
+  if (!bar) return;
+  if (count <= 0) {
+    bar.style.display = 'none';
+    bar.innerHTML = '';
+    return;
+  }
+
+  let toneClass = '';
+  let title = '';
+  let sub = '';
+  let btnLabel = '';
+  let btnAction = 'buy';
+
+  if (!loggedIn) {
+    toneClass = 'is-warn';
+    title = `🔒 Sign in & Credits Required for ${count}-Stream Batch (${count} CR Est.)`;
+    sub = 'Bulk batch auditing does not use weekly free runs. 1 Credit processes 1 stream cleanly.';
+    btnLabel = '🔑 Sign In / Buy Credits';
+    btnAction = 'auth';
+  } else if (credits === 0) {
+    toneClass = 'is-danger';
+    title = `⚠️ Insufficient Credits: 0 CR Available (Batch needs ${count} CR)`;
+    sub = 'Top up credits before starting, or recharge now so your entire batch finishes without pausing.';
+    btnLabel = `💎 Recharge Credits`;
+  } else if (credits < count) {
+    const missing = count - credits;
+    toneClass = 'is-warn';
+    title = `⚠️ Partial Balance: ${credits} CR Available, Batch Needs ${count} CR (${missing} Short)`;
+    sub = `We can audit the first ${credits} stream${credits === 1 ? '' : 's'} now, auto-save progress at 0 CR, and resume later — or top up now.`;
+    btnLabel = `💎 Top Up +${missing} CR`;
+  } else {
+    title = `✅ Ready: ${count} CR Estimated • ${credits} CR Available`;
+    sub = `1 Credit deducted per stream parsed (${credits - count} CR remaining after completion).`;
+  }
+
+  bar.className = `tm-preflight-cost-bar ${toneClass}`.trim();
+  bar.innerHTML = `
+    <div class="tm-preflight-copy">
+      <div class="tm-preflight-title">${title}</div>
+      <div class="tm-preflight-sub">${sub}</div>
+    </div>
+    ${btnLabel ? `<button type="button" class="tm-preflight-buy-btn" id="earningsBatchPreflightBuyBtn">${btnLabel}</button>` : ''}
+  `;
+  bar.style.display = 'flex';
+
+  const buyBtn = bar.querySelector('#earningsBatchPreflightBuyBtn');
+  if (buyBtn) {
+    buyBtn.addEventListener('click', () => {
+      if (btnAction === 'auth') {
+        window.TubeMetrixAuth?.openAuthModal?.(
+          `Sign in with Google and buy Credits to audit ${count} stream${count === 1 ? '' : 's'} (1 CR per stream).`
+        );
+      } else {
+        window.TubeMetrixAuth?.openCreditsModal?.(
+          `Your ${count}-stream batch needs ${count} CR (current balance: ${credits} CR). Top up Credits below.`,
+          { neededCredits: count }
+        );
+      }
+    });
+  }
+}
+
 // ── Option C (Multi-URL Batch - Credits System) ──
 const MAX_MULTI_STREAMS = 1000;
 
@@ -870,6 +940,8 @@ function setupMultiMode() {
       const estCredits = count > 0 ? count : 0;
       elements.batchQueueLimitText.textContent = `Streams in Batch (${count} Added • ${estCredits} Credit${estCredits === 1 ? '' : 's'} Est.)`;
     }
+
+    renderEarningsBatchPreflightBar(count, credits, auth?.isLoggedIn?.() || false);
 
     if (count === 0) {
       elements.urlQueueList.innerHTML = `
@@ -1255,8 +1327,38 @@ function getSuperchatTierClass(amountInr) {
   return 'sc-tier-red';
 }
 
-// ── Granular Progress Simulation Engine ──
+// ── Granular Progress Simulation & Elapsed Timer Engine ──
 let progressTimer = null;
+let elapsedTimer = null;
+let processingStartedAt = 0;
+
+function formatElapsedTime(ms) {
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const mins = Math.floor(totalSec / 60);
+  const secs = totalSec % 60;
+  return `⏱ ${mins}:${String(secs).padStart(2, '0')}`;
+}
+
+function startElapsedTimer() {
+  if (elapsedTimer) clearInterval(elapsedTimer);
+  processingStartedAt = Date.now();
+  if (elements.processingElapsedBadge) {
+    elements.processingElapsedBadge.textContent = '⏱ 0:00';
+    elements.processingElapsedBadge.style.display = 'inline-block';
+  }
+  elapsedTimer = setInterval(() => {
+    if (elements.processingElapsedBadge && processingStartedAt > 0) {
+      elements.processingElapsedBadge.textContent = formatElapsedTime(Date.now() - processingStartedAt);
+    }
+  }, 500);
+}
+
+function stopElapsedTimer() {
+  if (elapsedTimer) {
+    clearInterval(elapsedTimer);
+    elapsedTimer = null;
+  }
+}
 
 function startProgressSimulation(streamIdx, totalStreams, vid) {
   if (progressTimer) clearInterval(progressTimer);
@@ -1565,6 +1667,7 @@ async function startProcessing(urls, label = null, options = {}) {
   elements.processingCard.style.display = 'block';
   elements.resultsSection.style.display = 'none';
   elements.processingCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  startElapsedTimer();
 
   state.metrics = isResume && options?.initialMetrics
     ? { ...options.initialMetrics, total: totalPlanned }
@@ -1584,7 +1687,11 @@ async function startProcessing(urls, label = null, options = {}) {
   elements.statusTicker.textContent = totalPlanned > 1 ? `Initializing ${numWorkers} parallel workers... (${completedBeforeCount}/${totalPlanned} checked)` : 'Connecting to YouTube streaming sockets...';
 
   if (isCreditMeteredBatch) {
-    updateEarningsLiveCreditBar(true, `Stream-by-stream metering (${completedBeforeCount}/${totalPlanned} done)`);
+    const liveBal = window.TubeMetrixAuth?.getCreditsBalance?.() ?? 0;
+    const preflightNote = liveBal < urls.length
+      ? `Partial balance (${liveBal} CR for ${urls.length} streams) — auto-pauses cleanly at 0 CR`
+      : `Stream-by-stream metering (${completedBeforeCount}/${totalPlanned} done)`;
+    updateEarningsLiveCreditBar(true, preflightNote);
   } else {
     updateEarningsLiveCreditBar(false);
   }
@@ -1827,15 +1934,24 @@ async function startProcessing(urls, label = null, options = {}) {
       renderAllResults(resultsAccumulator);
       renderTiersBar();
     }
+    stopElapsedTimer();
     elements.resultsSection.style.display = 'block';
     renderEarningsPauseAndResumeBanners();
     if (!hasShownFirstResult) {
       elements.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    const remBalAfterPause = window.TubeMetrixAuth?.getCreditsBalance?.() ?? 0;
+    if (stopReason === 'credits_exhausted' && remBalAfterPause === 0) {
+      window.TubeMetrixAuth?.openCreditsModal?.(
+        `Credits finished (${completedUrlsTotal.length} of ${totalPlanned} streams completed, ${remainingUrls.length} left). Your progress is safely saved — recharge Credits below and click Resume Remaining!`,
+        { neededCredits: remainingUrls.length }
+      );
+    }
     return;
   }
 
   // 100% Finalize
+  stopElapsedTimer();
   await clearEarningsCheckpoint();
   elements.progressBarFill.style.width = '100%';
   elements.progressPercent.textContent = '100%';

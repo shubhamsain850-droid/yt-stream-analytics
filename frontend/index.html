@@ -49,7 +49,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=7.1">
+  <link rel="stylesheet" href="styles.css?v=7.2">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -366,6 +366,8 @@
         </div>
       </div>
 
+      <div class="tm-preflight-cost-bar" id="earningsBatchCostBar" style="display: none;"></div>
+
       <div class="action-row">
         <button class="btn-primary" id="startMultiBtn" disabled>
           <span>Start Batch Processing</span>
@@ -387,7 +389,10 @@
           <div class="spinner-dot"></div>
           <h3 class="status-title" id="statusTitle">Processing Streams...</h3>
         </div>
-        <span class="percentage-badge" id="progressPercent">0%</span>
+        <div class="status-header-right">
+          <span class="tm-elapsed-pill" id="processingElapsedBadge" style="display: none;">⏱ 0:00</span>
+          <span class="percentage-badge" id="progressPercent">0%</span>
+        </div>
       </div>
 
       <!-- Main Progress Bar -->
@@ -1004,7 +1009,7 @@
   </footer>
 
   <script src="auth.js?v=3.6"></script>
-  <script src="app.js?v=6.7"></script>
+  <script src="app.js?v=6.8"></script>
   <!-- Adsterra Social Bar Integration -->
   <script data-cfasync="false" src="https://bauval.org/14/1130b0119de2f33b3a0f98fff91280bc"></script>
 </body>

@@ -191,10 +191,14 @@
     chatLiveMeterNote: document.getElementById('chatLiveMeterNote'),
     pauseChatBatchBtn: document.getElementById('pauseChatBatchBtn'),
     chatCreditLimitBanner: document.getElementById('chatCreditLimitBanner'),
+    commentsCreditLimitBanner: document.getElementById('commentsCreditLimitBanner'),
+    chatBatchCostBar: document.getElementById('chatBatchCostBar'),
+    commentsCostPreviewBar: document.getElementById('commentsCostPreviewBar'),
 
     // Progress Card
     processingCard: document.getElementById('processingCard'),
     statusTitle: document.getElementById('statusTitle'),
+    processingElapsedBadge: document.getElementById('processingElapsedBadge'),
     progressPercent: document.getElementById('progressPercent'),
     progressBarFill: document.getElementById('progressBarFill'),
     statusTicker: document.getElementById('statusTicker'),
@@ -501,6 +505,8 @@
       el.chatBatchQueueLimitText.textContent = `Streams in Batch (${count} Added • ${count} Credit${count === 1 ? '' : 's'} Base)`;
     }
 
+    renderChatBatchPreflightBar(count, credits, auth?.isLoggedIn?.() || false);
+
     if (!el.chatUrlQueueList) return;
 
     if (count === 0) {
@@ -529,7 +535,165 @@
     });
   }
 
-  window.refreshMultiBatchUI = updateMultiChatQueueUI;
+  function renderChatPreflightBar(barEl, buyBtnId, { toneClass = '', title = '', sub = '', btnLabel = '', btnAction = 'buy', neededCredits = 1, modalSubtitle = '' }) {
+    if (!barEl) return;
+    if (!title) {
+      barEl.style.display = 'none';
+      barEl.innerHTML = '';
+      return;
+    }
+    barEl.className = `tm-preflight-cost-bar ${toneClass}`.trim();
+    barEl.innerHTML = `
+      <div class="tm-preflight-copy">
+        <div class="tm-preflight-title">${escapeHtml(title)}</div>
+        <div class="tm-preflight-sub">${escapeHtml(sub)}</div>
+      </div>
+      ${btnLabel ? `<button type="button" class="tm-preflight-buy-btn" id="${buyBtnId}">${escapeHtml(btnLabel)}</button>` : ''}
+    `;
+    barEl.style.display = 'flex';
+    const buyBtn = barEl.querySelector(`#${buyBtnId}`);
+    if (buyBtn) {
+      buyBtn.addEventListener('click', () => {
+        if (btnAction === 'auth') {
+          window.TubeMetrixAuth?.openAuthModal?.(modalSubtitle);
+        } else {
+          window.TubeMetrixAuth?.openCreditsModal?.(modalSubtitle, { neededCredits });
+        }
+      });
+    }
+  }
+
+  function renderChatBatchPreflightBar(count, credits, loggedIn) {
+    if (!el.chatBatchCostBar) return;
+    if (count <= 0) {
+      el.chatBatchCostBar.style.display = 'none';
+      el.chatBatchCostBar.innerHTML = '';
+      return;
+    }
+    if (!loggedIn) {
+      return renderChatPreflightBar(el.chatBatchCostBar, 'chatBatchPreflightBuyBtn', {
+        toneClass: 'is-warn',
+        title: `🔒 Sign in & Credits Required (${count} CR Base + Extra Volume)`,
+        sub: 'Bulk batch chat extraction does not use free quota. 1 CR unlocks stream + first 1,000 chats (1 CR / extra 1k chats actually fetched).',
+        btnLabel: '🔑 Sign In / Buy Credits',
+        btnAction: 'auth',
+        neededCredits: count,
+        modalSubtitle: `Sign in with Google and buy Credits for your ${count}-stream chat batch.`
+      });
+    }
+    if (credits === 0) {
+      return renderChatPreflightBar(el.chatBatchCostBar, 'chatBatchPreflightBuyBtn', {
+        toneClass: 'is-danger',
+        title: `⚠️ Insufficient Credits: 0 CR Available (Batch Needs ${count}+ CR)`,
+        sub: 'Top up Credits before starting — otherwise batch runs cannot unlock the first stream.',
+        btnLabel: '💎 Recharge Credits',
+        neededCredits: count,
+        modalSubtitle: `Your ${count}-stream batch needs at least ${count} CR (currently 0 CR). Recharge below.`
+      });
+    }
+    if (credits < count) {
+      const missing = count - credits;
+      return renderChatPreflightBar(el.chatBatchCostBar, 'chatBatchPreflightBuyBtn', {
+        toneClass: 'is-warn',
+        title: `⚠️ Partial Balance: ${credits} CR Available vs ${count}+ CR Estimated`,
+        sub: `We'll extract as far as ${credits} CR reaches, pause cleanly at 0 CR with progress saved, and let you resume.`,
+        btnLabel: `💎 Top Up +${missing} CR`,
+        neededCredits: count,
+        modalSubtitle: `Your ${count}-stream batch needs at least ${count} CR (balance: ${credits} CR). Top up to finish in one pass.`
+      });
+    }
+    return renderChatPreflightBar(el.chatBatchCostBar, 'chatBatchPreflightBuyBtn', {
+      title: `✅ Ready: ${count} CR Base + Volume Metered • ${credits} CR Available`,
+      sub: 'Fair billing: 1 CR per stream + 1 CR per extra 1,000 chats actually returned.'
+    });
+  }
+
+  function updateCommentsCostPreview() {
+    if (!el.commentsCostPreviewBar || !el.commentsLimitSelect) return;
+    const limit = parseInt(el.commentsLimitSelect.value, 10) || 300;
+    const isHighVolume = limit > 1000;
+    const neededCredits = Math.max(1, Math.ceil(limit / 1000));
+    const auth = window.TubeMetrixAuth;
+    const loggedIn = auth?.isLoggedIn?.() || false;
+    const credits = auth?.getCreditsBalance?.() ?? 0;
+    const freeLeft = auth?.getRemainingStreams?.() ?? 0;
+
+    if (!isHighVolume) {
+      if (freeLeft > 0) {
+        return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
+          title: `✅ Free Quota Eligible (${freeLeft} weekly free run${freeLeft === 1 ? '' : 's'} left)`,
+          sub: `Up to ${limit.toLocaleString()} comments covered cleanly by your weekly allowance (0 Credits deducted).`
+        });
+      }
+      if (!loggedIn) {
+        return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
+          toneClass: 'is-warn',
+          title: `🔒 Free Quota Used — Sign In / 1 CR Required`,
+          sub: `Your free weekly runs are used up. Sign in & top up 1 Credit to download up to ${limit.toLocaleString()} comments.`,
+          btnLabel: '🔑 Sign In / Buy Credits',
+          btnAction: 'auth',
+          neededCredits: 1,
+          modalSubtitle: `Sign in to continue downloading comments (1 CR per 1,000 comments).`
+        });
+      }
+      if (credits < 1) {
+        return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
+          toneClass: 'is-danger',
+          title: `⚠️ Weekly Free Quota Used & 0 Credits Available (Needs 1 CR)`,
+          sub: `Top up 1 Credit to download up to ${limit.toLocaleString()} video comments.`,
+          btnLabel: '💎 Recharge Credits',
+          neededCredits: 1,
+          modalSubtitle: `Free runs reached 0/week. Recharge Credits (₹49 / $2.99 packs) to extract up to 1,000 comments for 1 CR.`
+        });
+      }
+      return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
+        title: `✅ Ready: 1 CR Max • ${credits} CR Available`,
+        sub: `Weekly free quota used; this extraction uses 1 Credit cleanly.`
+      });
+    }
+
+    if (!loggedIn) {
+      return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
+        toneClass: 'is-warn',
+        title: `🔒 Sign In Required • Up to ${neededCredits} CR Max (Zero Overcharge)`,
+        sub: `Only 1 CR is billed upfront; remaining credits settle strictly per 1,000 actual comments found on YouTube.`,
+        btnLabel: '🔑 Sign In / Buy Credits',
+        btnAction: 'auth',
+        neededCredits,
+        modalSubtitle: `High-volume comments (up to ${limit.toLocaleString()}) use Prepaid Credits cleanly with zero overcharge.`
+      });
+    }
+    if (credits === 0) {
+      return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
+        toneClass: 'is-danger',
+        title: `⚠️ Insufficient Credits: 0 CR Available (Limit Needs 1–${neededCredits} CR)`,
+        sub: `High-volume limits (>1,000) require Credits. You are never billed for comments a video doesn't have.`,
+        btnLabel: '💎 Recharge Credits',
+        neededCredits,
+        modalSubtitle: `Downloading up to ${limit.toLocaleString()} comments needs 1–${neededCredits} CR (zero overcharge on shorter videos).`
+      });
+    }
+    if (credits < neededCredits) {
+      const missing = neededCredits - credits;
+      return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
+        toneClass: 'is-warn',
+        title: `⚠️ Partial Balance: ${credits} CR Available vs Up to ${neededCredits} CR (${limit.toLocaleString()} Cap)`,
+        sub: `Only 1 CR charges upfront. We'll fetch up to ${(credits * 1000).toLocaleString()} comments now, never overcharge if fewer exist, or let you top up for the rest.`,
+        btnLabel: `💎 Top Up +${missing} CR`,
+        neededCredits,
+        modalSubtitle: `You have ${credits} CR and selected up to ${limit.toLocaleString()} comments (max ${neededCredits} CR if video has ${limit.toLocaleString()}+ comments).`
+      });
+    }
+    return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
+      title: `✅ Ready: Up to ${neededCredits} CR Max • ${credits} CR Available (Zero Overcharge)`,
+      sub: `Only 1 CR charges upfront, then 1 CR per 1,000 actual comments fetched (unused quota stays untouched).`
+    });
+  }
+
+  window.refreshMultiBatchUI = () => {
+    updateMultiChatQueueUI();
+    updateCommentsCostPreview();
+  };
 
   // ─────────────────────────────────────────────
   // 4. API CALLS & EXTRACTION ENGINES
@@ -541,9 +705,74 @@
     return m ? m[1] : (clean.length === 11 ? clean : '');
   }
 
+  let chatProgressHeartbeatTimer = null;
+  let chatElapsedTimer = null;
+  let chatProcessStartedAt = 0;
+
+  function formatElapsedBadge(ms) {
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    return `⏱ ${mins}:${String(secs).padStart(2, '0')}`;
+  }
+
+  function startChatElapsedTimer() {
+    if (chatElapsedTimer) clearInterval(chatElapsedTimer);
+    chatProcessStartedAt = Date.now();
+    if (el.processingElapsedBadge) {
+      el.processingElapsedBadge.textContent = '⏱ 0:00';
+      el.processingElapsedBadge.style.display = 'inline-block';
+    }
+    chatElapsedTimer = setInterval(() => {
+      if (el.processingElapsedBadge && chatProcessStartedAt > 0) {
+        el.processingElapsedBadge.textContent = formatElapsedBadge(Date.now() - chatProcessStartedAt);
+      }
+    }, 500);
+  }
+
+  function stopChatElapsedTimer() {
+    if (chatElapsedTimer) {
+      clearInterval(chatElapsedTimer);
+      chatElapsedTimer = null;
+    }
+  }
+
+  function startChatProgressHeartbeat(startPct, maxPct, stageTexts) {
+    stopChatProgressHeartbeat();
+    let currentPct = Number(startPct) || 15;
+    let stageIdx = 0;
+    const stages = Array.isArray(stageTexts) && stageTexts.length > 0 ? stageTexts : [];
+    chatProgressHeartbeatTimer = setInterval(() => {
+      if (currentPct < maxPct) {
+        const step = Math.max(0.6, (maxPct - currentPct) * 0.14);
+        currentPct = Math.min(maxPct, currentPct + step);
+        const rounded = Math.round(currentPct);
+        if (el.progressPercent) el.progressPercent.textContent = `${rounded}%`;
+        if (el.progressBarFill) el.progressBarFill.style.width = `${rounded}%`;
+      }
+      if (stages.length > 0 && el.statusTicker) {
+        stageIdx = (stageIdx + 1) % stages.length;
+        el.statusTicker.textContent = stages[stageIdx];
+      }
+    }, 900);
+  }
+
+  function stopChatProgressHeartbeat() {
+    if (chatProgressHeartbeatTimer) {
+      clearInterval(chatProgressHeartbeatTimer);
+      chatProgressHeartbeatTimer = null;
+    }
+  }
+
   function setProgress(percent, title, ticker, extracted = 0, unique = 0, events = 0) {
     if (!el.processingCard) return;
     el.processingCard.style.display = 'block';
+    if (percent < 100 && !chatElapsedTimer) {
+      startChatElapsedTimer();
+    } else if (percent >= 100) {
+      stopChatProgressHeartbeat();
+      stopChatElapsedTimer();
+    }
     if (el.progressPercent) el.progressPercent.textContent = `${Math.round(percent)}%`;
     if (el.progressBarFill) el.progressBarFill.style.width = `${percent}%`;
     if (el.statusTitle) el.statusTitle.textContent = title;
@@ -560,7 +789,36 @@
   }
 
   function hideProgress() {
+    stopChatProgressHeartbeat();
+    stopChatElapsedTimer();
     if (el.processingCard) el.processingCard.style.display = 'none';
+  }
+
+  function maybeAutoOpenRechargeModal(ckpt) {
+    if (!ckpt || ckpt.pauseReason !== 'credits_exhausted') return;
+    const auth = window.TubeMetrixAuth;
+    if (!auth?.isLoggedIn?.()) return;
+    const bal = auth.getCreditsBalance?.() ?? 0;
+    if (bal > 0) return;
+
+    const remStreams = Array.isArray(ckpt.remainingVids) ? ckpt.remainingVids.length : 0;
+    const tailCredits = Math.ceil((ckpt.lockedTail?.length || 0) / 1000);
+    const serverCredits = ckpt.hasMoreOnServer
+      ? (ckpt.requestedLimit
+          ? Math.max(1, Math.ceil((ckpt.requestedLimit - (ckpt.unlockedOnStream || 0)) / 1000))
+          : 1)
+      : 0;
+    const neededCredits = Math.max(1, remStreams + Math.max(tailCredits, serverCredits));
+
+    let subtitle = 'Your Credits reached 0 CR mid-run, so remaining work is safely paused. Recharge Credits below to resume!';
+    if (ckpt.kind === 'comments_overflow') {
+      subtitle = `Downloaded ${(ckpt.unlockedOnStream || 0).toLocaleString()} comments cleanly before hitting 0 CR. Recharge Credits below and click Resume to unlock more!`;
+    } else if (remStreams > 0) {
+      subtitle = `Credits finished (${ckpt.completedVids?.length || 0} of ${ckpt.totalPlannedStreams || remStreams} streams completed, ${remStreams} queued). Recharge Credits below to resume!`;
+    } else {
+      subtitle = `Unlocked ${(ckpt.unlockedOnStream || 0).toLocaleString()} live chat messages cleanly before reaching 0 CR. Recharge Credits below to unlock the rest!`;
+    }
+    auth.openCreditsModal?.(subtitle, { neededCredits });
   }
 
   // Option A: Single Stream Live Chat
@@ -687,6 +945,7 @@
     if (!ckpt || (!hasLockedTail && !hasContinuation && !hasRemainingStreams)) {
       if (el.chatResumeBanner) el.chatResumeBanner.style.display = 'none';
       if (el.chatCreditLimitBanner) el.chatCreditLimitBanner.style.display = 'none';
+      if (el.commentsCreditLimitBanner) el.commentsCreditLimitBanner.style.display = 'none';
       return;
     }
 
@@ -763,16 +1022,28 @@
       </div>
     `;
 
-    [el.chatCreditLimitBanner, el.chatResumeBanner].forEach((bannerEl, idx) => {
+    const showingChatResults = Boolean(
+      ckpt.kind !== 'comments_overflow' &&
+        state.liveChatData &&
+        el.resultsChatSection &&
+        el.resultsChatSection.style.display !== 'none'
+    );
+    const showingCommentsResults = Boolean(
+      ckpt.kind === 'comments_overflow' &&
+        state.commentsData &&
+        el.resultsCommentsSection &&
+        el.resultsCommentsSection.style.display !== 'none'
+    );
+
+    const bannerTargets = [
+      { el: el.chatCreditLimitBanner, show: showingChatResults },
+      { el: el.commentsCreditLimitBanner, show: showingCommentsResults },
+      { el: el.chatResumeBanner, show: !showingChatResults && !showingCommentsResults },
+    ];
+
+    bannerTargets.forEach(({ el: bannerEl, show }) => {
       if (!bannerEl) return;
-      const showingChatResults = Boolean(
-        ckpt.kind !== 'comments_overflow' &&
-          state.liveChatData &&
-          el.resultsChatSection &&
-          el.resultsChatSection.style.display !== 'none'
-      );
-      const showBanner = idx === 0 ? showingChatResults : !showingChatResults;
-      if (!showBanner) {
+      if (!show) {
         bannerEl.style.display = 'none';
         return;
       }
@@ -851,10 +1122,15 @@
 
       if (ckpt.kind === 'comments_overflow') {
         renderCommentsReport(buildCommentsStatsFromList(updatedMessages, ckpt.streamId, ckpt.title));
+        renderChatLimitAndResumeBanners();
+        if (hasWorkLeft && bal === 0) maybeAutoOpenRechargeModal(ckpt);
         return;
       }
       const refreshedReport = aggregateMessagesIntoStats(updatedMessages, ckpt.streamId || 'stream_chat');
       renderLiveChatReport(refreshedReport, ckpt.title || 'Live Chat Report');
+      if (hasWorkLeft && bal === 0) {
+        maybeAutoOpenRechargeModal(ckpt);
+      }
       if (remainingTail.length > 0 || (!ckpt.hasMoreOnServer && (!ckpt.remainingVids || ckpt.remainingVids.length === 0)) || bal < 1) {
         return;
       }
@@ -901,6 +1177,7 @@
           ckpt.continuationToken = res.continuation_token || '';
           const reachedRequested = ckpt.requestedLimit ? ckpt.unlockedOnStream >= ckpt.requestedLimit : false;
           ckpt.hasMoreOnServer = Boolean(!reachedRequested && res.has_more && res.continuation_token && unrevealedTail.length === 0);
+          bal = window.TubeMetrixAuth.getCreditsBalance();
           if (!ckpt.hasMoreOnServer && unrevealedTail.length === 0) {
             await clearChatCheckpoint();
           } else {
@@ -908,6 +1185,10 @@
           }
           hideProgress();
           renderCommentsReport(buildCommentsStatsFromList(merged, ckpt.streamId, ckpt.title));
+          renderChatLimitAndResumeBanners();
+          if ((ckpt.hasMoreOnServer || unrevealedTail.length > 0) && bal === 0) {
+            maybeAutoOpenRechargeModal(ckpt);
+          }
           return;
         }
 
@@ -964,6 +1245,9 @@
         updateViewerSessionButton();
 
         if (stillHasCurrentStream || !ckpt.remainingVids || ckpt.remainingVids.length === 0 || bal < 1) {
+          if ((stillHasCurrentStream || (ckpt.remainingVids?.length || 0) > 0) && bal === 0) {
+            maybeAutoOpenRechargeModal(ckpt);
+          }
           return;
         }
       } catch (err) {
@@ -990,6 +1274,7 @@
       updateChatLiveCreditBar(false);
       renderLiveChatReport(aggregatedData, ckpt.title || 'Resumed Batch Extraction');
       updateViewerSessionButton();
+      maybeAutoOpenRechargeModal(currentChatCheckpoint);
     }
   }
 
@@ -1019,17 +1304,23 @@
     setProgress(15, `Connecting to Stream [${vid}]...`, 'Connecting to YouTube InnerTube streaming engine...');
 
     try {
-      setProgress(40, `Extracting Live Chat Replay...`, 'Streaming in-memory chat replay chunks...');
+      setProgress(25, `Extracting Live Chat Replay...`, 'Streaming in-memory chat replay chunks...');
 
       const remBalAfterBase = window.TubeMetrixAuth?.getCreditsBalance
         ? window.TubeMetrixAuth.getCreditsBalance()
         : 0;
       const maxFetch = paidByCredits ? Math.min(200000, 1000 + remBalAfterBase * 1000) : 1000;
+      startChatProgressHeartbeat(25, 88, [
+        `Connecting to YouTube live chat replay (${vid})...`,
+        `Fetching up to ${maxFetch.toLocaleString()} live chat messages...`,
+        'Parsing Superchats, Memberships, Jewels & active chatters...'
+      ]);
 
       const res = await fetchJsonWithRetry(`${API_BASE}/fetch-chat`, {
         url: vid,
         max_messages: maxFetch,
       });
+      stopChatProgressHeartbeat();
       if (!res.success || !res.data) {
         throw new Error(res.message || 'No live chat replay was found or chat is disabled for this stream.');
       }
@@ -1110,6 +1401,9 @@
         hideProgress();
         renderLiveChatReport(visibleReport, streamTitle);
         updateViewerSessionButton();
+        if (isPausedCapped && paidByCredits) {
+          maybeAutoOpenRechargeModal(currentChatCheckpoint);
+        }
       }, 400);
 
     } catch (err) {
@@ -1182,6 +1476,7 @@
       if (aggregatedData.total_messages > 0 || (aggregatedData.completed_count || 0) > 0) {
         renderLiveChatReport(aggregatedData, reportTitle);
         updateViewerSessionButton();
+        maybeAutoOpenRechargeModal(currentChatCheckpoint);
       } else {
         window.TubeMetrixAuth?.openCreditsModal?.(
           'Your balance reached 0 CR before any stream could finish. Top up Credits to run.'
@@ -1229,6 +1524,7 @@
       if (aggregatedData.total_messages > 0 || (aggregatedData.completed_count || 0) > 0) {
         renderLiveChatReport(aggregatedData, reportTitle);
         updateViewerSessionButton();
+        maybeAutoOpenRechargeModal(currentChatCheckpoint);
       } else {
         window.TubeMetrixAuth?.openCreditsModal?.(
           'Insufficient Credits to process the first queued stream. Buy Credits to run.'
@@ -1264,7 +1560,11 @@
     let remainingVids = [];
     let pauseReason = '';
 
-    updateChatLiveCreditBar(true, `Done ${completedVids.length}/${totalPlanned} • Auto-stops at 0 CR`);
+    const preBal = window.TubeMetrixAuth?.getCreditsBalance?.() ?? 0;
+    const initMeterNote = paidByCredits && preBal < vids.length
+      ? `Partial balance (${preBal} CR for ${vids.length} streams) — auto-stops cleanly at 0 CR`
+      : `Done ${completedVids.length}/${totalPlanned} • Auto-stops at 0 CR`;
+    updateChatLiveCreditBar(true, initMeterNote);
 
     for (let i = 0; i < vids.length; i++) {
       if (activeChatPauseRequested) {
@@ -1305,10 +1605,16 @@
           ? window.TubeMetrixAuth.getCreditsBalance()
           : 0;
         const streamCap = paidByCredits ? Math.min(200000, 1000 + remBalAfterBase * 1000) : 1000;
+        const maxStreamPct = Math.min(98, Math.round(((overallIdx + 0.85) / totalPlanned) * 100));
+        startChatProgressHeartbeat(pct, maxStreamPct, [
+          `[Stream ${overallIdx}/${totalPlanned}] Fetching chat chunks for ${vid}...`,
+          `[Stream ${overallIdx}/${totalPlanned}] Parsing contributors & donation events...`
+        ]);
         const res = await fetchJsonWithRetry(`${API_BASE}/fetch-chat`, {
           url: vid,
           max_messages: streamCap,
         });
+        stopChatProgressHeartbeat();
 
         if (res.success && res.data && res.data.messages) {
           const rawMsgs = res.data.messages.map((m) => ({
@@ -1344,6 +1650,7 @@
           completedVids.push(vid);
         }
       } catch (e) {
+        stopChatProgressHeartbeat();
         console.warn(`Failed to process stream ${vid}:`, e);
         completedVids.push(vid);
       }
@@ -1422,12 +1729,18 @@
     setProgress(20, `Fetching Video Comments [${vid}]...`, 'Connecting to YouTube InnerTube comments engine...');
 
     try {
-      setProgress(50, `Streaming Comments (Target: ${affordableLimit.toLocaleString()})...`, 'Extracting comments, author handles, likes & replies...');
+      setProgress(25, `Streaming Comments (Target: ${affordableLimit.toLocaleString()})...`, 'Extracting comments, author handles, likes & replies...');
+      startChatProgressHeartbeat(25, 88, [
+        `Fetching up to ${affordableLimit.toLocaleString()} comments from YouTube (${vid})...`,
+        'Collecting top comments, replies & pinned threads...',
+        'Settling only actual comments returned (zero overcharge)...'
+      ]);
 
       const res = await fetchJsonWithRetry(`${API_BASE}/fetch-comments`, {
         url: vid,
         max_comments: affordableLimit,
       });
+      stopChatProgressHeartbeat();
 
       if (!res.success) {
         throw new Error(res.error || 'Failed to download comments.');
@@ -1504,6 +1817,9 @@
         hideProgress();
         renderCommentsReport(finalReport);
         renderChatLimitAndResumeBanners();
+        if (isHighVolume && (lockedTail.length > 0 || hasMoreOnServer)) {
+          maybeAutoOpenRechargeModal(currentChatCheckpoint);
+        }
       }, 400);
 
     } catch (err) {
@@ -2946,7 +3262,14 @@
       });
     }
 
+    if (el.commentsLimitSelect) {
+      el.commentsLimitSelect.addEventListener('change', () => updateCommentsCostPreview());
+    }
+    updateCommentsCostPreview();
+
     window.addEventListener('tubemetrix:auth-updated', (e) => {
+      updateMultiChatQueueUI();
+      updateCommentsCostPreview();
       if (isChatExtractionRunning) {
         updateChatLiveCreditBar(true);
         return;
@@ -2960,7 +3283,11 @@
     });
 
     if (window.TubeMetrixAuth?.whenReady) {
-      window.TubeMetrixAuth.whenReady().then(() => restoreSavedChatCheckpoint());
+      window.TubeMetrixAuth.whenReady().then(() => {
+        restoreSavedChatCheckpoint();
+        updateMultiChatQueueUI();
+        updateCommentsCostPreview();
+      });
     } else {
       setTimeout(() => restoreSavedChatCheckpoint(), 500);
     }
