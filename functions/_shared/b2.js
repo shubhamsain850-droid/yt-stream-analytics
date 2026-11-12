@@ -92,62 +92,89 @@ async function b2ApiPost(env, endpointPath, payload, { retryAuth = true } = {}) 
   return { auth, data };
 }
 
+function isRetryableB2Status(status) {
+  return status === 401 || status === 408 || status === 429 || status >= 500;
+}
+
 export async function b2PutObject(env, objectPath, arrayBuf, contentType = 'application/octet-stream') {
   const bytes = arrayBuf instanceof Uint8Array ? arrayBuf : new Uint8Array(arrayBuf);
   const fileSha1 = await sha1Hex(bytes);
   const encodedPath = encodeB2Path(objectPath);
 
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const auth = await authorizeB2(env, { forceRefresh: attempt > 0 });
-    const { data: uploadInfo } = await b2ApiPost(env, 'b2_get_upload_url', { bucketId: auth.bucketId });
-    const uploadResp = await fetch(uploadInfo.uploadUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: uploadInfo.authorizationToken,
-        'X-Bz-File-Name': encodedPath,
-        'Content-Type': contentType || 'b2/x-auto',
-        'Content-Length': String(bytes.byteLength),
-        'X-Bz-Content-Sha1': fileSha1,
-      },
-      body: bytes,
-    });
-    if ((uploadResp.status === 401 || uploadResp.status === 503) && attempt === 0) {
-      continue;
+  let lastErr = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const auth = await authorizeB2(env, { forceRefresh: attempt > 0 });
+      const { data: uploadInfo } = await b2ApiPost(env, 'b2_get_upload_url', { bucketId: auth.bucketId });
+      const uploadResp = await fetch(uploadInfo.uploadUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: uploadInfo.authorizationToken,
+          'X-Bz-File-Name': encodedPath,
+          'Content-Type': contentType || 'b2/x-auto',
+          'Content-Length': String(bytes.byteLength),
+          'X-Bz-Content-Sha1': fileSha1,
+        },
+        body: bytes,
+      });
+      if (isRetryableB2Status(uploadResp.status) && attempt < 2) {
+        await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+        continue;
+      }
+      const result = await uploadResp.json().catch(() => null);
+      if (!uploadResp.ok) {
+        throw new Error(result?.message || result?.code || `B2 upload failed (${uploadResp.status}).`);
+      }
+      return `b2:${objectPath}`;
+    } catch (err) {
+      lastErr = err;
+      if (attempt < 2) {
+        await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+        continue;
+      }
+      throw err;
     }
-    const result = await uploadResp.json().catch(() => null);
-    if (!uploadResp.ok) {
-      throw new Error(result?.message || result?.code || `B2 upload failed (${uploadResp.status}).`);
-    }
-    return `b2:${objectPath}`;
   }
-  throw new Error('B2 upload failed after retry.');
+  throw lastErr || new Error('B2 upload failed after retry.');
 }
 
 export async function b2GetObject(env, storedKey) {
   const objectPath = String(storedKey || '').replace(/^b2:/, '');
   if (!objectPath) return null;
 
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const auth = await authorizeB2(env, { forceRefresh: attempt > 0 });
-    const url = `${auth.downloadUrl}/file/${encodeURIComponent(auth.bucketName)}/${encodeB2Path(objectPath)}`;
-    const resp = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Authorization: auth.authorizationToken,
-      },
-    });
-    if (resp.status === 401 && attempt === 0) {
-      continue;
+  let lastErr = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const auth = await authorizeB2(env, { forceRefresh: attempt > 0 });
+      const url = `${auth.downloadUrl}/file/${encodeURIComponent(auth.bucketName)}/${encodeB2Path(objectPath)}`;
+      const resp = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: auth.authorizationToken,
+        },
+      });
+      if (isRetryableB2Status(resp.status) && attempt < 2) {
+        await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+        continue;
+      }
+      if (resp.status === 404) {
+        return null;
+      }
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => null);
+        throw new Error(errData?.message || errData?.code || `B2 download failed (${resp.status}).`);
+      }
+      return resp;
+    } catch (err) {
+      lastErr = err;
+      if (attempt < 2) {
+        await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+        continue;
+      }
+      throw err;
     }
-    if (resp.status === 404) {
-      return null;
-    }
-    if (!resp.ok) {
-      const errData = await resp.json().catch(() => null);
-      throw new Error(errData?.message || errData?.code || `B2 download failed (${resp.status}).`);
-    }
-    return resp;
   }
+  if (lastErr) throw lastErr;
   return null;
 }
 

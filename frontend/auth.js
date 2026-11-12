@@ -101,7 +101,7 @@
             sub: '$0.058 per 1k chats (Save 42%) • Never expires',
             desc: 'Best value for regular live streamers, editors &amp; channel audits.',
             extra1: '✓ Custom URL Batch &amp; Full Channel History',
-            extra2: '✓ 100% Ad-Free + Priority Throughput',
+            extra2: '✓ 14-Day Cloud Backups + Priority Queue',
           },
           mini: {
             packId: 'usd_30',
@@ -115,7 +115,7 @@
             sub: '$0.23 per 1k chats (Save 23%) • Never expires',
             desc: 'Balanced mini pack for weekly batch streams and YouTube comments.',
             extra1: '✓ Custom URL Batch &amp; Full Channel History',
-            extra2: '✓ 100% Ad-Free + Priority Throughput',
+            extra2: '✓ 14-Day Cloud Backups + Priority Queue',
           },
         },
         INR: {
@@ -131,7 +131,7 @@
             sub: '₹4.97 / 1k chats • India UPI &amp; Cards',
             desc: 'Best starter value for regular live streamers, editors &amp; channel audits.',
             extra1: '✓ Custom URL Batch &amp; Full Channel History',
-            extra2: '✓ 100% Ad-Free + Never Expiring Credits',
+            extra2: '✓ 14-Day Cloud Backups + Never Expires',
           },
           volume: {
             packId: 'in_500',
@@ -145,7 +145,7 @@
             sub: '₹2.60 / 1k chats • Massive Creator Savings',
             desc: 'High-volume pack for busy channels, editors &amp; full-month archives.',
             extra1: '✓ Custom URL Batch &amp; Full Channel History',
-            extra2: '✓ 100% Ad-Free + Priority Throughput',
+            extra2: '✓ 14-Day Cloud Backups + Priority Queue',
           },
         },
       },
@@ -167,7 +167,7 @@
             sub: '$0.049 per 1k chats (Save 51%) • Never expires',
             desc: 'Massive million-chat volume for MCNs, agencies &amp; researchers.',
             extra1: '✓ Bulk Parallel Batch Engine &amp; Exports',
-            extra2: '✓ 100% Ad-Free + VIP Queue Speed',
+            extra2: '✓ 14-Day Cloud Backups + VIP Queue Speed',
           },
           mini: {
             packId: 'credits_200',
@@ -181,7 +181,7 @@
             sub: '$0.10 per 1k chats (Save 66% vs Mini)',
             desc: 'Get 200,000 chats instead of 30k for only $13 more — massive value.',
             extra1: '✓ Single, Custom URL Batch &amp; Date Range',
-            extra2: '✓ 100% Ad-Free + All Export Formats',
+            extra2: '✓ 14-Day Cloud Backups + All 4 Exports',
           },
         },
         INR: {
@@ -197,7 +197,7 @@
             sub: '₹4.99 / 1k chats • India UPI &amp; Cards',
             desc: 'Solid 1 Lakh chats/comments pack for growing channels &amp; researchers.',
             extra1: '✓ Parallel Batch Engine &amp; All Exports',
-            extra2: '✓ 100% Ad-Free + Priority Throughput',
+            extra2: '✓ 14-Day Cloud Backups + Priority Queue',
           },
           volume: {
             packId: 'in_1000',
@@ -211,7 +211,7 @@
             sub: '₹1.80 / 1k chats (Save 64%) • Never expires',
             desc: 'Massive 10 Lakh (1M) chat/comment volume for agencies &amp; MCNs.',
             extra1: '✓ Bulk Parallel Batch Engine &amp; Exports',
-            extra2: '✓ 100% Ad-Free + VIP Queue Speed',
+            extra2: '✓ 14-Day Cloud Backups + VIP Queue Speed',
           },
         },
       },
@@ -793,7 +793,6 @@
       }
     }
 
-    checkAdSuppression();
     updateFeatureLocks();
   }
 
@@ -808,20 +807,6 @@
     } catch {}
     currentUser = null;
     applyServerState({ user: null });
-  }
-
-  function checkAdSuppression() {
-    if (
-      currentUser &&
-      (Number(currentUser.creditsBalance || 0) > 0 || Number(currentUser.totalPurchasedCredits || 0) > 0)
-    ) {
-      const adScript = document.querySelector('script[src*="bauval.org"]');
-      if (adScript) adScript.remove();
-      const adElements = document.querySelectorAll(
-        'iframe[src*="bauval"], div[id*="at-cv-lightbox"], div[class*="adsterra"], div[class*="social-bar"]'
-      );
-      adElements.forEach((el) => el.remove());
-    }
   }
 
   // ── Auth Modal (Google Sign-In Only) ──

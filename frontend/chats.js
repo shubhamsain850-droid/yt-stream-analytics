@@ -1258,8 +1258,13 @@
       { immediate: isFinalState }
     );
     if (isFinalState) {
-      await savePromise;
-      renderChatCloudBadge(sectionType, status === 'completed' ? 'completed' : 'paused', backupId);
+      const saved = await savePromise;
+      renderChatCloudBadge(
+        sectionType,
+        saved ? (status === 'completed' ? 'completed' : 'paused') : 'idle',
+        backupId
+      );
+      return Boolean(saved);
     }
     return true;
   }
