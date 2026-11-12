@@ -7,14 +7,17 @@ import { getCreditPack } from './dodo.js';
 
 export function serializeUser(row) {
   if (!row) return null;
+  const creditsBalance = Math.max(0, Number(row.credits_balance || 0));
+  const totalPurchasedCredits = Math.max(0, Number(row.total_purchased_credits || 0));
   return {
     id: row.id,
     email: row.email,
     name: row.name,
     givenName: row.given_name,
     picture: row.picture || null,
-    creditsBalance: Math.max(0, Number(row.credits_balance || 0)),
-    totalPurchasedCredits: Math.max(0, Number(row.total_purchased_credits || 0)),
+    creditsBalance,
+    totalPurchasedCredits,
+    isPremiumBackupEligible: totalPurchasedCredits > 0 || creditsBalance > 0,
   };
 }
 
@@ -564,4 +567,213 @@ export async function markWebhookProcessed(db, webhookId, eventType) {
     .bind(webhookId, eventType || 'unknown', nowIso)
     .run();
   return Boolean(res?.meta?.changes && res.meta.changes > 0);
+}
+
+// ── 14-Day Cloud Backups & Cross-Device Resume Helpers (D1 Metadata + R2 Blobs) ──
+export const BACKUP_RETENTION_DAYS = 14;
+export const BACKUP_RETENTION_MS = BACKUP_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+let _backupsTableEnsured = false;
+
+export async function ensureBackupsTable(db) {
+  if (_backupsTableEnsured) return;
+  await db
+    .prepare(
+      `CREATE TABLE IF NOT EXISTS user_backups (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        tool_kind TEXT NOT NULL,
+        mode TEXT NOT NULL,
+        title TEXT NOT NULL,
+        backup_date TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'in_progress',
+        completed_count INTEGER NOT NULL DEFAULT 0,
+        total_count INTEGER NOT NULL DEFAULT 0,
+        items_count INTEGER NOT NULL DEFAULT 0,
+        stream_keys_json TEXT,
+        resume_key TEXT,
+        zip_key TEXT,
+        zip_size_bytes INTEGER NOT NULL DEFAULT 0,
+        expires_at TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )`
+    )
+    .run();
+  await db
+    .prepare(
+      'CREATE INDEX IF NOT EXISTS idx_user_backups_user_date ON user_backups(user_id, backup_date DESC, updated_at DESC)'
+    )
+    .run();
+  await db
+    .prepare('CREATE INDEX IF NOT EXISTS idx_user_backups_expires ON user_backups(expires_at)')
+    .run();
+  _backupsTableEnsured = true;
+}
+
+export async function isUserPremiumForBackups(db, user) {
+  if (!user?.id) return false;
+  if (Number(user.totalPurchasedCredits || 0) > 0 || Number(user.creditsBalance || 0) > 0) {
+    return true;
+  }
+  return hasCompletedPurchase(db, user.id);
+}
+
+export function serializeBackupRow(row) {
+  if (!row) return null;
+  let streamKeys = [];
+  if (row.stream_keys_json) {
+    try {
+      const parsed = JSON.parse(row.stream_keys_json);
+      if (Array.isArray(parsed)) streamKeys = parsed.slice(0, 500);
+    } catch {}
+  }
+  return {
+    id: row.id,
+    toolKind: row.tool_kind,
+    mode: row.mode,
+    title: row.title,
+    backupDate: row.backup_date,
+    status: row.status,
+    completedCount: Number(row.completed_count || 0),
+    totalCount: Number(row.total_count || 0),
+    itemsCount: Number(row.items_count || 0),
+    streamKeys,
+    hasResume: Boolean(row.resume_key),
+    hasZip: Boolean(row.zip_key),
+    zipSizeBytes: Number(row.zip_size_bytes || 0),
+    expiresAt: row.expires_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export async function purgeExpiredBackupsForUser(db, bucket, userId, nowIso = new Date().toISOString()) {
+  if (!userId) return 0;
+  await ensureBackupsTable(db);
+  const expiredRes = await db
+    .prepare('SELECT id, resume_key, zip_key FROM user_backups WHERE user_id = ?1 AND expires_at <= ?2')
+    .bind(userId, nowIso)
+    .all();
+  const rows = expiredRes?.results || [];
+  if (rows.length === 0) return 0;
+
+  if (bucket) {
+    const keysToDelete = [];
+    rows.forEach((r) => {
+      if (r.resume_key) keysToDelete.push(r.resume_key);
+      if (r.zip_key) keysToDelete.push(r.zip_key);
+    });
+    if (keysToDelete.length > 0) {
+      await Promise.allSettled(keysToDelete.map((k) => bucket.delete(k)));
+    }
+  }
+
+  await db
+    .prepare('DELETE FROM user_backups WHERE user_id = ?1 AND expires_at <= ?2')
+    .bind(userId, nowIso)
+    .run();
+  return rows.length;
+}
+
+export async function listUserBackups(db, bucket, userId) {
+  const nowIso = new Date().toISOString();
+  await purgeExpiredBackupsForUser(db, bucket, userId, nowIso);
+  const res = await db
+    .prepare(
+      `SELECT * FROM user_backups
+       WHERE user_id = ?1 AND expires_at > ?2
+       ORDER BY backup_date DESC, updated_at DESC
+       LIMIT 60`
+    )
+    .bind(userId, nowIso)
+    .all();
+  return (res?.results || []).map(serializeBackupRow);
+}
+
+export async function getUserBackupById(db, userId, backupId, { includeExpired = false } = {}) {
+  await ensureBackupsTable(db);
+  const row = await db
+    .prepare('SELECT * FROM user_backups WHERE id = ?1')
+    .bind(backupId)
+    .first();
+  if (!row || row.user_id !== userId) return null;
+  if (!includeExpired && row.expires_at && row.expires_at <= new Date().toISOString()) {
+    return null;
+  }
+  return row;
+}
+
+export async function getBackupOwner(db, backupId) {
+  await ensureBackupsTable(db);
+  return db
+    .prepare('SELECT id, user_id, resume_key, zip_key, zip_size_bytes, created_at FROM user_backups WHERE id = ?1')
+    .bind(backupId)
+    .first();
+}
+
+export async function upsertUserBackup(db, entry) {
+  await ensureBackupsTable(db);
+  await db
+    .prepare(
+      `INSERT INTO user_backups (
+        id, user_id, tool_kind, mode, title, backup_date, status,
+        completed_count, total_count, items_count, stream_keys_json,
+        resume_key, zip_key, zip_size_bytes, expires_at, created_at, updated_at
+      ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)
+      ON CONFLICT(id) DO UPDATE SET
+        tool_kind = excluded.tool_kind,
+        mode = excluded.mode,
+        title = excluded.title,
+        backup_date = excluded.backup_date,
+        status = excluded.status,
+        completed_count = excluded.completed_count,
+        total_count = excluded.total_count,
+        items_count = excluded.items_count,
+        stream_keys_json = excluded.stream_keys_json,
+        resume_key = excluded.resume_key,
+        zip_key = excluded.zip_key,
+        zip_size_bytes = excluded.zip_size_bytes,
+        expires_at = excluded.expires_at,
+        updated_at = excluded.updated_at`
+    )
+    .bind(
+      entry.id,
+      entry.userId,
+      entry.toolKind,
+      entry.mode,
+      entry.title,
+      entry.backupDate,
+      entry.status,
+      entry.completedCount,
+      entry.totalCount,
+      entry.itemsCount,
+      entry.streamKeysJson,
+      entry.resumeKey,
+      entry.zipKey,
+      entry.zipSizeBytes,
+      entry.expiresAt,
+      entry.createdAt,
+      entry.updatedAt
+    )
+    .run();
+}
+
+export async function deleteUserBackupRow(db, bucket, userId, backupId) {
+  await ensureBackupsTable(db);
+  const row = await db
+    .prepare('SELECT id, resume_key, zip_key FROM user_backups WHERE id = ?1 AND user_id = ?2')
+    .bind(backupId, userId)
+    .first();
+  if (!row) return false;
+  if (bucket) {
+    const ops = [];
+    if (row.resume_key) ops.push(bucket.delete(row.resume_key));
+    if (row.zip_key) ops.push(bucket.delete(row.zip_key));
+    if (ops.length > 0) await Promise.allSettled(ops);
+  }
+  await db
+    .prepare('DELETE FROM user_backups WHERE id = ?1 AND user_id = ?2')
+    .bind(backupId, userId)
+    .run();
+  return true;
 }

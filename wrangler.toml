@@ -11,3 +11,8 @@ binding = "DB"
 database_name = "tubemetrix-db"
 database_id = "c6c10a10-c927-4353-919e-b7e4e3a8e33f"
 
+[[r2_buckets]]
+binding = "BACKUPS"
+bucket_name = "tubemetrix-backups"
+
+

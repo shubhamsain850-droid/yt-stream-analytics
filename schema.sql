@@ -64,3 +64,26 @@ CREATE TABLE IF NOT EXISTS credit_ledger (
 );
 
 CREATE INDEX IF NOT EXISTS idx_credit_ledger_user ON credit_ledger(user_id, created_at);
+
+CREATE TABLE IF NOT EXISTS user_backups (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  tool_kind TEXT NOT NULL,
+  mode TEXT NOT NULL,
+  title TEXT NOT NULL,
+  backup_date TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'in_progress',
+  completed_count INTEGER NOT NULL DEFAULT 0,
+  total_count INTEGER NOT NULL DEFAULT 0,
+  items_count INTEGER NOT NULL DEFAULT 0,
+  stream_keys_json TEXT,
+  resume_key TEXT,
+  zip_key TEXT,
+  zip_size_bytes INTEGER NOT NULL DEFAULT 0,
+  expires_at TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_backups_user_date ON user_backups(user_id, backup_date DESC, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_user_backups_expires ON user_backups(expires_at);

@@ -674,8 +674,17 @@
         `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name || 'Creator')}&background=ff0033&color=fff&rounded=true`;
       const safeAvatar = escapeHtml(rawAvatar);
 
+      const hasCloudBackup = Boolean(
+        currentUser.isPremiumBackupEligible ||
+        Number(currentUser.totalPurchasedCredits || 0) > 0 ||
+        credits > 0
+      );
+
       container.innerHTML = `
         <div class="user-profile-menu" id="userProfileMenu">
+          <button class="btn-nav-backups ${hasCloudBackup ? '' : 'is-locked'}" id="navBackupsBtn" type="button" title="14-Day Cloud Backups & Recovery">
+            <span>☁️</span><span class="nav-backups-text">Backups</span>
+          </button>
           <button class="user-avatar-btn ${credits > 0 ? 'has-credits' : 'no-credits'}" id="userAvatarBtn" type="button" aria-label="Open User Menu" title="Account & Credits (${credits} CR)">
             <img src="${safeAvatar}" alt="${safeName}" class="user-avatar-img">
             <span class="user-credit-chip ${credits > 0 ? 'chip-active' : 'chip-empty'}">
@@ -709,6 +718,11 @@
               </div>
             </div>
 
+            <button class="btn-dropdown-backups" id="dropdownBackupsBtn" type="button">
+              <span>☁️ 14-Day Cloud Backups</span>
+              <span>${hasCloudBackup ? 'Open' : '🔒'}</span>
+            </button>
+
             <button class="btn-upgrade-pro-menu" id="dropdownBuyCreditsBtn" type="button">
               <span>💎 Buy Credit Packs</span>
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
@@ -723,6 +737,22 @@
           </div>
         </div>
       `;
+
+      const navBackupsBtn = document.getElementById('navBackupsBtn');
+      if (navBackupsBtn) {
+        navBackupsBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          window.TubeMetrixBackups?.openBackupsModal?.();
+        });
+      }
+
+      const dropdownBackupsBtn = document.getElementById('dropdownBackupsBtn');
+      if (dropdownBackupsBtn) {
+        dropdownBackupsBtn.addEventListener('click', () => {
+          dropdownCard.style.display = 'none';
+          window.TubeMetrixBackups?.openBackupsModal?.();
+        });
+      }
 
       const avatarBtn = document.getElementById('userAvatarBtn');
       const dropdownCard = document.getElementById('userDropdownCard');
@@ -1586,6 +1616,13 @@
     getCreditsBalance: () => (currentUser ? Math.max(0, Number(currentUser.creditsBalance || 0)) : 0),
     hasCredits: () => Boolean(currentUser && Number(currentUser.creditsBalance || 0) > 0),
     isPro: () => Boolean(currentUser && Number(currentUser.creditsBalance || 0) > 0),
+    isPremiumBackupEligible: () =>
+      Boolean(
+        currentUser &&
+        (currentUser.isPremiumBackupEligible ||
+          Number(currentUser.totalPurchasedCredits || 0) > 0 ||
+          Number(currentUser.creditsBalance || 0) > 0)
+      ),
     getRemainingStreams,
     getLastRunAuth: () => (lastRunAuth ? { ...lastRunAuth } : null),
     settleChatVolumeCredits,

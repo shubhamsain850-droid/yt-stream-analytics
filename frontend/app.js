@@ -760,7 +760,7 @@ function setupSingleMode() {
       elements.singleUrlInput.focus();
       return;
     }
-    startProcessing([url], null, { mode: 'single' });
+    startEarningsWithDuplicateGuard([url], null, { mode: 'single' });
   });
 }
 
@@ -835,7 +835,7 @@ function setupChannelMode() {
       const resJson = await resp.json();
       if (resJson.success && resJson.streams && resJson.streams.length > 0) {
         let urls = resJson.streams.map(s => s.url);
-        startProcessing(urls, `Channel: ${channel} (${urls.length} Streams Found)`, { mode: 'channel' });
+        startEarningsWithDuplicateGuard(urls, `Channel: ${channel} (${urls.length} Streams Found)`, { mode: 'channel' });
         return;
       } else {
         alert("No streams found matching the specified date range on this channel.");
@@ -1018,7 +1018,7 @@ function setupMultiMode() {
   elements.startMultiBtn.addEventListener('click', () => {
     if (state.multiUrlQueue.length === 0) return;
     const batch = state.multiUrlQueue.slice(0, MAX_MULTI_STREAMS);
-    startProcessing(batch, `Custom URL Batch (${batch.length} Streams)`, { mode: 'batch' });
+    startEarningsWithDuplicateGuard(batch, `Custom URL Batch (${batch.length} Streams)`, { mode: 'batch' });
   });
 }
 
@@ -1479,6 +1479,149 @@ async function saveEarningsCheckpoint(ckpt) {
   renderEarningsPauseAndResumeBanners();
 }
 
+function earningsBeforeUnloadHandler(e) {
+  if (!state.processing) return;
+  e.preventDefault();
+  e.returnValue = 'Stream audit is still running. Completed streams are saved, closing now may interrupt active workers.';
+  return e.returnValue;
+}
+
+function renderEarningsCloudBadge(status = 'idle', backupId = '', failedUrls = []) {
+  if (!elements.resultsSection) return;
+  let badge = document.getElementById('earningsCloudStatusBadge');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'earningsCloudStatusBadge';
+    badge.className = 'tm-cloud-status-host';
+    elements.resultsSection.prepend(badge);
+  }
+  const hasCloud = Boolean(status && status !== 'idle');
+  const hasFailed = Array.isArray(failedUrls) && failedUrls.length > 0;
+  if (!hasCloud && !hasFailed) {
+    badge.innerHTML = '';
+    badge.style.display = 'none';
+    return;
+  }
+  const labelMap = {
+    saving: '☁️ Syncing 14-Day Cloud Backup (All Formats ZIP)...',
+    completed: '☁️ Saved to 14-Day Cloud Backup (ZIP + Resume History)',
+    paused: '☁️ Partial Progress Saved to 14-Day Cloud Backup',
+    restored: '☁️ Restored from 14-Day Cloud Backup (0 Credits Used)',
+  };
+  badge.style.display = 'flex';
+  badge.style.flexWrap = 'wrap';
+  badge.style.gap = '10px';
+  badge.style.alignItems = 'center';
+  badge.style.marginBottom = '14px';
+  badge.innerHTML = `
+    ${hasCloud ? `<button type="button" class="tm-cloud-saved-pill" id="tmOpenEarningsCloudBtn" title="View or download all-formats ZIP backups">${escapeHtmlForBanner(labelMap[status] || labelMap.completed)}</button>` : ''}
+    ${hasFailed ? `<button type="button" class="tm-cloud-saved-pill" id="tmRetryFailedEarningsBtn" style="border-color: rgba(245, 158, 11, 0.45); color: #fcd34d; background: rgba(245, 158, 11, 0.1);" title="Retry only failed URLs">⚠️ ${failedUrls.length} Failed URL(s) • ↻ Retry Failed</button>` : ''}
+  `;
+  const openBtn = document.getElementById('tmOpenEarningsCloudBtn');
+  if (openBtn) {
+    openBtn.addEventListener('click', () => window.TubeMetrixBackups?.openBackupsModal?.());
+  }
+  const retryBtn = document.getElementById('tmRetryFailedEarningsBtn');
+  if (retryBtn) {
+    retryBtn.addEventListener('click', () => {
+      const retryQueue = failedUrls.map((item) => item?.url).filter(Boolean);
+      if (!retryQueue.length) return;
+      startProcessing(retryQueue, `Retry Failed (${retryQueue.length} Streams)`, {
+        mode: retryQueue.length > 1 ? 'batch' : 'single',
+        skipDupCheck: true,
+      });
+    });
+  }
+}
+
+async function startEarningsWithDuplicateGuard(urls, label = null, options = {}) {
+  const list = Array.isArray(urls) ? urls.filter(Boolean) : [];
+  if (!list.length) return;
+  if (!options?.skipDupCheck && window.TubeMetrixBackups?.isEligible?.()) {
+    const vids = [...new Set(list.map((u) => extractVideoId(u) || String(u || '').trim()).filter(Boolean))];
+    if (vids.length > 0) {
+      try {
+        const dup = await window.TubeMetrixBackups.findRecentDuplicates(vids, 'earnings');
+        if (dup && dup.backup) {
+          window.TubeMetrixBackups.promptDuplicateModal({
+            backup: dup.backup,
+            matchedIds: dup.matchedIds,
+            onUseBackup: () => window.TubeMetrixBackups.triggerBackupAction(dup.backup, 'open'),
+            onRefetchFresh: () => startProcessing(list, label, { ...options, skipDupCheck: true }),
+          });
+          return;
+        }
+      } catch (e) {
+        console.warn('Duplicate check skipped:', e);
+      }
+    }
+  }
+  return startProcessing(list, label, options);
+}
+
+function hydrateEarningsStateFromPayload(payload) {
+  if (!payload || !payload.accumulator) return null;
+  if (payload.tierPrices && typeof payload.tierPrices === 'object') {
+    Object.assign(state.tierPrices, payload.tierPrices);
+  }
+  if (Array.isArray(payload.discoveredTiers)) {
+    payload.discoveredTiers.forEach((t) => state.discoveredTiers.add(t));
+  }
+  if (payload.metrics) {
+    state.metrics = { ...payload.metrics };
+    updateMetricsDisplay();
+  }
+  const hydrated = hydrateAccumulator(payload.accumulator);
+  state.results = hydrated;
+  if (hydrated.streams.length > 0) {
+    renderAllResults(hydrated);
+    renderTiersBar();
+  }
+  if (elements.resultsSection) {
+    elements.resultsSection.style.display = 'block';
+  }
+  return hydrated;
+}
+
+window.__tmRestoreCloudBackup = async function tmRestoreEarningsCloudBackup({ action, backup, payload }) {
+  if (!payload) return;
+  if (action === 'open') {
+    await clearEarningsCheckpoint();
+    hydrateEarningsStateFromPayload(payload);
+    renderEarningsCloudBadge('restored', backup?.id || '');
+    elements.resultsSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  if (action === 'resume') {
+    hydrateEarningsStateFromPayload(payload);
+    currentEarningsCheckpoint = payload;
+    await saveEarningsCheckpoint(payload);
+    const bal = window.TubeMetrixAuth?.getCreditsBalance?.() ?? 0;
+    if (bal >= 1 && Array.isArray(payload.remainingUrls) && payload.remainingUrls.length > 0) {
+      await startProcessing(payload.remainingUrls, payload.label || backup?.title || 'Resumed Audit', {
+        mode: payload.mode || 'batch',
+        isResume: true,
+        initialAccumulator: payload.accumulator,
+        completedBeforeUrls: payload.completedUrls || [],
+        totalPlannedCount: payload.totalPlanned,
+        initialMetrics: payload.metrics,
+        cloudBackupId: backup?.id || payload.cloudBackupId || '',
+        failedUrls: payload.failedUrls || [],
+      });
+    } else {
+      renderEarningsCloudBadge('paused', backup?.id || '', payload.failedUrls || []);
+      renderEarningsPauseAndResumeBanners();
+      elements.resultsSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (bal < 1) {
+        window.TubeMetrixAuth?.openCreditsModal?.(
+          `Recovered your ${payload.completedUrls?.length || 0}/${payload.totalPlanned || 0} audit from Cloud Backup! Buy Credits to resume the remaining ${payload.remainingUrls?.length || 0} stream(s).`,
+          { neededCredits: payload.remainingUrls?.length || 1 }
+        );
+      }
+    }
+  }
+};
+
 async function clearEarningsCheckpoint() {
   earningsCheckpointEpoch++;
   currentEarningsCheckpoint = null;
@@ -1490,38 +1633,48 @@ async function clearEarningsCheckpoint() {
 
 async function restoreSavedEarningsCheckpoint() {
   if (!window.TubeMetrixAuth?.checkpoints) return;
+  if (await window.TubeMetrixBackups?.consumePendingRestoreIfReady?.(['earnings'])) {
+    return;
+  }
   const startEpoch = earningsCheckpointEpoch;
   const saved = await window.TubeMetrixAuth.checkpoints.load(EARNINGS_PAUSE_CKPT_KEY);
   if (startEpoch !== earningsCheckpointEpoch || state.processing) {
     return;
   }
-  if (!saved || !Array.isArray(saved.remainingUrls) || saved.remainingUrls.length === 0) {
-    currentEarningsCheckpoint = null;
+  if (saved && Array.isArray(saved.remainingUrls) && saved.remainingUrls.length > 0) {
+    currentEarningsCheckpoint = saved;
+    if (!state.results && saved.accumulator) {
+      hydrateEarningsStateFromPayload(saved);
+    }
     renderEarningsPauseAndResumeBanners();
     return;
   }
-  currentEarningsCheckpoint = saved;
-  if (!state.results && saved.accumulator) {
-    if (saved.tierPrices && typeof saved.tierPrices === 'object') {
-      Object.assign(state.tierPrices, saved.tierPrices);
-    }
-    if (Array.isArray(saved.discoveredTiers)) {
-      saved.discoveredTiers.forEach((t) => state.discoveredTiers.add(t));
-    }
-    if (saved.metrics) {
-      state.metrics = { ...saved.metrics };
-      updateMetricsDisplay();
-    }
-    const hydrated = hydrateAccumulator(saved.accumulator);
-    state.results = hydrated;
-    if (hydrated.streams.length > 0) {
-      renderAllResults(hydrated);
-      renderTiersBar();
-    }
-    if (elements.resultsSection) {
-      elements.resultsSection.style.display = 'block';
+
+  // Fallback cross-device cloud check when local IndexedDB has no pending pause
+  if (!saved && window.TubeMetrixBackups?.isEligible?.()) {
+    try {
+      const list = await window.TubeMetrixBackups.listBackups();
+      const cloudPending = (list?.backups || []).find(
+        (b) => b.toolKind === 'earnings' && (b.status === 'in_progress' || b.status === 'paused') && b.hasResume
+      );
+      if (cloudPending && startEpoch === earningsCheckpointEpoch && !state.processing) {
+        const remotePayload = await window.TubeMetrixBackups.fetchResumePayload(cloudPending.id);
+        if (remotePayload && Array.isArray(remotePayload.remainingUrls) && remotePayload.remainingUrls.length > 0 && startEpoch === earningsCheckpointEpoch && !state.processing) {
+          currentEarningsCheckpoint = { ...remotePayload, cloudBackupId: cloudPending.id };
+          if (!state.results && remotePayload.accumulator) {
+            hydrateEarningsStateFromPayload(remotePayload);
+          }
+          renderEarningsCloudBadge('paused', cloudPending.id, remotePayload.failedUrls || []);
+          renderEarningsPauseAndResumeBanners();
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Cloud earnings resume check failed:', e);
     }
   }
+
+  currentEarningsCheckpoint = null;
   renderEarningsPauseAndResumeBanners();
 }
 
@@ -1619,6 +1772,8 @@ async function handleResumeEarningsCheckpoint() {
     completedBeforeUrls: ckpt.completedUrls || [],
     totalPlannedCount: ckpt.totalPlanned,
     initialMetrics: ckpt.metrics,
+    cloudBackupId: ckpt.cloudBackupId || '',
+    failedUrls: ckpt.failedUrls || [],
   });
 }
 
@@ -1647,11 +1802,17 @@ async function startProcessing(urls, label = null, options = {}) {
   const completedBeforeUrls = Array.isArray(options?.completedBeforeUrls) ? [...options.completedBeforeUrls] : [];
   const completedBeforeCount = completedBeforeUrls.length;
   const totalPlanned = Math.max(completedBeforeCount + urls.length, Number(options?.totalPlannedCount || urls.length));
+  const firstVidId = urls[0] ? (extractVideoId(urls[0]) || 'Audit') : 'Audit';
+  const runTitle = label || (totalPlanned > 1 ? `Batch (${totalPlanned} Streams)` : `Stream [${firstVidId}]`);
+  const runBackupId = options?.cloudBackupId || `earn_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const allPlannedStreamKeys = [...new Set([...completedBeforeUrls, ...urls].map((u) => extractVideoId(u) || String(u || '').trim()).filter(Boolean))];
+  const failedUrls = Array.isArray(options?.failedUrls) ? [...options.failedUrls] : [];
 
   // 1. Session Reset vs Resume Hydration
   if (!isResume) {
     state.discoveredTiers.clear();
     state.results = null;
+    renderEarningsCloudBadge('idle', '', []);
   }
   if (elements.streamsTableBody) elements.streamsTableBody.innerHTML = '';
   if (elements.superchatTableBody) elements.superchatTableBody.innerHTML = '';
@@ -1663,6 +1824,7 @@ async function startProcessing(urls, label = null, options = {}) {
 
   pauseEarningsRequested = false;
   state.processing = true;
+  window.addEventListener('beforeunload', earningsBeforeUnloadHandler);
   elements.processingCard.classList.remove('is-paused');
   elements.processingCard.style.display = 'block';
   elements.resultsSection.style.display = 'none';
@@ -1714,6 +1876,8 @@ async function startProcessing(urls, label = null, options = {}) {
   let taskDispatchLock = Promise.resolve();
   let stopDispatching = false;
   let stopReason = '';
+  const activeWorkerUrls = new Set();
+  const completedUrlsInOrder = [...completedBeforeUrls];
 
   function acquireNextAuthorizedTask() {
     const run = async () => {
@@ -1740,6 +1904,7 @@ async function startProcessing(urls, label = null, options = {}) {
         }
       }
       nextTaskIndex = idx + 1;
+      activeWorkerUrls.add(urls[idx]);
       return { idx, url: urls[idx] };
     };
     const chained = taskDispatchLock.then(run, run);
@@ -1846,12 +2011,16 @@ async function startProcessing(urls, label = null, options = {}) {
         elements.statusTicker.textContent = `[NO CHAT] Live chat replay was disabled for: ${resData.title || vid}`;
       } else {
         state.metrics.failed++;
+        failedUrls.push({ url, reason: resData.message || 'Stream unavailable' });
         elements.statusTicker.textContent = `[FAILED] ${resData.message || 'Stream unavailable'}`;
       }
     } catch (netErr) {
       state.metrics.failed++;
+      failedUrls.push({ url, reason: netErr?.message || 'Network error' });
       elements.statusTicker.textContent = `[ERROR] Network error for ${vid}`;
     } finally {
+      activeWorkerUrls.delete(url);
+      completedUrlsInOrder.push(url);
       completedThisRun++;
       if (window.TubeMetrixAuth && typeof window.TubeMetrixAuth.incrementUsage === 'function') {
         window.TubeMetrixAuth.incrementUsage(1);
@@ -1866,6 +2035,42 @@ async function startProcessing(urls, label = null, options = {}) {
         elements.statusTitle.textContent = `Auditing Streams: ${totalDoneNow} of ${totalPlanned} Checked (${stepPct}%)`;
         const currentGross = resultsAccumulator.streams.reduce((acc, s) => acc + (s.grossInr || 0), 0);
         elements.statusTicker.textContent = `[Safe Worker ${workerId}] Audited ${totalDoneNow}/${totalPlanned} streams (${stepPct}%) — Current Gross: ${formatCurrency(currentGross)}`;
+      }
+
+      // Incremental power-cut/crash protection checkpoint after every completed stream
+      const remNow = [...Array.from(activeWorkerUrls), ...urls.slice(nextTaskIndex)];
+      if (remNow.length > 0 && (isCreditMeteredBatch || window.TubeMetrixBackups?.isEligible?.())) {
+        const incrementalCkpt = {
+          mode,
+          label: runTitle,
+          cloudBackupId: runBackupId,
+          completedUrls: [...completedUrlsInOrder],
+          remainingUrls: remNow,
+          failedUrls: [...failedUrls],
+          totalPlanned,
+          metrics: { ...state.metrics },
+          accumulator: serializeAccumulator(resultsAccumulator),
+          discoveredTiers: Array.from(state.discoveredTiers),
+          tierPrices: { ...state.tierPrices },
+          pauseReason: stopReason || 'interrupted',
+        };
+        if (isCreditMeteredBatch && window.TubeMetrixAuth?.checkpoints) {
+          window.TubeMetrixAuth.checkpoints.save(EARNINGS_PAUSE_CKPT_KEY, incrementalCkpt, { allowGuest: false });
+        }
+        if (window.TubeMetrixBackups?.isEligible?.()) {
+          window.TubeMetrixBackups.queueBackupSave({
+            id: runBackupId,
+            toolKind: 'earnings',
+            mode,
+            title: runTitle,
+            status: 'in_progress',
+            completedCount: completedUrlsInOrder.length,
+            totalCount: totalPlanned,
+            itemsCount: resultsAccumulator.superchats.length + resultsAccumulator.memberships.length + resultsAccumulator.jewels.length,
+            streamKeys: allPlannedStreamKeys,
+            resumePayload: incrementalCkpt,
+          });
+        }
       }
     }
   }
@@ -1892,11 +2097,12 @@ async function startProcessing(urls, label = null, options = {}) {
 
   stopProgressSimulation();
   state.processing = false;
+  window.removeEventListener('beforeunload', earningsBeforeUnloadHandler);
   state.results = resultsAccumulator;
   updateEarningsLiveCreditBar(false);
 
   const remainingUrls = stopReason ? urls.slice(nextTaskIndex) : [];
-  const completedUrlsTotal = [...completedBeforeUrls, ...urls.slice(0, nextTaskIndex)];
+  const completedUrlsTotal = [...completedUrlsInOrder];
 
   if (remainingUrls.length > 0) {
     if (completedUrlsTotal.length === 0) {
@@ -1917,18 +2123,21 @@ async function startProcessing(urls, label = null, options = {}) {
       : `⏸ Out of Credits: Stopped at ${completedUrlsTotal.length} of ${totalPlanned} Streams`;
     elements.statusTicker.textContent = `${remainingUrls.length} stream(s) saved safely. Buy Credits & click Resume anytime.`;
 
-    await saveEarningsCheckpoint({
+    const pausedPayload = {
       mode,
-      label: label || `Batch (${totalPlanned} Streams)`,
+      label: runTitle,
+      cloudBackupId: runBackupId,
       completedUrls: completedUrlsTotal,
       remainingUrls,
+      failedUrls: [...failedUrls],
       totalPlanned,
       metrics: { ...state.metrics },
       accumulator: serializeAccumulator(resultsAccumulator),
       discoveredTiers: Array.from(state.discoveredTiers),
       tierPrices: { ...state.tierPrices },
       pauseReason: stopReason || 'credits_exhausted',
-    });
+    };
+    await saveEarningsCheckpoint(pausedPayload);
 
     if (state.metrics.success > 0) {
       renderAllResults(resultsAccumulator);
@@ -1937,6 +2146,31 @@ async function startProcessing(urls, label = null, options = {}) {
     stopElapsedTimer();
     elements.resultsSection.style.display = 'block';
     renderEarningsPauseAndResumeBanners();
+    renderEarningsCloudBadge('idle', runBackupId, failedUrls);
+
+    if (window.TubeMetrixBackups?.isEligible?.()) {
+      renderEarningsCloudBadge('saving', runBackupId, failedUrls);
+      await window.TubeMetrixBackups.flushBackupSave(runBackupId);
+      const pauseBundle = state.metrics.success > 0
+        ? buildEarningsBundleFiles(resultsAccumulator, runTitle)
+        : null;
+      window.TubeMetrixBackups.queueBackupSave({
+        id: runBackupId,
+        toolKind: 'earnings',
+        mode,
+        title: runTitle,
+        status: 'paused',
+        completedCount: completedUrlsTotal.length,
+        totalCount: totalPlanned,
+        itemsCount: resultsAccumulator.superchats.length + resultsAccumulator.memberships.length + resultsAccumulator.jewels.length,
+        streamKeys: allPlannedStreamKeys,
+        resumePayload: pausedPayload,
+        bundleFiles: pauseBundle,
+      });
+      await window.TubeMetrixBackups.flushBackupSave(runBackupId);
+      renderEarningsCloudBadge('paused', runBackupId, failedUrls);
+    }
+
     if (!hasShownFirstResult) {
       elements.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -1962,12 +2196,36 @@ async function startProcessing(urls, label = null, options = {}) {
     renderAllResults(resultsAccumulator);
     renderTiersBar();
     elements.resultsSection.style.display = 'block';
+    renderEarningsCloudBadge('idle', runBackupId, failedUrls);
     if (!hasShownFirstResult) {
       elements.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (window.TubeMetrixBackups?.isEligible?.()) {
+      renderEarningsCloudBadge('saving', runBackupId, failedUrls);
+      await window.TubeMetrixBackups.flushBackupSave(runBackupId);
+      window.TubeMetrixBackups.queueBackupSave({
+        id: runBackupId,
+        toolKind: 'earnings',
+        mode,
+        title: runTitle,
+        status: 'completed',
+        completedCount: completedUrlsTotal.length,
+        totalCount: totalPlanned,
+        itemsCount: resultsAccumulator.superchats.length + resultsAccumulator.memberships.length + resultsAccumulator.jewels.length,
+        streamKeys: allPlannedStreamKeys,
+        resumePayload: null,
+        bundleFiles: buildEarningsBundleFiles(resultsAccumulator, runTitle),
+      });
+      await window.TubeMetrixBackups.flushBackupSave(runBackupId);
+      renderEarningsCloudBadge('completed', runBackupId, failedUrls);
     }
   } else {
     elements.statusTitle.textContent = 'Audit Result: No Live Chat Available';
     elements.statusTicker.innerHTML = `⚠️ YouTube live chat could not be retrieved from this stream URL because chat replay was disabled or restricted by YouTube. Please verify that the stream was live and chat replay is enabled on YouTube.`;
+    if (failedUrls.length > 0) {
+      elements.resultsSection.style.display = 'block';
+      renderEarningsCloudBadge('idle', runBackupId, failedUrls);
+    }
   }
 }
 
@@ -2235,12 +2493,7 @@ function setupExports() {
 }
 
 // Excel Export (.xls HTML Spreadsheet with full styles and formatting)
-function exportToExcel() {
-  if (!state.results) {
-    alert("Please run an audit first to generate report data.");
-    return;
-  }
-  const r = state.results;
+function buildEarningsExcelHtml(r) {
   let totalGross = 0, totalSc = 0, totalMem = 0, totalJewels = 0;
   r.streams.forEach(s => {
     totalGross += s.grossInr;
@@ -2249,34 +2502,9 @@ function exportToExcel() {
     totalJewels += s.jewelsInr;
   });
   const netTake = totalGross * 0.70;
-
-  const fxBreakdown = computeCurrencyBreakdown(r.superchats);
-  let fxExcelRows = fxBreakdown.items.map(b => `
-    <tr>
-      <td style="font-weight:bold;">${b.currency}</td>
-      <td>${b.name}</td>
-      <td style="text-align:center;">${b.count}</td>
-      <td style="text-align:right;">${b.symbol} ${b.originalSum.toFixed(b.decimals)}</td>
-      <td style="text-align:center;">1 ${b.currency} = ₹${b.rateToInr}</td>
-      <td style="text-align:right; font-weight:bold;">${formatCurrency(b.inrSum)}</td>
-      <td style="text-align:right;">${b.sharePct.toFixed(1)}%</td>
-    </tr>
-  `).join('');
-  fxExcelRows += `
-    <tr style="background:#EEEEEE; font-weight:bold;">
-      <td colspan="2">TOTAL CURRENCY EQUIVALENT</td>
-      <td style="text-align:center;">${r.superchats.length}</td>
-      <td>—</td>
-      <td>—</td>
-      <td style="text-align:right; color:#CC0000;">${formatCurrency(fxBreakdown.grandTotalInr)}</td>
-      <td style="text-align:right;">100%</td>
-    </tr>
-    <tr><td colspan="7" style="height:15px;"></td></tr>
-  `;
-
   const dateStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
-  let html = `
+  return `
   <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -2380,17 +2608,19 @@ function exportToExcel() {
   </body>
   </html>
   `;
-
-  downloadFile(html, `YouTube_Stream_Earnings_${new Date().toISOString().split('T')[0]}.xls`, 'application/vnd.ms-excel;charset=utf-8');
 }
 
-// Arranged Notepad Export (.txt monospace aligned statement)
-function exportToNotepad() {
+function exportToExcel() {
   if (!state.results) {
     alert("Please run an audit first to generate report data.");
     return;
   }
-  const r = state.results;
+  const html = buildEarningsExcelHtml(state.results);
+  downloadFile(html, `YouTube_Stream_Earnings_${new Date().toISOString().split('T')[0]}.xls`, 'application/vnd.ms-excel;charset=utf-8');
+}
+
+// Arranged Notepad Export (.txt monospace aligned statement)
+function buildEarningsNotepadText(r) {
   let totalGross = 0, totalSc = 0, totalMem = 0, totalJewels = 0;
   r.streams.forEach(s => {
     totalGross += s.grossInr;
@@ -2399,31 +2629,6 @@ function exportToNotepad() {
     totalJewels += s.jewelsInr;
   });
   const netTake = totalGross * 0.70;
-
-  const fxBreakdown = computeCurrencyBreakdown(r.superchats);
-  let fxExcelRows = fxBreakdown.items.map(b => `
-    <tr>
-      <td style="font-weight:bold;">${b.currency}</td>
-      <td>${b.name}</td>
-      <td style="text-align:center;">${b.count}</td>
-      <td style="text-align:right;">${b.symbol} ${b.originalSum.toFixed(b.decimals)}</td>
-      <td style="text-align:center;">1 ${b.currency} = ₹${b.rateToInr}</td>
-      <td style="text-align:right; font-weight:bold;">${formatCurrency(b.inrSum)}</td>
-      <td style="text-align:right;">${b.sharePct.toFixed(1)}%</td>
-    </tr>
-  `).join('');
-  fxExcelRows += `
-    <tr style="background:#EEEEEE; font-weight:bold;">
-      <td colspan="2">TOTAL CURRENCY EQUIVALENT</td>
-      <td style="text-align:center;">${r.superchats.length}</td>
-      <td>—</td>
-      <td>—</td>
-      <td style="text-align:right; color:#CC0000;">${formatCurrency(fxBreakdown.grandTotalInr)}</td>
-      <td style="text-align:right;">100%</td>
-    </tr>
-    <tr><td colspan="7" style="height:15px;"></td></tr>
-  `;
-
   const dateStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
   const W = 84;
@@ -2544,27 +2749,58 @@ function exportToNotepad() {
   lines.push(center("END OF TubeMetrix AUDIT REPORT — VERIFIED GENUINE DATA"));
   lines.push(sep);
 
-  const textContent = lines.join("\r\n");
+  return lines.join("\r\n");
+}
+
+function exportToNotepad() {
+  if (!state.results) {
+    alert("Please run an audit first to generate report data.");
+    return;
+  }
+  const textContent = buildEarningsNotepadText(state.results);
   downloadFile(textContent, `YouTube_Stream_Earnings_${new Date().toISOString().split('T')[0]}.txt`, 'text/plain;charset=utf-8');
 }
 
 // CSV Export
+function buildEarningsCsvText(r) {
+  let csv = "Category,Timestamp,Donor/Author,Amount (INR),Details,Stream ID\n";
+  r.superchats.forEach(s => {
+    csv += `Superchat,"${s.timestamp || s.time || ''}","${s.author.replace(/"/g, '""')}",${s.amount_inr || s.amount},"${(s.message || '').replace(/"/g, '""')}",${s.streamId}\n`;
+  });
+  r.jewels.forEach(j => {
+    csv += `Jewel Gift,"--:--","${j.author.replace(/"/g, '""')}",${j.inrValue},"${j.giftName} (x${j.quantity})",${j.streamId}\n`;
+  });
+  r.memberships.forEach(m => {
+    csv += `Membership,"--:--","${m.author.replace(/"/g, '""')}",${m.price},"${m.tier} (${m.tenure || ''})",${m.streamId}\n`;
+  });
+  return csv;
+}
+
+function buildEarningsBundleFiles(r, label = '') {
+  const safeBase = 'TubeMetrix_Earnings';
+  const jsonPayload = {
+    kind: 'earnings',
+    label: label || `Earnings Audit (${r.streams?.length || 0} Streams)`,
+    exportedAt: new Date().toISOString(),
+    accumulator: serializeAccumulator(r),
+    discoveredTiers: Array.from(state.discoveredTiers || []),
+    tierPrices: { ...(state.tierPrices || {}) },
+    metrics: { ...(state.metrics || {}) },
+  };
+  return [
+    { name: `${safeBase}_Report.json`, content: JSON.stringify(jsonPayload, null, 2) },
+    { name: `${safeBase}_Statement.xls`, content: buildEarningsExcelHtml(r) },
+    { name: `${safeBase}_Summary.txt`, content: buildEarningsNotepadText(r) },
+    { name: `${safeBase}_Items.csv`, content: buildEarningsCsvText(r) },
+  ];
+}
+
 function exportToCsv() {
   if (!state.results) {
     alert("Please run an audit first to generate report data.");
     return;
   }
-  let csv = "Category,Timestamp,Donor/Author,Amount (INR),Details,Stream ID\n";
-  state.results.superchats.forEach(s => {
-    csv += `Superchat,"${s.timestamp || s.time || ''}","${s.author.replace(/"/g, '""')}",${s.amount_inr || s.amount},"${(s.message || '').replace(/"/g, '""')}",${s.streamId}\n`;
-  });
-  state.results.jewels.forEach(j => {
-    csv += `Jewel Gift,"--:--","${j.author.replace(/"/g, '""')}",${j.inrValue},"${j.giftName} (x${j.quantity})",${j.streamId}\n`;
-  });
-  state.results.memberships.forEach(m => {
-    csv += `Membership,"--:--","${m.author.replace(/"/g, '""')}",${m.price},"${m.tier} (${m.tenure || ''})",${m.streamId}\n`;
-  });
-
+  const csv = buildEarningsCsvText(state.results);
   downloadFile(csv, `YouTube_Stream_Earnings_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
 }
 

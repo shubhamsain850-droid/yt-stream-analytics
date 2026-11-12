@@ -891,6 +891,55 @@
     }
   }
 
+  function chatsBeforeUnloadHandler(e) {
+    if (!isChatExtractionRunning) return;
+    e.preventDefault();
+    e.returnValue = 'Extraction is still running. Completed progress is saved, closing now may interrupt the active fetch.';
+    return e.returnValue;
+  }
+
+  function setChatRunningFlag(running) {
+    isChatExtractionRunning = Boolean(running);
+    if (isChatExtractionRunning) {
+      window.addEventListener('beforeunload', chatsBeforeUnloadHandler);
+    } else {
+      window.removeEventListener('beforeunload', chatsBeforeUnloadHandler);
+    }
+  }
+
+  function renderChatCloudBadge(sectionType = 'chats', status = 'idle', backupId = '') {
+    const hostSection = sectionType === 'comments' ? el.resultsCommentsSection : el.resultsChatSection;
+    if (!hostSection) return;
+    const badgeId = sectionType === 'comments' ? 'commentsCloudStatusBadge' : 'chatsCloudStatusBadge';
+    let badge = document.getElementById(badgeId);
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.id = badgeId;
+      badge.className = 'tm-cloud-status-host';
+      hostSection.prepend(badge);
+    }
+    if (!status || status === 'idle') {
+      badge.innerHTML = '';
+      badge.style.display = 'none';
+      return;
+    }
+    const labelMap = {
+      saving: '☁️ Syncing 14-Day Cloud Backup (All Formats ZIP)...',
+      completed: '☁️ Saved to 14-Day Cloud Backup (ZIP + Resume History)',
+      paused: '☁️ Partial Progress Saved to 14-Day Cloud Backup',
+      restored: '☁️ Restored from 14-Day Cloud Backup (0 Credits Used)',
+    };
+    badge.style.display = 'flex';
+    badge.style.flexWrap = 'wrap';
+    badge.style.gap = '10px';
+    badge.style.marginBottom = '14px';
+    badge.innerHTML = `<button type="button" class="tm-cloud-saved-pill" data-backup-id="${escapeHtml(backupId)}" title="Open My Cloud Backups & Recovery">${escapeHtml(labelMap[status] || labelMap.completed)}</button>`;
+    const btn = badge.querySelector('.tm-cloud-saved-pill');
+    if (btn) {
+      btn.addEventListener('click', () => window.TubeMetrixBackups?.openBackupsModal?.());
+    }
+  }
+
   async function saveChatCheckpoint(ckpt, { allowGuest = false } = {}) {
     chatCheckpointEpoch++;
     currentChatCheckpoint = ckpt || null;
@@ -911,29 +960,117 @@
     renderChatLimitAndResumeBanners();
   }
 
+  window.__tmRestoreCloudBackup = async function tmRestoreChatCloudBackup({ action, backup, payload }) {
+    if (!payload) return;
+    const isComments =
+      backup?.toolKind === 'comments' ||
+      payload.kind === 'comments_overflow' ||
+      Array.isArray(payload.comments);
+
+    if (action === 'open') {
+      await clearChatCheckpoint();
+      if (isComments) {
+        switchMode('comments');
+        state.lastExtractionType = 'comments';
+        renderCommentsReport(payload);
+        renderChatCloudBadge('comments', 'restored', backup?.id || '');
+      } else {
+        switchMode('single');
+        state.lastExtractionType = 'chats';
+        renderLiveChatReport(payload, payload.title || backup?.title || 'Cloud Backup');
+        renderChatCloudBadge('chats', 'restored', backup?.id || '');
+      }
+      return;
+    }
+
+    if (action === 'resume') {
+      const ckptWithId = { ...payload, cloudBackupId: backup?.id || payload.cloudBackupId || '' };
+      if (isComments) {
+        switchMode('comments');
+        state.lastExtractionType = 'comments';
+        await saveChatCheckpoint(ckptWithId, { allowGuest: false });
+        if (Array.isArray(ckptWithId.unlockedMessages) && ckptWithId.unlockedMessages.length > 0) {
+          renderCommentsReport(buildCommentsStatsFromList(ckptWithId.unlockedMessages, ckptWithId.streamId, ckptWithId.title));
+          renderChatCloudBadge('comments', 'paused', ckptWithId.cloudBackupId);
+        }
+      } else {
+        switchMode('single');
+        state.lastExtractionType = 'chats';
+        await saveChatCheckpoint(ckptWithId, { allowGuest: false });
+        if (Array.isArray(ckptWithId.unlockedMessages) && ckptWithId.unlockedMessages.length > 0) {
+          const aggregated = aggregateMessagesIntoStats(ckptWithId.unlockedMessages, ckptWithId.streamId || 'saved_stream');
+          renderLiveChatReport(aggregated, ckptWithId.title || backup?.title || 'Saved Session');
+          renderChatCloudBadge('chats', 'paused', ckptWithId.cloudBackupId);
+        }
+      }
+      const bal = window.TubeMetrixAuth?.getCreditsBalance?.() ?? 0;
+      if (bal >= 1) {
+        await handleResumeOrUnlockChatCheckpoint();
+      } else {
+        renderChatLimitAndResumeBanners();
+        maybeAutoOpenRechargeModal(ckptWithId);
+      }
+    }
+  };
+
   async function restoreSavedChatCheckpoint() {
     if (!window.TubeMetrixAuth?.checkpoints) return;
+    if (await window.TubeMetrixBackups?.consumePendingRestoreIfReady?.(['chats', 'comments'])) {
+      return;
+    }
     const startEpoch = chatCheckpointEpoch;
     const saved = await window.TubeMetrixAuth.checkpoints.load(CHAT_PAUSE_CKPT_KEY);
     if (startEpoch !== chatCheckpointEpoch || isChatExtractionRunning) {
       return;
     }
-    if (!saved) {
-      currentChatCheckpoint = null;
-      renderChatLimitAndResumeBanners();
+    if (saved) {
+      currentChatCheckpoint = saved;
+      if (saved.kind === 'comments_overflow' && Array.isArray(saved.unlockedMessages) && saved.unlockedMessages.length > 0 && !state.commentsData) {
+        state.lastExtractionType = 'comments';
+        renderCommentsReport(buildCommentsStatsFromList(saved.unlockedMessages, saved.streamId, saved.title));
+        renderChatLimitAndResumeBanners();
+      } else if (Array.isArray(saved.unlockedMessages) && saved.unlockedMessages.length > 0 && !state.liveChatData) {
+        const aggregated = aggregateMessagesIntoStats(saved.unlockedMessages, saved.streamId || 'saved_stream');
+        renderLiveChatReport(aggregated, saved.title || 'Saved Session');
+      } else {
+        renderChatLimitAndResumeBanners();
+      }
       return;
     }
-    currentChatCheckpoint = saved;
-    if (saved.kind === 'comments_overflow' && Array.isArray(saved.unlockedMessages) && saved.unlockedMessages.length > 0 && !state.commentsData) {
-      state.lastExtractionType = 'comments';
-      renderCommentsReport(buildCommentsStatsFromList(saved.unlockedMessages, saved.streamId, saved.title));
-      renderChatLimitAndResumeBanners();
-    } else if (Array.isArray(saved.unlockedMessages) && saved.unlockedMessages.length > 0 && !state.liveChatData) {
-      const aggregated = aggregateMessagesIntoStats(saved.unlockedMessages, saved.streamId || 'saved_stream');
-      renderLiveChatReport(aggregated, saved.title || 'Saved Session');
-    } else {
-      renderChatLimitAndResumeBanners();
+
+    // Fallback cross-device cloud check when local IndexedDB has no saved checkpoint
+    if (window.TubeMetrixBackups?.isEligible?.()) {
+      try {
+        const list = await window.TubeMetrixBackups.listBackups();
+        const cloudPending = (list?.backups || []).find(
+          (b) => (b.toolKind === 'chats' || b.toolKind === 'comments') && (b.status === 'in_progress' || b.status === 'paused') && b.hasResume
+        );
+        if (cloudPending && startEpoch === chatCheckpointEpoch && !isChatExtractionRunning) {
+          const remotePayload = await window.TubeMetrixBackups.fetchResumePayload(cloudPending.id);
+          if (remotePayload && startEpoch === chatCheckpointEpoch && !isChatExtractionRunning) {
+            currentChatCheckpoint = { ...remotePayload, cloudBackupId: cloudPending.id };
+            if (remotePayload.kind === 'comments_overflow' && Array.isArray(remotePayload.unlockedMessages) && remotePayload.unlockedMessages.length > 0 && !state.commentsData) {
+              state.lastExtractionType = 'comments';
+              renderCommentsReport(buildCommentsStatsFromList(remotePayload.unlockedMessages, remotePayload.streamId, remotePayload.title));
+              renderChatCloudBadge('comments', 'paused', cloudPending.id);
+              renderChatLimitAndResumeBanners();
+            } else if (Array.isArray(remotePayload.unlockedMessages) && remotePayload.unlockedMessages.length > 0 && !state.liveChatData) {
+              const aggregated = aggregateMessagesIntoStats(remotePayload.unlockedMessages, remotePayload.streamId || 'saved_stream');
+              renderLiveChatReport(aggregated, remotePayload.title || cloudPending.title || 'Saved Session');
+              renderChatCloudBadge('chats', 'paused', cloudPending.id);
+            } else {
+              renderChatLimitAndResumeBanners();
+            }
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Cloud chat resume check failed:', e);
+      }
     }
+
+    currentChatCheckpoint = null;
+    renderChatLimitAndResumeBanners();
   }
 
   function renderChatLimitAndResumeBanners() {
@@ -1060,6 +1197,70 @@
     });
   }
 
+  async function checkChatOrCommentsDuplicate({ videoIds, toolKind, onRefetchFresh }) {
+    const ids = [...new Set((Array.isArray(videoIds) ? videoIds : []).filter(Boolean))];
+    if (!ids.length || !window.TubeMetrixBackups?.isEligible?.()) return false;
+    try {
+      const dup = await window.TubeMetrixBackups.findRecentDuplicates(ids, toolKind);
+      if (dup && dup.backup) {
+        window.TubeMetrixBackups.promptDuplicateModal({
+          backup: dup.backup,
+          matchedIds: dup.matchedIds,
+          onUseBackup: () => window.TubeMetrixBackups.triggerBackupAction(dup.backup, 'open'),
+          onRefetchFresh,
+        });
+        return true;
+      }
+    } catch (e) {
+      console.warn('Duplicate check skipped:', e);
+    }
+    return false;
+  }
+
+  async function syncCloudChatOrCommentsBackup({
+    backupId,
+    toolKind,
+    mode,
+    title,
+    status,
+    completedCount,
+    totalCount,
+    itemsCount,
+    streamKeys,
+    resumePayload = null,
+    reportData = null,
+    isComments = false,
+  }) {
+    if (!window.TubeMetrixBackups?.isEligible?.() || !backupId) return false;
+    const sectionType = isComments ? 'comments' : 'chats';
+    const shouldZip = (status === 'completed' || status === 'paused') && reportData && itemsCount > 0;
+    if (shouldZip) {
+      renderChatCloudBadge(sectionType, 'saving', backupId);
+      await window.TubeMetrixBackups.flushBackupSave(backupId);
+    }
+    const bundleFiles = shouldZip
+      ? buildChatOrCommentsBundleFiles(reportData, isComments, title)
+      : null;
+    window.TubeMetrixBackups.queueBackupSave({
+      id: backupId,
+      toolKind,
+      mode,
+      title,
+      status,
+      completedCount,
+      totalCount,
+      itemsCount,
+      streamKeys,
+      resumePayload: status === 'completed' ? null : resumePayload,
+      bundleFiles,
+    });
+    if (status === 'completed' || status === 'paused') {
+      await window.TubeMetrixBackups.flushBackupSave(backupId);
+      renderChatCloudBadge(sectionType, status === 'completed' ? 'completed' : 'paused', backupId);
+    }
+    return true;
+  }
+
   async function handleResumeOrUnlockChatCheckpoint() {
     const ckpt = currentChatCheckpoint;
     if (!ckpt) return;
@@ -1085,6 +1286,8 @@
       return;
     }
 
+    const resumeBackupId = ckpt.cloudBackupId || `${ckpt.kind === 'comments_overflow' ? 'comm' : 'chat'}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
     // Step 1A: Unlock any already-buffered in-memory tail first
     if (Array.isArray(ckpt.lockedTail) && ckpt.lockedTail.length > 0) {
       const creditsNeeded = Math.ceil(ckpt.lockedTail.length / 1000);
@@ -1108,6 +1311,7 @@
       }));
       const remainingTail = ckpt.lockedTail.slice(added);
 
+      ckpt.cloudBackupId = resumeBackupId;
       ckpt.unlockedMessages = updatedMessages;
       ckpt.lockedTail = remainingTail;
       ckpt.unlockedOnStream = (ckpt.unlockedOnStream || 0) + newlyUnlocked.length;
@@ -1121,13 +1325,44 @@
       }
 
       if (ckpt.kind === 'comments_overflow') {
-        renderCommentsReport(buildCommentsStatsFromList(updatedMessages, ckpt.streamId, ckpt.title));
+        const commReport = buildCommentsStatsFromList(updatedMessages, ckpt.streamId, ckpt.title);
+        renderCommentsReport(commReport);
         renderChatLimitAndResumeBanners();
+        await syncCloudChatOrCommentsBackup({
+          backupId: resumeBackupId,
+          toolKind: 'comments',
+          mode: 'comments',
+          title: ckpt.title || `Comments [${ckpt.streamId}]`,
+          status: hasWorkLeft ? 'paused' : 'completed',
+          completedCount: hasWorkLeft ? 0 : 1,
+          totalCount: 1,
+          itemsCount: updatedMessages.length,
+          streamKeys: ckpt.streamId ? [ckpt.streamId] : [],
+          resumePayload: hasWorkLeft ? ckpt : null,
+          reportData: commReport,
+          isComments: true,
+        });
         if (hasWorkLeft && bal === 0) maybeAutoOpenRechargeModal(ckpt);
         return;
       }
       const refreshedReport = aggregateMessagesIntoStats(updatedMessages, ckpt.streamId || 'stream_chat');
       renderLiveChatReport(refreshedReport, ckpt.title || 'Live Chat Report');
+      if (hasWorkLeft || (!ckpt.remainingVids || ckpt.remainingVids.length === 0)) {
+        await syncCloudChatOrCommentsBackup({
+          backupId: resumeBackupId,
+          toolKind: 'chats',
+          mode: ckpt.mode || 'single',
+          title: ckpt.title || `Live Chat [${ckpt.streamId || 'Stream'}]`,
+          status: hasWorkLeft ? 'paused' : 'completed',
+          completedCount: ckpt.completedVids?.length || (hasWorkLeft ? 0 : 1),
+          totalCount: ckpt.totalPlannedStreams || 1,
+          itemsCount: updatedMessages.length,
+          streamKeys: [...new Set([...(ckpt.completedVids || []), ...(ckpt.remainingVids || []), ckpt.streamId].filter(Boolean))],
+          resumePayload: hasWorkLeft ? ckpt : null,
+          reportData: { ...refreshedReport, title: ckpt.title || `Live Chat [${ckpt.streamId || 'Stream'}]` },
+          isComments: false,
+        });
+      }
       if (hasWorkLeft && bal === 0) {
         maybeAutoOpenRechargeModal(ckpt);
       }
@@ -1140,6 +1375,7 @@
     if (ckpt.hasMoreOnServer && ckpt.continuationToken && bal >= 1) {
       const isComments = ckpt.kind === 'comments_overflow';
       const maxSlice = Math.min(100000, bal * 1000);
+      setChatRunningFlag(true);
       setProgress(25, `Unlocking Next ${isComments ? 'Comments' : 'Live Chat'} Chunk...`, `Streaming next up to ${maxSlice.toLocaleString()} items via cursor...`);
 
       try {
@@ -1171,6 +1407,7 @@
           const revealed = newItems.slice(0, allowedNew);
           const unrevealedTail = newItems.slice(allowedNew);
           const merged = [...(ckpt.unlockedMessages || []), ...revealed];
+          ckpt.cloudBackupId = resumeBackupId;
           ckpt.unlockedMessages = merged;
           ckpt.lockedTail = unrevealedTail;
           ckpt.unlockedOnStream = (ckpt.unlockedOnStream || 0) + revealed.length;
@@ -1178,15 +1415,32 @@
           const reachedRequested = ckpt.requestedLimit ? ckpt.unlockedOnStream >= ckpt.requestedLimit : false;
           ckpt.hasMoreOnServer = Boolean(!reachedRequested && res.has_more && res.continuation_token && unrevealedTail.length === 0);
           bal = window.TubeMetrixAuth.getCreditsBalance();
-          if (!ckpt.hasMoreOnServer && unrevealedTail.length === 0) {
+          const hasLeft = Boolean(ckpt.hasMoreOnServer || unrevealedTail.length > 0);
+          if (!hasLeft) {
             await clearChatCheckpoint();
           } else {
             await saveChatCheckpoint(ckpt, { allowGuest: false });
           }
+          setChatRunningFlag(false);
           hideProgress();
-          renderCommentsReport(buildCommentsStatsFromList(merged, ckpt.streamId, ckpt.title));
+          const commReport = buildCommentsStatsFromList(merged, ckpt.streamId, ckpt.title);
+          renderCommentsReport(commReport);
           renderChatLimitAndResumeBanners();
-          if ((ckpt.hasMoreOnServer || unrevealedTail.length > 0) && bal === 0) {
+          await syncCloudChatOrCommentsBackup({
+            backupId: resumeBackupId,
+            toolKind: 'comments',
+            mode: 'comments',
+            title: ckpt.title || `Comments [${ckpt.streamId}]`,
+            status: hasLeft ? 'paused' : 'completed',
+            completedCount: hasLeft ? 0 : 1,
+            totalCount: 1,
+            itemsCount: merged.length,
+            streamKeys: ckpt.streamId ? [ckpt.streamId] : [],
+            resumePayload: hasLeft ? ckpt : null,
+            reportData: commReport,
+            isComments: true,
+          });
+          if (hasLeft && bal === 0) {
             maybeAutoOpenRechargeModal(ckpt);
           }
           return;
@@ -1225,6 +1479,7 @@
           idx: idx + 1,
         }));
 
+        ckpt.cloudBackupId = resumeBackupId;
         ckpt.unlockedMessages = merged;
         ckpt.lockedTail = unrevealedTail;
         ckpt.unlockedOnStream = (ckpt.unlockedOnStream || 0) + revealed.length;
@@ -1239,18 +1494,35 @@
           await saveChatCheckpoint(ckpt, { allowGuest: false });
         }
 
+        setChatRunningFlag(false);
         hideProgress();
         const midReport = aggregateMessagesIntoStats(merged, ckpt.streamId || 'stream_chat');
         renderLiveChatReport(midReport, ckpt.title || 'Live Chat Report');
         updateViewerSessionButton();
 
         if (stillHasCurrentStream || !ckpt.remainingVids || ckpt.remainingVids.length === 0 || bal < 1) {
-          if ((stillHasCurrentStream || (ckpt.remainingVids?.length || 0) > 0) && bal === 0) {
+          const hasBatchRem = Boolean(stillHasCurrentStream || (ckpt.remainingVids?.length || 0) > 0);
+          await syncCloudChatOrCommentsBackup({
+            backupId: resumeBackupId,
+            toolKind: 'chats',
+            mode: ckpt.mode || 'single',
+            title: ckpt.title || `Live Chat [${ckpt.streamId || 'Stream'}]`,
+            status: hasBatchRem ? 'paused' : 'completed',
+            completedCount: ckpt.completedVids?.length || (hasBatchRem ? 0 : 1),
+            totalCount: ckpt.totalPlannedStreams || 1,
+            itemsCount: merged.length,
+            streamKeys: [...new Set([...(ckpt.completedVids || []), ...(ckpt.remainingVids || []), ckpt.streamId].filter(Boolean))],
+            resumePayload: hasBatchRem ? ckpt : null,
+            reportData: { ...midReport, title: ckpt.title || 'Live Chat Report' },
+            isComments: false,
+          });
+          if (hasBatchRem && bal === 0) {
             maybeAutoOpenRechargeModal(ckpt);
           }
           return;
         }
       } catch (err) {
+        setChatRunningFlag(false);
         hideProgress();
         alert(`Resume Error: ${err.message}`);
         renderChatLimitAndResumeBanners();
@@ -1269,21 +1541,33 @@
         initialMessages: ckpt.unlockedMessages || [],
         completedBefore: ckpt.completedVids || [],
         totalPlannedStreams: ckpt.totalPlannedStreams || ((ckpt.completedVids?.length || 0) + remainingQueue.length),
+        cloudBackupId: resumeBackupId,
       });
       hideProgress();
       updateChatLiveCreditBar(false);
       renderLiveChatReport(aggregatedData, ckpt.title || 'Resumed Batch Extraction');
+      if (aggregatedData.cloudStatus) {
+        renderChatCloudBadge('chats', aggregatedData.cloudStatus, aggregatedData.cloudBackupId || resumeBackupId);
+      }
       updateViewerSessionButton();
       maybeAutoOpenRechargeModal(currentChatCheckpoint);
     }
   }
 
-  async function startSingleChatExtraction() {
+  async function startSingleChatExtraction(options = {}) {
     const raw = el.chatSingleUrlInput.value.trim();
     const vid = extractVideoId(raw);
     if (!vid) {
       alert('Please enter a valid YouTube Live Stream URL or Video ID.');
       return;
+    }
+    if (!options?.skipDupCheck) {
+      const dupHandled = await checkChatOrCommentsDuplicate({
+        videoIds: [vid],
+        toolKind: 'chats',
+        onRefetchFresh: () => startSingleChatExtraction({ skipDupCheck: true }),
+      });
+      if (dupHandled) return;
     }
     if (window.TubeMetrixAuth) {
       if (typeof window.TubeMetrixAuth.authorizeRun === 'function') {
@@ -1294,10 +1578,12 @@
     }
     const runAuth = window.TubeMetrixAuth?.getLastRunAuth ? window.TubeMetrixAuth.getLastRunAuth() : null;
     const paidByCredits = runAuth?.reason === 'credits';
+    const runBackupId = `chat_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
     el.startChatSingleBtn.disabled = true;
-    isChatExtractionRunning = true;
+    setChatRunningFlag(true);
     activeChatPauseRequested = false;
+    renderChatCloudBadge('chats', 'idle');
     updateChatLiveCreditBar(false);
     if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
     if (el.labelExtracted) el.labelExtracted.textContent = 'Extracted Messages';
@@ -1316,77 +1602,189 @@
         'Parsing Superchats, Memberships, Jewels & active chatters...'
       ]);
 
-      const res = await fetchJsonWithRetry(`${API_BASE}/fetch-chat`, {
-        url: vid,
-        max_messages: maxFetch,
-      });
-      stopChatProgressHeartbeat();
-      if (!res.success || !res.data) {
-        throw new Error(res.message || 'No live chat replay was found or chat is disabled for this stream.');
-      }
+      let streamTitle = `Live Stream [${vid}]`;
+      let unlockedMessages = [];
+      let lockedTail = [];
+      let lastResData = null;
+      let resElapsed = 0.5;
+      let continuationToken = '';
+      let hasServerMore = false;
 
-      const rawMessages = (res.data.messages || []).map((m, idx) => ({
-        ...m,
-        idx: idx + 1,
-        stream_id: m.stream_id || vid,
-      }));
-      const streamTitle = res.title || `Live Stream [${vid}]`;
-      state.lastExtractionType = 'chats';
-
-      let allowedCount = rawMessages.length;
-      if (rawMessages.length > 1000) {
-        if (paidByCredits && window.TubeMetrixAuth?.settleChatVolumeCredits) {
-          const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(rawMessages.length, vid);
-          const extraDeducted = Number(settleRes?.deducted || 0);
-          allowedCount = (1 + extraDeducted) * 1000;
-        } else {
-          // Weekly Free allowance covers up to 1,000 messages per single stream
-          allowedCount = 1000;
+      if (maxFetch <= 10000) {
+        const res = await fetchJsonWithRetry(`${API_BASE}/fetch-chat`, {
+          url: vid,
+          max_messages: maxFetch,
+        });
+        stopChatProgressHeartbeat();
+        if (!res.success || !res.data) {
+          throw new Error(res.message || 'No live chat replay was found or chat is disabled for this stream.');
         }
+
+        const rawMessages = (res.data.messages || []).map((m, idx) => ({
+          ...m,
+          idx: idx + 1,
+          stream_id: m.stream_id || vid,
+        }));
+        streamTitle = res.title || streamTitle;
+        lastResData = res.data;
+        resElapsed = res.elapsed_sec || 0.5;
+
+        let allowedCount = rawMessages.length;
+        if (rawMessages.length > 1000) {
+          if (paidByCredits && window.TubeMetrixAuth?.settleChatVolumeCredits) {
+            const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(rawMessages.length, vid);
+            const extraDeducted = Number(settleRes?.deducted || 0);
+            allowedCount = (1 + extraDeducted) * 1000;
+          } else {
+            allowedCount = 1000;
+          }
+        }
+        unlockedMessages = rawMessages.slice(0, allowedCount);
+        lockedTail = rawMessages.slice(allowedCount);
+        hasServerMore = Boolean(lockedTail.length === 0 && res.has_more && res.continuation_token);
+        continuationToken = hasServerMore ? res.continuation_token : '';
+      } else {
+        // Chunked 10k-item extraction loop so giant streams save incremental cloud progress safely
+        let chunkIdx = 0;
+        let nextToken = '';
+        let keepFetching = true;
+
+        while (keepFetching && unlockedMessages.length < maxFetch) {
+          const chunkLimit = Math.min(10000, maxFetch - unlockedMessages.length);
+          const payload = { url: vid, max_messages: chunkLimit };
+          if (chunkIdx > 0 && nextToken) {
+            payload.continuation_token = nextToken;
+          }
+          const res = await fetchJsonWithRetry(`${API_BASE}/fetch-chat`, payload);
+          if (!res.success || !res.data) {
+            if (chunkIdx === 0) {
+              throw new Error(res.message || 'No live chat replay was found or chat is disabled for this stream.');
+            }
+            break;
+          }
+          if (res.title) streamTitle = res.title;
+          resElapsed = (resElapsed || 0) + (res.elapsed_sec || 0);
+
+          const chunkMsgs = (res.data.messages || []).map((m) => ({
+            ...m,
+            stream_id: m.stream_id || vid,
+          }));
+          if (!chunkMsgs.length) {
+            hasServerMore = false;
+            continuationToken = '';
+            break;
+          }
+
+          let allowedInChunk = chunkMsgs.length;
+          if (chunkIdx === 0) {
+            if (chunkMsgs.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
+              const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(chunkMsgs.length, vid);
+              const extraDeducted = Number(settleRes?.deducted || 0);
+              allowedInChunk = (1 + extraDeducted) * 1000;
+            }
+          } else if (window.TubeMetrixAuth?.unlockRemainingChatCredits) {
+            const needCr = Math.ceil(chunkMsgs.length / 1000);
+            const uRes = await window.TubeMetrixAuth.unlockRemainingChatCredits({
+              streamId: vid,
+              totalMessages: chunkMsgs.length,
+              unlockedCount: 0,
+              creditsNeeded: needCr,
+              silent: true,
+            });
+            allowedInChunk = Math.min(chunkMsgs.length, Number(uRes?.addedMessageAllowance || 0));
+          }
+
+          const baseOffset = unlockedMessages.length;
+          const chunkUnlocked = chunkMsgs.slice(0, allowedInChunk).map((m, idx) => ({
+            ...m,
+            idx: baseOffset + idx + 1,
+          }));
+          unlockedMessages.push(...chunkUnlocked);
+          lockedTail = chunkMsgs.slice(allowedInChunk);
+          nextToken = res.continuation_token || '';
+          continuationToken = lockedTail.length === 0 && res.has_more && nextToken ? nextToken : '';
+          hasServerMore = Boolean(continuationToken);
+          keepFetching = hasServerMore && lockedTail.length === 0;
+          chunkIdx++;
+
+          if (keepFetching && unlockedMessages.length < maxFetch && window.TubeMetrixBackups?.isEligible?.()) {
+            const incCkpt = {
+              kind: 'single_overflow',
+              mode: 'single',
+              cloudBackupId: runBackupId,
+              title: streamTitle,
+              streamId: vid,
+              unlockedMessages: [...unlockedMessages],
+              lockedTail: [],
+              continuationToken,
+              hasMoreOnServer: true,
+              unlockedOnStream: unlockedMessages.length,
+              remainingVids: [],
+              completedVids: [vid],
+              totalPlannedStreams: 1,
+              pauseReason: 'interrupted',
+            };
+            window.TubeMetrixAuth?.checkpoints?.save(CHAT_PAUSE_CKPT_KEY, incCkpt, { allowGuest: false });
+            syncCloudChatOrCommentsBackup({
+              backupId: runBackupId,
+              toolKind: 'chats',
+              mode: 'single',
+              title: streamTitle,
+              status: 'in_progress',
+              completedCount: 0,
+              totalCount: 1,
+              itemsCount: unlockedMessages.length,
+              streamKeys: [vid],
+              resumePayload: incCkpt,
+              isComments: false,
+            });
+          }
+        }
+        stopChatProgressHeartbeat();
       }
 
-      const unlockedMessages = rawMessages.slice(0, allowedCount);
-      const lockedTail = rawMessages.slice(allowedCount);
-      const hasServerMore = Boolean(lockedTail.length === 0 && res.has_more && res.continuation_token);
+      state.lastExtractionType = 'chats';
       const isPausedCapped = lockedTail.length > 0 || hasServerMore;
-      const visibleReport = isPausedCapped
+      const totalFetchedKnown = unlockedMessages.length + lockedTail.length;
+      const visibleReport = (isPausedCapped || !lastResData)
         ? aggregateMessagesIntoStats(unlockedMessages, vid)
         : {
-            ...res.data,
-            stream_id: res.data.stream_id || vid,
+            ...lastResData,
+            stream_id: lastResData.stream_id || vid,
             total_messages: unlockedMessages.length,
             messages: unlockedMessages,
           };
+      visibleReport.title = streamTitle;
+
+      const ckptSnapshot = {
+        kind: 'single_overflow',
+        mode: 'single',
+        cloudBackupId: runBackupId,
+        title: streamTitle,
+        streamId: vid,
+        unlockedMessages,
+        lockedTail,
+        continuationToken: hasServerMore ? continuationToken : '',
+        hasMoreOnServer: hasServerMore,
+        lockedStreamTotal: lockedTail.length > 0 ? totalFetchedKnown : null,
+        unlockedOnStream: unlockedMessages.length,
+        remainingVids: [],
+        completedVids: [vid],
+        totalPlannedStreams: 1,
+        pauseReason: paidByCredits ? 'credits_exhausted' : 'free_limit',
+      };
 
       if (isPausedCapped) {
-        await saveChatCheckpoint(
-          {
-            kind: 'single_overflow',
-            mode: 'single',
-            title: streamTitle,
-            streamId: vid,
-            unlockedMessages,
-            lockedTail,
-            continuationToken: hasServerMore ? res.continuation_token : '',
-            hasMoreOnServer: hasServerMore,
-            lockedStreamTotal: lockedTail.length > 0 ? rawMessages.length : null,
-            unlockedOnStream: unlockedMessages.length,
-            remainingVids: [],
-            completedVids: [vid],
-            totalPlannedStreams: 1,
-            pauseReason: paidByCredits ? 'credits_exhausted' : 'free_limit',
-          },
-          { allowGuest: !paidByCredits }
-        );
+        await saveChatCheckpoint(ckptSnapshot, { allowGuest: !paidByCredits });
       } else {
         await clearChatCheckpoint();
       }
 
       const statusTicker = lockedTail.length > 0
-        ? `Unlocked ${unlockedMessages.length.toLocaleString()} of ${rawMessages.length.toLocaleString()} messages (credit cap reached)`
+        ? `Unlocked ${unlockedMessages.length.toLocaleString()} of ${totalFetchedKnown.toLocaleString()} messages (credit cap reached)`
         : hasServerMore
           ? `Unlocked ${unlockedMessages.length.toLocaleString()} messages (stopped cleanly at your allowance)`
-          : `Processed ${visibleReport.total_messages} messages in ${res.elapsed_sec || 0.5}s`;
+          : `Processed ${visibleReport.total_messages} messages in ${resElapsed || 0.5}s`;
 
       setProgress(
         100,
@@ -1397,26 +1795,43 @@
         visibleReport.events_count
       );
 
-      setTimeout(() => {
+      setTimeout(async () => {
         hideProgress();
         renderLiveChatReport(visibleReport, streamTitle);
         updateViewerSessionButton();
         if (isPausedCapped && paidByCredits) {
           maybeAutoOpenRechargeModal(currentChatCheckpoint);
         }
+        if (visibleReport.total_messages > 0 && window.TubeMetrixBackups?.isEligible?.()) {
+          await syncCloudChatOrCommentsBackup({
+            backupId: runBackupId,
+            toolKind: 'chats',
+            mode: 'single',
+            title: streamTitle,
+            status: isPausedCapped ? 'paused' : 'completed',
+            completedCount: isPausedCapped ? 0 : 1,
+            totalCount: 1,
+            itemsCount: unlockedMessages.length,
+            streamKeys: [vid],
+            resumePayload: isPausedCapped ? ckptSnapshot : null,
+            reportData: visibleReport,
+            isComments: false,
+          });
+        }
       }, 400);
 
     } catch (err) {
+      stopChatProgressHeartbeat();
       hideProgress();
       alert(`Chat Extraction Error: ${err.message}`);
     } finally {
-      isChatExtractionRunning = false;
+      setChatRunningFlag(false);
       el.startChatSingleBtn.disabled = false;
     }
   }
 
   // Option B: Channel Live Streams
-  async function startChannelChatExtraction() {
+  async function startChannelChatExtraction(options = {}) {
     // Require at least 1 credit to begin Channel Date Range scan
     if (window.TubeMetrixAuth) {
       const allowed = typeof window.TubeMetrixAuth.authorizeRun === 'function'
@@ -1439,6 +1854,7 @@
     const toDate = el.chatToDateInput.value;
 
     el.startChatChannelBtn.disabled = true;
+    renderChatCloudBadge('chats', 'idle');
     if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
     if (el.labelExtracted) el.labelExtracted.textContent = 'Extracted Messages';
     setProgress(10, 'Discovering Channel Live Streams...', `Querying YouTube channel ${channelUrl}...`);
@@ -1463,6 +1879,18 @@
       }
 
       const streams = cData.streams;
+      if (!options?.skipDupCheck) {
+        const dupHandled = await checkChatOrCommentsDuplicate({
+          videoIds: streams.map((s) => s.id),
+          toolKind: 'chats',
+          onRefetchFresh: () => startChannelChatExtraction({ skipDupCheck: true }),
+        });
+        if (dupHandled) {
+          hideProgress();
+          return;
+        }
+      }
+
       const reportTitle = `${cData.channel} (${streams.length} Streams)`;
       setProgress(20, `Found ${streams.length} Streams`, `Starting stream-by-stream chat extraction (auto-pauses cleanly at 0 CR)...`);
 
@@ -1475,6 +1903,9 @@
       updateChatLiveCreditBar(false);
       if (aggregatedData.total_messages > 0 || (aggregatedData.completed_count || 0) > 0) {
         renderLiveChatReport(aggregatedData, reportTitle);
+        if (aggregatedData.cloudStatus) {
+          renderChatCloudBadge('chats', aggregatedData.cloudStatus, aggregatedData.cloudBackupId || '');
+        }
         updateViewerSessionButton();
         maybeAutoOpenRechargeModal(currentChatCheckpoint);
       } else {
@@ -1493,10 +1924,18 @@
   }
 
   // Option C: Multi-URL Batch
-  async function startMultiChatExtraction() {
+  async function startMultiChatExtraction(options = {}) {
     if (state.multiUrlQueue.length === 0) {
       alert('Please add at least 1 stream to the batch list.');
       return;
+    }
+    if (!options?.skipDupCheck) {
+      const dupHandled = await checkChatOrCommentsDuplicate({
+        videoIds: state.multiUrlQueue,
+        toolKind: 'chats',
+        onRefetchFresh: () => startMultiChatExtraction({ skipDupCheck: true }),
+      });
+      if (dupHandled) return;
     }
     // Require at least 1 credit to start; claims stream-by-stream and pauses cleanly if balance hits 0
     if (window.TubeMetrixAuth) {
@@ -1510,6 +1949,7 @@
     const queue = [...state.multiUrlQueue];
     const reportTitle = `Custom URL Batch (${queue.length} Streams)`;
     el.startChatMultiBtn.disabled = true;
+    renderChatCloudBadge('chats', 'idle');
     if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
     if (el.labelExtracted) el.labelExtracted.textContent = 'Extracted Messages';
 
@@ -1523,6 +1963,9 @@
       updateChatLiveCreditBar(false);
       if (aggregatedData.total_messages > 0 || (aggregatedData.completed_count || 0) > 0) {
         renderLiveChatReport(aggregatedData, reportTitle);
+        if (aggregatedData.cloudStatus) {
+          renderChatCloudBadge('chats', aggregatedData.cloudStatus, aggregatedData.cloudBackupId || '');
+        }
         updateViewerSessionButton();
         maybeAutoOpenRechargeModal(currentChatCheckpoint);
       } else {
@@ -1547,9 +1990,11 @@
     const initialMessages = Array.isArray(options?.initialMessages) ? options.initialMessages : [];
     const completedVids = Array.isArray(options?.completedBefore) ? [...options.completedBefore] : [];
     const totalPlanned = Math.max(vids.length + completedVids.length, Number(options?.totalPlannedStreams || vids.length));
+    const runBackupId = options?.cloudBackupId || `chat_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const allPlannedStreamKeys = [...new Set([...completedVids, ...vids].filter(Boolean))];
 
     activeChatPauseRequested = false;
-    isChatExtractionRunning = true;
+    setChatRunningFlag(true);
     let allMessages = [...initialMessages];
     let lockedTail = [];
     let continuationToken = '';
@@ -1654,45 +2099,115 @@
         console.warn(`Failed to process stream ${vid}:`, e);
         completedVids.push(vid);
       }
-    }
 
-    if (lockedTail.length > 0 || hasMoreOnServer || remainingVids.length > 0) {
-      await saveChatCheckpoint(
-        {
+      // Incremental power-cut protection after every stream in batch
+      const remAfterStream = vids.slice(i + 1);
+      if (remAfterStream.length > 0 && (paidByCredits || window.TubeMetrixBackups?.isEligible?.())) {
+        const incCkpt = {
           kind: mode === 'channel' ? 'channel' : 'batch',
           mode,
+          cloudBackupId: runBackupId,
           title,
-          streamId: lockedStreamId || `batch_${totalPlanned}`,
-          unlockedMessages: allMessages,
-          lockedTail,
-          continuationToken,
-          hasMoreOnServer,
-          lockedStreamTotal: lockedStreamTotal || null,
-          unlockedOnStream,
-          remainingVids,
-          completedVids,
+          streamId: `batch_${totalPlanned}`,
+          unlockedMessages: [...allMessages],
+          lockedTail: [],
+          continuationToken: '',
+          hasMoreOnServer: false,
+          lockedStreamTotal: null,
+          unlockedOnStream: 0,
+          remainingVids: remAfterStream,
+          completedVids: [...completedVids],
           totalPlannedStreams: totalPlanned,
-          pauseReason: pauseReason || 'credits_exhausted',
-        },
-        { allowGuest: false }
-      );
+          pauseReason: 'interrupted',
+        };
+        if (paidByCredits && window.TubeMetrixAuth?.checkpoints) {
+          window.TubeMetrixAuth.checkpoints.save(CHAT_PAUSE_CKPT_KEY, incCkpt, { allowGuest: false });
+        }
+        if (window.TubeMetrixBackups?.isEligible?.()) {
+          window.TubeMetrixBackups.queueBackupSave({
+            id: runBackupId,
+            toolKind: 'chats',
+            mode,
+            title,
+            status: 'in_progress',
+            completedCount: completedVids.length,
+            totalCount: totalPlanned,
+            itemsCount: allMessages.length,
+            streamKeys: allPlannedStreamKeys,
+            resumePayload: incCkpt,
+          });
+        }
+      }
+    }
+
+    const stoppedEarly = Boolean(lockedTail.length > 0 || hasMoreOnServer || remainingVids.length > 0);
+    const ckptPayload = {
+      kind: mode === 'channel' ? 'channel' : 'batch',
+      mode,
+      cloudBackupId: runBackupId,
+      title,
+      streamId: lockedStreamId || `batch_${totalPlanned}`,
+      unlockedMessages: allMessages,
+      lockedTail,
+      continuationToken,
+      hasMoreOnServer,
+      lockedStreamTotal: lockedStreamTotal || null,
+      unlockedOnStream,
+      remainingVids,
+      completedVids,
+      totalPlannedStreams: totalPlanned,
+      pauseReason: pauseReason || 'credits_exhausted',
+    };
+
+    if (stoppedEarly) {
+      await saveChatCheckpoint(ckptPayload, { allowGuest: false });
     } else {
       await clearChatCheckpoint();
     }
 
     const finalStats = aggregateMessagesIntoStats(allMessages, `batch_${totalPlanned}`);
     finalStats.completed_count = completedVids.length;
-    isChatExtractionRunning = false;
+    finalStats.title = title;
+    setChatRunningFlag(false);
+
+    if (window.TubeMetrixBackups?.isEligible?.() && (stoppedEarly ? completedVids.length > 0 : allMessages.length > 0)) {
+      await syncCloudChatOrCommentsBackup({
+        backupId: runBackupId,
+        toolKind: 'chats',
+        mode,
+        title,
+        status: stoppedEarly ? 'paused' : 'completed',
+        completedCount: completedVids.length,
+        totalCount: totalPlanned,
+        itemsCount: allMessages.length,
+        streamKeys: allPlannedStreamKeys,
+        resumePayload: stoppedEarly ? ckptPayload : null,
+        reportData: finalStats,
+        isComments: false,
+      });
+      finalStats.cloudStatus = stoppedEarly ? 'paused' : 'completed';
+      finalStats.cloudBackupId = runBackupId;
+    }
+
     return finalStats;
   }
 
   // Option D: Video Comments Downloader
-  async function startCommentsDownload() {
+  async function startCommentsDownload(options = {}) {
     const raw = el.commentsUrlInput.value.trim();
     const vid = extractVideoId(raw);
     if (!vid) {
       alert('Please enter a valid YouTube Video URL or Video ID.');
       return;
+    }
+
+    if (!options?.skipDupCheck) {
+      const dupHandled = await checkChatOrCommentsDuplicate({
+        videoIds: [vid],
+        toolKind: 'comments',
+        onRefetchFresh: () => startCommentsDownload({ skipDupCheck: true }),
+      });
+      if (dupHandled) return;
     }
 
     const limit = parseInt(el.commentsLimitSelect.value, 10) || 300;
@@ -1721,9 +2236,11 @@
     const affordableLimit = isHighVolume
       ? Math.min(limit, (1 + remBalAfterBase) * 1000)
       : limit;
+    const runBackupId = `comm_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
     el.startCommentsBtn.disabled = true;
-    isChatExtractionRunning = true;
+    setChatRunningFlag(true);
+    renderChatCloudBadge('comments', 'idle');
     if (el.resultsCommentsSection) el.resultsCommentsSection.style.display = 'none';
     if (el.labelExtracted) el.labelExtracted.textContent = 'Comments Downloaded';
     setProgress(20, `Fetching Video Comments [${vid}]...`, 'Connecting to YouTube InnerTube comments engine...');
@@ -1736,67 +2253,185 @@
         'Settling only actual comments returned (zero overcharge)...'
       ]);
 
-      const res = await fetchJsonWithRetry(`${API_BASE}/fetch-comments`, {
-        url: vid,
-        max_comments: affordableLimit,
-      });
-      stopChatProgressHeartbeat();
+      let videoTitle = `Video [${vid}]`;
+      let unlockedComments = [];
+      let lockedTail = [];
+      let continuationToken = '';
+      let hasMoreOnServer = false;
+      let lastResObj = null;
+      let resElapsed = 1.5;
 
-      if (!res.success) {
-        throw new Error(res.error || 'Failed to download comments.');
-      }
+      if (affordableLimit <= 10000) {
+        const res = await fetchJsonWithRetry(`${API_BASE}/fetch-comments`, {
+          url: vid,
+          max_comments: affordableLimit,
+        });
+        stopChatProgressHeartbeat();
 
-      const fetchedComments = (res.comments || []).map((c, idx) => ({
-        ...c,
-        idx: idx + 1,
-        stream_id: c.stream_id || vid,
-      }));
+        if (!res.success) {
+          throw new Error(res.error || 'Failed to download comments.');
+        }
 
-      let allowedCount = fetchedComments.length;
-      if (isHighVolume && fetchedComments.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
-        const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(fetchedComments.length, vid);
-        const extraDeducted = Number(settleRes?.deducted || 0);
-        allowedCount = Math.min(fetchedComments.length, (1 + extraDeducted) * 1000);
-      }
+        const fetchedComments = (res.comments || []).map((c, idx) => ({
+          ...c,
+          idx: idx + 1,
+          stream_id: c.stream_id || vid,
+        }));
+        videoTitle = res.title || videoTitle;
+        lastResObj = res;
+        resElapsed = res.elapsed_sec || 1.5;
 
-      const unlockedComments = fetchedComments.slice(0, allowedCount);
-      const lockedTail = fetchedComments.slice(allowedCount);
-      const hasMoreOnServer = Boolean(
-        lockedTail.length === 0 &&
-          res.has_more &&
-          res.continuation_token &&
-          unlockedComments.length < limit
-      );
+        let allowedCount = fetchedComments.length;
+        if (isHighVolume && fetchedComments.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
+          const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(fetchedComments.length, vid);
+          const extraDeducted = Number(settleRes?.deducted || 0);
+          allowedCount = Math.min(fetchedComments.length, (1 + extraDeducted) * 1000);
+        }
 
-      if (lockedTail.length > 0 || hasMoreOnServer) {
-        await saveChatCheckpoint(
-          {
-            kind: 'comments_overflow',
-            mode: 'comments',
-            title: res.title || `Video [${vid}]`,
-            streamId: vid,
-            unlockedMessages: unlockedComments,
-            lockedTail,
-            continuationToken: hasMoreOnServer ? res.continuation_token : '',
-            hasMoreOnServer,
-            requestedLimit: limit,
-            lockedStreamTotal: lockedTail.length > 0 ? fetchedComments.length : null,
-            unlockedOnStream: unlockedComments.length,
-            remainingVids: [],
-            completedVids: [vid],
-            totalPlannedStreams: 1,
-            pauseReason: 'credits_exhausted',
-          },
-          { allowGuest: false }
+        unlockedComments = fetchedComments.slice(0, allowedCount);
+        lockedTail = fetchedComments.slice(allowedCount);
+        hasMoreOnServer = Boolean(
+          lockedTail.length === 0 &&
+            res.has_more &&
+            res.continuation_token &&
+            unlockedComments.length < limit
         );
+        continuationToken = hasMoreOnServer ? res.continuation_token : '';
+      } else {
+        // Chunked 10k-item comment download so giant pulls save partial progress online cleanly
+        let chunkIdx = 0;
+        let nextToken = '';
+        let keepFetching = true;
+        resElapsed = 0;
+
+        while (keepFetching && unlockedComments.length < affordableLimit) {
+          const chunkLimit = Math.min(10000, affordableLimit - unlockedComments.length);
+          const payload = { url: vid, max_comments: chunkLimit };
+          if (chunkIdx > 0 && nextToken) {
+            payload.continuation_token = nextToken;
+          }
+          const res = await fetchJsonWithRetry(`${API_BASE}/fetch-comments`, payload);
+          if (!res.success) {
+            if (chunkIdx === 0) {
+              throw new Error(res.error || 'Failed to download comments.');
+            }
+            break;
+          }
+          if (res.title) videoTitle = res.title;
+          resElapsed += (res.elapsed_sec || 0);
+
+          const chunkItems = (res.comments || []).map((c) => ({
+            ...c,
+            stream_id: c.stream_id || vid,
+          }));
+          if (!chunkItems.length) {
+            hasMoreOnServer = false;
+            continuationToken = '';
+            break;
+          }
+
+          let allowedInChunk = chunkItems.length;
+          if (chunkIdx === 0) {
+            if (isHighVolume && chunkItems.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
+              const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(chunkItems.length, vid);
+              const extraDeducted = Number(settleRes?.deducted || 0);
+              allowedInChunk = Math.min(chunkItems.length, (1 + extraDeducted) * 1000);
+            }
+          } else if (window.TubeMetrixAuth?.unlockRemainingChatCredits) {
+            const needCr = Math.ceil(chunkItems.length / 1000);
+            const uRes = await window.TubeMetrixAuth.unlockRemainingChatCredits({
+              streamId: vid,
+              totalMessages: chunkItems.length,
+              unlockedCount: 0,
+              creditsNeeded: needCr,
+              silent: true,
+            });
+            allowedInChunk = Math.min(chunkItems.length, Number(uRes?.addedMessageAllowance || 0));
+          }
+
+          const baseOffset = unlockedComments.length;
+          const chunkUnlocked = chunkItems.slice(0, allowedInChunk).map((c, idx) => ({
+            ...c,
+            idx: baseOffset + idx + 1,
+          }));
+          unlockedComments.push(...chunkUnlocked);
+          lockedTail = chunkItems.slice(allowedInChunk);
+          nextToken = res.continuation_token || '';
+          continuationToken = lockedTail.length === 0 && res.has_more && nextToken && unlockedComments.length < limit
+            ? nextToken
+            : '';
+          hasMoreOnServer = Boolean(continuationToken);
+          keepFetching = hasMoreOnServer && lockedTail.length === 0;
+          chunkIdx++;
+
+          if (keepFetching && unlockedComments.length < affordableLimit && window.TubeMetrixBackups?.isEligible?.()) {
+            const incCkpt = {
+              kind: 'comments_overflow',
+              mode: 'comments',
+              cloudBackupId: runBackupId,
+              title: videoTitle,
+              streamId: vid,
+              unlockedMessages: [...unlockedComments],
+              lockedTail: [],
+              continuationToken,
+              hasMoreOnServer: true,
+              requestedLimit: limit,
+              unlockedOnStream: unlockedComments.length,
+              remainingVids: [],
+              completedVids: [vid],
+              totalPlannedStreams: 1,
+              pauseReason: 'interrupted',
+            };
+            window.TubeMetrixAuth?.checkpoints?.save(CHAT_PAUSE_CKPT_KEY, incCkpt, { allowGuest: false });
+            syncCloudChatOrCommentsBackup({
+              backupId: runBackupId,
+              toolKind: 'comments',
+              mode: 'comments',
+              title: videoTitle,
+              status: 'in_progress',
+              completedCount: 0,
+              totalCount: 1,
+              itemsCount: unlockedComments.length,
+              streamKeys: [vid],
+              resumePayload: incCkpt,
+              isComments: true,
+            });
+          }
+        }
+        stopChatProgressHeartbeat();
+      }
+
+      const totalFetchedKnown = unlockedComments.length + lockedTail.length;
+      const isPausedCapped = lockedTail.length > 0 || hasMoreOnServer;
+      const ckptSnapshot = {
+        kind: 'comments_overflow',
+        mode: 'comments',
+        cloudBackupId: runBackupId,
+        title: videoTitle,
+        streamId: vid,
+        unlockedMessages: unlockedComments,
+        lockedTail,
+        continuationToken: hasMoreOnServer ? continuationToken : '',
+        hasMoreOnServer,
+        requestedLimit: limit,
+        lockedStreamTotal: lockedTail.length > 0 ? totalFetchedKnown : null,
+        unlockedOnStream: unlockedComments.length,
+        remainingVids: [],
+        completedVids: [vid],
+        totalPlannedStreams: 1,
+        pauseReason: 'credits_exhausted',
+      };
+
+      if (isPausedCapped) {
+        await saveChatCheckpoint(ckptSnapshot, { allowGuest: false });
       } else {
         await clearChatCheckpoint();
       }
 
-      const finalReport = lockedTail.length > 0
-        ? buildCommentsStatsFromList(unlockedComments, vid, res.title)
+      const finalReport = (lockedTail.length > 0 || !lastResObj)
+        ? buildCommentsStatsFromList(unlockedComments, vid, videoTitle)
         : {
-            ...res,
+            ...lastResObj,
             comments: unlockedComments,
             total_comments: unlockedComments.length,
           };
@@ -1806,27 +2441,44 @@
 
       setProgress(
         100,
-        lockedTail.length > 0 || hasMoreOnServer ? 'Partial Limit Reached!' : 'Complete!',
-        `Downloaded ${finalReport.total_comments} comments in ${res.elapsed_sec || 1.5}s`,
+        isPausedCapped ? 'Partial Limit Reached!' : 'Complete!',
+        `Downloaded ${finalReport.total_comments} comments in ${resElapsed || 1.5}s`,
         finalReport.total_comments,
         finalReport.unique_commenters,
         0
       );
 
-      setTimeout(() => {
+      setTimeout(async () => {
         hideProgress();
         renderCommentsReport(finalReport);
         renderChatLimitAndResumeBanners();
-        if (isHighVolume && (lockedTail.length > 0 || hasMoreOnServer)) {
+        if (isHighVolume && isPausedCapped) {
           maybeAutoOpenRechargeModal(currentChatCheckpoint);
+        }
+        if (finalReport.total_comments > 0 && window.TubeMetrixBackups?.isEligible?.()) {
+          await syncCloudChatOrCommentsBackup({
+            backupId: runBackupId,
+            toolKind: 'comments',
+            mode: 'comments',
+            title: videoTitle,
+            status: isPausedCapped ? 'paused' : 'completed',
+            completedCount: isPausedCapped ? 0 : 1,
+            totalCount: 1,
+            itemsCount: unlockedComments.length,
+            streamKeys: [vid],
+            resumePayload: isPausedCapped ? ckptSnapshot : null,
+            reportData: finalReport,
+            isComments: true,
+          });
         }
       }, 400);
 
     } catch (err) {
+      stopChatProgressHeartbeat();
       hideProgress();
       alert(`Comments Error: ${err.message}`);
     } finally {
-      isChatExtractionRunning = false;
+      setChatRunningFlag(false);
       el.startCommentsBtn.disabled = false;
     }
   }
@@ -2724,20 +3376,15 @@
     URL.revokeObjectURL(url);
   }
 
-  function exportChatToExcel(messagesList, metaData) {
-    if (!messagesList || messagesList.length === 0) {
-      alert('No chat messages to export.');
-      return;
-    }
-    const msgs = messagesList;
+  function buildChatExcelHtml(messagesList, metaData) {
+    const msgs = Array.isArray(messagesList) ? messagesList : [];
     const title = (metaData && metaData.stream_id) ? metaData.stream_id : 'stream_chat';
-
-    let html = `
+    return `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
     <head><meta charset="utf-8"></head>
     <body>
       <h2>TubeMetrix — YouTube Live Chat Report</h2>
-      <p>Stream: ${title} | Total Messages: ${msgs.length}</p>
+      <p>Stream: ${escapeHtml(title)} | Total Messages: ${msgs.length}</p>
       <table border="1">
         <tr style="background:#cc0000; color:#fff; font-weight:bold;">
           <th># Count</th><th>Time</th><th>Author</th><th>Badges</th><th>Event Type</th><th>Details</th><th>Message Content</th><th>Stream ID</th>
@@ -2745,30 +3392,32 @@
         ${msgs.map(m => `
           <tr ${m.event_type !== 'CHAT' ? 'style="background:#fffbeb; font-weight:bold;"' : ''}>
             <td>${m.idx}</td>
-            <td>${m.time}</td>
+            <td>${escapeHtml(m.time)}</td>
             <td>${escapeHtml(m.author)}</td>
-            <td>${(m.badges || []).join(', ')}</td>
-            <td>${m.event_type}</td>
+            <td>${escapeHtml((m.badges || []).join(', '))}</td>
+            <td>${escapeHtml(m.event_type)}</td>
             <td>${escapeHtml(m.details || '')}</td>
             <td>${escapeHtml(m.message)}</td>
-            <td>${m.stream_id || ''}</td>
+            <td>${escapeHtml(m.stream_id || '')}</td>
           </tr>
         `).join('')}
       </table>
     </body></html>`;
-
-    downloadBlob(html, `TubeMetrix_Chat_${title}.xls`, 'application/vnd.ms-excel');
   }
 
-  function exportChatToTxt(messagesList, metaData) {
+  function exportChatToExcel(messagesList, metaData) {
     if (!messagesList || messagesList.length === 0) {
       alert('No chat messages to export.');
       return;
     }
-    const msgs = messagesList;
     const title = (metaData && metaData.stream_id) ? metaData.stream_id : 'stream_chat';
+    downloadBlob(buildChatExcelHtml(messagesList, metaData), `TubeMetrix_Chat_${title}.xls`, 'application/vnd.ms-excel');
+  }
 
-    let lines = [
+  function buildChatTxtText(messagesList, metaData) {
+    const msgs = Array.isArray(messagesList) ? messagesList : [];
+    const title = (metaData && metaData.stream_id) ? metaData.stream_id : 'stream_chat';
+    const lines = [
       `================================================================================`,
       ` TubeMetrix — YOUTUBE LIVE CHAT REPLAY EXPORT`,
       ` Stream ID: ${title} | Total Exported Messages: ${msgs.length}`,
@@ -2776,24 +3425,25 @@
       `================================================================================`,
       ''
     ];
-
     msgs.forEach(m => {
       const prefix = m.event_type !== 'CHAT' ? `[${m.event_type}: ${m.badge_label || m.details}] ` : '';
       lines.push(`[${m.time || '0:00'}] [${m.author}] ${prefix}${m.message}`);
     });
-
-    downloadBlob(lines.join('\n'), `TubeMetrix_Chat_${title}.txt`, 'text/plain;charset=utf-8');
+    return lines.join('\n');
   }
 
-  function exportChatToCsv(messagesList, metaData) {
+  function exportChatToTxt(messagesList, metaData) {
     if (!messagesList || messagesList.length === 0) {
       alert('No chat messages to export.');
       return;
     }
-    const msgs = messagesList;
     const title = (metaData && metaData.stream_id) ? metaData.stream_id : 'stream_chat';
+    downloadBlob(buildChatTxtText(messagesList, metaData), `TubeMetrix_Chat_${title}.txt`, 'text/plain;charset=utf-8');
+  }
 
-    let csv = ['Count,Timestamp,Author,Badges,EventType,Details,Message,StreamID'];
+  function buildChatCsvText(messagesList) {
+    const msgs = Array.isArray(messagesList) ? messagesList : [];
+    const csv = ['Count,Timestamp,Author,Badges,EventType,Details,Message,StreamID'];
     msgs.forEach(m => {
       const row = [
         m.idx,
@@ -2807,14 +3457,50 @@
       ];
       csv.push(row.join(','));
     });
+    return csv.join('\n');
+  }
 
-    downloadBlob(csv.join('\n'), `TubeMetrix_Chat_${title}.csv`, 'text/csv;charset=utf-8');
+  function exportChatToCsv(messagesList, metaData) {
+    if (!messagesList || messagesList.length === 0) {
+      alert('No chat messages to export.');
+      return;
+    }
+    const title = (metaData && metaData.stream_id) ? metaData.stream_id : 'stream_chat';
+    downloadBlob(buildChatCsvText(messagesList), `TubeMetrix_Chat_${title}.csv`, 'text/csv;charset=utf-8');
   }
 
   function exportChatToJson(dataObj) {
     if (!dataObj) return;
     const jsonStr = JSON.stringify(dataObj, null, 2);
     downloadBlob(jsonStr, `TubeMetrix_Chat_${dataObj.stream_id || 'export'}.json`, 'application/json');
+  }
+
+  function buildCommExcelHtml(commentsList, metaData) {
+    const comms = Array.isArray(commentsList) ? commentsList : [];
+    const title = (metaData && metaData.video_id) ? metaData.video_id : 'comments';
+    return `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head><meta charset="utf-8"></head>
+    <body>
+      <h2>TubeMetrix — YouTube Video Comments Export</h2>
+      <p>Video: ${escapeHtml((metaData && metaData.title) || title)} | Total Comments: ${comms.length}</p>
+      <table border="1">
+        <tr style="background:#cc0000; color:#fff; font-weight:bold;">
+          <th># Count</th><th>Author</th><th>Channel ID</th><th>Published</th><th>Likes</th><th>Replies</th><th>Comment Text</th>
+        </tr>
+        ${comms.map(c => `
+          <tr>
+            <td>${c.idx}</td>
+            <td>${escapeHtml(c.author)}</td>
+            <td>${escapeHtml(c.author_id || '')}</td>
+            <td>${escapeHtml(c.published_time || '')}</td>
+            <td>${c.likes || 0}</td>
+            <td>${c.reply_count || 0}</td>
+            <td>${escapeHtml(c.text || '')}</td>
+          </tr>
+        `).join('')}
+      </table>
+    </body></html>`;
   }
 
   function exportCommToExcel() {
@@ -2824,64 +3510,39 @@
     }
     const comms = state.filteredComments.length > 0 ? state.filteredComments : state.commentsData.comments;
     const title = state.commentsData.video_id || 'comments';
+    downloadBlob(buildCommExcelHtml(comms, state.commentsData), `TubeMetrix_Comments_${title}.xls`, 'application/vnd.ms-excel');
+  }
 
-    let html = `
-    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-    <head><meta charset="utf-8"></head>
-    <body>
-      <h2>TubeMetrix — YouTube Video Comments Export</h2>
-      <p>Video: ${escapeHtml(state.commentsData.title || title)} | Total Comments: ${comms.length}</p>
-      <table border="1">
-        <tr style="background:#cc0000; color:#fff; font-weight:bold;">
-          <th># Count</th><th>Author</th><th>Channel ID</th><th>Published</th><th>Likes</th><th>Replies</th><th>Comment Text</th>
-        </tr>
-        ${comms.map(c => `
-          <tr>
-            <td>${c.idx}</td>
-            <td>${escapeHtml(c.author)}</td>
-            <td>${c.author_id}</td>
-            <td>${escapeHtml(c.published_time)}</td>
-            <td>${c.likes}</td>
-            <td>${c.reply_count}</td>
-            <td>${escapeHtml(c.text)}</td>
-          </tr>
-        `).join('')}
-      </table>
-    </body></html>`;
-
-    downloadBlob(html, `TubeMetrix_Comments_${title}.xls`, 'application/vnd.ms-excel');
+  function buildCommTxtText(commentsList, metaData) {
+    const comms = Array.isArray(commentsList) ? commentsList : [];
+    const title = (metaData && metaData.video_id) ? metaData.video_id : 'comments';
+    const lines = [
+      `================================================================================`,
+      ` TubeMetrix — YOUTUBE VIDEO COMMENTS EXPORT`,
+      ` Video: ${(metaData && metaData.title) || title} (${title})`,
+      ` Total Comments: ${comms.length}`,
+      ` Generated: ${new Date().toLocaleString()}`,
+      `================================================================================`,
+      ''
+    ];
+    comms.forEach(c => {
+      lines.push(`[#${c.idx}] [${c.published_time}] ${c.author} (Likes: ${c.likes_display || c.likes}, Replies: ${c.reply_count}):`);
+      lines.push(`${c.text}`);
+      lines.push('--------------------------------------------------------------------------------');
+    });
+    return lines.join('\n');
   }
 
   function exportCommToTxt() {
     if (!state.commentsData) return;
     const comms = state.filteredComments.length > 0 ? state.filteredComments : state.commentsData.comments;
     const title = state.commentsData.video_id || 'comments';
-
-    let lines = [
-      `================================================================================`,
-      ` TubeMetrix — YOUTUBE VIDEO COMMENTS EXPORT`,
-      ` Video: ${state.commentsData.title || title} (${title})`,
-      ` Total Comments: ${comms.length}`,
-      ` Generated: ${new Date().toLocaleString()}`,
-      `================================================================================`,
-      ''
-    ];
-
-    comms.forEach(c => {
-      lines.push(`[#${c.idx}] [${c.published_time}] ${c.author} (Likes: ${c.likes_display || c.likes}, Replies: ${c.reply_count}):`);
-      lines.push(`${c.text}`);
-      lines.push('--------------------------------------------------------------------------------');
-    });
-
-    downloadBlob(lines.join('\n'), `TubeMetrix_Comments_${title}.txt`, 'text/plain;charset=utf-8');
+    downloadBlob(buildCommTxtText(comms, state.commentsData), `TubeMetrix_Comments_${title}.txt`, 'text/plain;charset=utf-8');
   }
 
-  function exportCommToCsv() {
-    if (!state.commentsData) return;
-    const comms = state.filteredComments.length > 0 ? state.filteredComments : state.commentsData.comments;
-    const title = state.commentsData.video_id || 'comments';
-
-    let csv = ['Count,Author,ChannelID,PublishedTime,Likes,Replies,Text,VideoID'];
+  function buildCommCsvText(commentsList) {
+    const comms = Array.isArray(commentsList) ? commentsList : [];
+    const csv = ['Count,Author,ChannelID,PublishedTime,Likes,Replies,Text,VideoID'];
     comms.forEach(c => {
       csv.push([
         c.idx,
@@ -2894,13 +3555,54 @@
         c.video_id
       ].join(','));
     });
+    return csv.join('\n');
+  }
 
-    downloadBlob(csv.join('\n'), `TubeMetrix_Comments_${title}.csv`, 'text/csv;charset=utf-8');
+  function exportCommToCsv() {
+    if (!state.commentsData) return;
+    const comms = state.filteredComments.length > 0 ? state.filteredComments : state.commentsData.comments;
+    const title = state.commentsData.video_id || 'comments';
+    downloadBlob(buildCommCsvText(comms), `TubeMetrix_Comments_${title}.csv`, 'text/csv;charset=utf-8');
   }
 
   function exportCommToJson() {
     if (!state.commentsData) return;
     downloadBlob(JSON.stringify(state.commentsData, null, 2), `TubeMetrix_Comments_${state.commentsData.video_id || 'export'}.json`, 'application/json');
+  }
+
+  // Strictly builds 4-format ZIP bundle entries using ONLY unlocked items (zero lockedTail leakage)
+  function buildChatOrCommentsBundleFiles(reportData, isComments = false, title = '') {
+    if (!reportData) return null;
+    if (isComments) {
+      const comms = Array.isArray(reportData.comments) ? reportData.comments : [];
+      if (!comms.length) return null;
+      const safeReport = {
+        ...reportData,
+        title: title || reportData.title || `Video [${reportData.video_id || 'Comments'}]`,
+        comments: comms,
+        total_comments: comms.length,
+      };
+      return [
+        { name: 'TubeMetrix_Comments_Report.json', content: JSON.stringify(safeReport, null, 2) },
+        { name: 'TubeMetrix_Comments_Report.xls', content: buildCommExcelHtml(comms, safeReport) },
+        { name: 'TubeMetrix_Comments_Log.txt', content: buildCommTxtText(comms, safeReport) },
+        { name: 'TubeMetrix_Comments_Data.csv', content: buildCommCsvText(comms) },
+      ];
+    }
+    const msgs = Array.isArray(reportData.messages) ? reportData.messages : [];
+    if (!msgs.length) return null;
+    const safeReport = {
+      ...reportData,
+      title: title || reportData.title || `Stream [${reportData.stream_id || 'Chat'}]`,
+      messages: msgs,
+      total_messages: msgs.length,
+    };
+    return [
+      { name: 'TubeMetrix_LiveChat_Report.json', content: JSON.stringify(safeReport, null, 2) },
+      { name: 'TubeMetrix_LiveChat_Report.xls', content: buildChatExcelHtml(msgs, safeReport) },
+      { name: 'TubeMetrix_LiveChat_Log.txt', content: buildChatTxtText(msgs, safeReport) },
+      { name: 'TubeMetrix_LiveChat_Data.csv', content: buildChatCsvText(msgs) },
+    ];
   }
 
   // ─────────────────────────────────────────────
