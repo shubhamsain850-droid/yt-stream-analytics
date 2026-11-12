@@ -822,8 +822,8 @@
             <span class="benefit-text"><strong>Prepaid Credit Packs</strong> — Pay-as-you-go volume packs, never expire</span>
           </div>
           <div class="benefit-item">
-            <span class="benefit-icon">🇮🇳</span>
-            <span class="benefit-text">${currentPricingRegion === 'INR' ? '<strong>India 1st Order Offer</strong> — Starter 10 Credits from ₹49 via UPI' : '<strong>High-Volume Prepaid Packs</strong> — 200k to 1M chats from $19.99'}</span>
+            <span class="benefit-icon">${currentPricingRegion === 'INR' ? '🇮🇳' : '🌍'}</span>
+            <span class="benefit-text">${currentPricingRegion === 'INR' ? '<strong>India UPI Mini &amp; Volume Packs</strong> — From ₹49 (10 CR) to ₹1,799 (1,000 CR)' : '<strong>Global Mini &amp; Volume Packs</strong> — Mini from $2.99 &bull; Bulk up to 1M chats ($49)'}</span>
           </div>
         </div>
 
