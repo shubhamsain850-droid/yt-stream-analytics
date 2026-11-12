@@ -5,5 +5,8 @@ __pycache__/
 .env
 .env.*
 cookies.txt
+exports/
+*.csv
+
 
 
