@@ -15,9 +15,14 @@ const ALLOWED_PACK_INPUTS = new Set([
   'credits_200',
   'credits_500',
   'credits_1000',
+  'usd_10',
+  'usd_30',
   'in_10',
   'in_30',
   'in_100',
+  'in_200',
+  'in_500',
+  'in_1000',
   'starter',
   'growth',
   'creator',
@@ -62,7 +67,7 @@ export async function onRequestPost({ request, env }) {
     }
 
     const countryCode = getRequestCountry(request);
-    // Strict server-side geo enforcement: India uses 10/30/100 INR packs, Global uses 200/500/1,000 USD packs
+    // Strict server-side geo enforcement: India uses IN packs (₹49-₹1,799), Global uses USD packs ($2.99-$49)
     const canonicalPackId = normalizePackForCountry(rawPack, countryCode);
     const pack = getCreditPack(canonicalPackId);
     if (!pack) {
@@ -73,8 +78,8 @@ export async function onRequestPost({ request, env }) {
 
     const cfg = getDodoConfig(env);
     const targetProductId =
-      (indiaFirstPurchase && cfg.indiaFirstProducts[pack.id]) ||
       (countryCode === 'IN' ? cfg.inrDedicatedProducts[pack.id] : cfg.usdDedicatedProducts[pack.id]) ||
+      (countryCode === 'IN' && indiaFirstPurchase && cfg.indiaFirstProducts[pack.id]) ||
       cfg.products[pack.id];
 
     if (!cfg.apiKey || !targetProductId) {

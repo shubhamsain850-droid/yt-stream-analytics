@@ -15,102 +15,206 @@
   const FREE_WEEKLY_LIMIT = 3;
   const CURRENCY_REGION_KEY = 'TubeMetrix_currency_region';
 
+  const PACK_TIER_KEY = 'TubeMetrix_pack_tier';
+
   const CREDIT_PACK_CATALOG = [
     {
       id: 'credits_10',
-      usdId: 'credits_200',
-      inId: 'in_10',
-      name: 'Starter Pack',
-      inName: 'Starter Pack',
       featured: false,
-      ribbon: '',
-      usdCredits: 200,
-      usdChatsAllowance: '200,000 chats or comments',
-      usdSymbol: '$',
-      usdAmount: '19.99',
-      usdUnitSub: '$0.10 per 1k chats • Never expires',
-      usdDesc: 'Great for high-volume creators, giveaways & bulk stream audits.',
-      inCredits: 10,
-      inChatsAllowance: '10,000 chats/comments',
-      inSymbol: '₹',
-      inrRegular: '99',
-      inrFirst: '49',
-      inrBadge: '50% OFF 1st Order',
-      inUnitFirst: '₹4.90 / 1k chats • 1st India Order',
-      inUnitReg: '₹9.90 / 1k chats • India UPI Regular',
-      inDesc: 'Great for occasional streams, comment exports & creator checks.',
-      extraFeaturesUsd: [
-        '✓ Never Expire • Use Any Time',
-        '✓ Single, Batch URLs &amp; Date Range',
-      ],
-      extraFeaturesIn: [
-        '✓ Never Expire • Use Any Time',
-        '✓ Single, Batch URLs &amp; Date Range',
-      ],
+      variants: {
+        USD: {
+          volume: {
+            packId: 'credits_200',
+            name: 'Starter Pack',
+            ribbon: '',
+            credits: 200,
+            chatsAllowance: '200,000 chats or comments',
+            symbol: '$',
+            amount: '19.99',
+            badge: '',
+            sub: '$0.10 per 1k chats • Never expires',
+            desc: 'Great for high-volume creators, giveaways &amp; bulk stream audits.',
+            extra1: '✓ Never Expire • Use Any Time',
+            extra2: '✓ Single, Custom URL Batch &amp; Date Range',
+          },
+          mini: {
+            packId: 'usd_10',
+            name: 'Starter Mini',
+            ribbon: '',
+            credits: 10,
+            chatsAllowance: '10,000 chats or comments',
+            symbol: '$',
+            amount: '2.99',
+            badge: '',
+            sub: '$0.30 per 1k chats • Quick trial pack',
+            desc: 'Quick entry pack for occasional stream audits or comment exports.',
+            extra1: '✓ Never Expire • Use Any Time',
+            extra2: '✓ Single, Custom URL Batch &amp; Date Range',
+          },
+        },
+        INR: {
+          mini: {
+            packId: 'in_10',
+            name: 'Starter Mini',
+            ribbon: '',
+            credits: 10,
+            chatsAllowance: '10,000 chats/comments',
+            symbol: '₹',
+            amount: '49',
+            badge: '',
+            sub: '₹4.90 / 1k chats • India UPI &amp; Cards',
+            desc: 'Great for occasional streams, comment exports &amp; creator checks.',
+            extra1: '✓ Never Expire • Use Any Time',
+            extra2: '✓ Single, Custom URL Batch &amp; Date Range',
+          },
+          volume: {
+            packId: 'in_200',
+            name: 'Starter Volume',
+            ribbon: '',
+            credits: 200,
+            chatsAllowance: '200,000 chats/comments',
+            symbol: '₹',
+            amount: '799',
+            badge: '🇮🇳 2× VS ₹499',
+            sub: '₹4.00 / 1k chats • Save 20% per 1k',
+            desc: 'Double the credits of ₹499 for regular creators &amp; multi-stream audits.',
+            extra1: '✓ Never Expire • Use Any Time',
+            extra2: '✓ Single, Custom URL Batch &amp; Date Range',
+          },
+        },
+      },
     },
     {
       id: 'credits_30',
-      usdId: 'credits_500',
-      inId: 'in_30',
-      name: 'Growth Pack',
-      inName: 'Creator Pack',
       featured: true,
-      ribbon: 'MOST POPULAR',
-      usdCredits: 500,
-      usdChatsAllowance: '500,000 chats or comments',
-      usdSymbol: '$',
-      usdAmount: '29',
-      usdUnitSub: '$0.058 per 1k chats (Save 42%) • Never expires',
-      usdDesc: 'Best value for regular live streamers, editors &amp; channel audits.',
-      inCredits: 30,
-      inChatsAllowance: '30,000 chats/comments',
-      inSymbol: '₹',
-      inrRegular: '249',
-      inrFirst: '149',
-      inrBadge: '40% OFF 1st Order',
-      inUnitFirst: '₹4.97 / 1k chats • 1st India Order',
-      inUnitReg: '₹8.30 / 1k chats • India UPI Regular',
-      inDesc: 'Best value for regular live streamers, editors &amp; channel audits.',
-      extraFeaturesUsd: [
-        '✓ Custom URL Batch &amp; Full Channel History',
-        '✓ 100% Ad-Free + Priority Throughput',
-      ],
-      extraFeaturesIn: [
-        '✓ Custom URL Batch &amp; Full Channel History',
-        '✓ 100% Ad-Free + Never Expiring Credits',
-      ],
+      variants: {
+        USD: {
+          volume: {
+            packId: 'credits_500',
+            name: 'Growth Pack',
+            ribbon: 'MOST POPULAR',
+            credits: 500,
+            chatsAllowance: '500,000 chats or comments',
+            symbol: '$',
+            amount: '29',
+            badge: '',
+            sub: '$0.058 per 1k chats (Save 42%) • Never expires',
+            desc: 'Best value for regular live streamers, editors &amp; channel audits.',
+            extra1: '✓ Custom URL Batch &amp; Full Channel History',
+            extra2: '✓ 100% Ad-Free + Priority Throughput',
+          },
+          mini: {
+            packId: 'usd_30',
+            name: 'Creator Mini',
+            ribbon: 'POPULAR MINI',
+            credits: 30,
+            chatsAllowance: '30,000 chats or comments',
+            symbol: '$',
+            amount: '6.99',
+            badge: '',
+            sub: '$0.23 per 1k chats (Save 23%) • Never expires',
+            desc: 'Balanced mini pack for weekly batch streams and YouTube comments.',
+            extra1: '✓ Custom URL Batch &amp; Full Channel History',
+            extra2: '✓ 100% Ad-Free + Priority Throughput',
+          },
+        },
+        INR: {
+          mini: {
+            packId: 'in_30',
+            name: 'Creator Mini',
+            ribbon: 'MOST POPULAR',
+            credits: 30,
+            chatsAllowance: '30,000 chats/comments',
+            symbol: '₹',
+            amount: '149',
+            badge: '',
+            sub: '₹4.97 / 1k chats • India UPI &amp; Cards',
+            desc: 'Best starter value for regular live streamers, editors &amp; channel audits.',
+            extra1: '✓ Custom URL Batch &amp; Full Channel History',
+            extra2: '✓ 100% Ad-Free + Never Expiring Credits',
+          },
+          volume: {
+            packId: 'in_500',
+            name: 'Growth Volume',
+            ribbon: 'MOST POPULAR',
+            credits: 500,
+            chatsAllowance: '500,000 chats/comments',
+            symbol: '₹',
+            amount: '1,299',
+            badge: '🇮🇳 SAVE 48%',
+            sub: '₹2.60 / 1k chats • Massive Creator Savings',
+            desc: 'High-volume pack for busy channels, editors &amp; full-month archives.',
+            extra1: '✓ Custom URL Batch &amp; Full Channel History',
+            extra2: '✓ 100% Ad-Free + Priority Throughput',
+          },
+        },
+      },
     },
     {
       id: 'credits_100',
-      usdId: 'credits_1000',
-      inId: 'in_100',
-      name: 'Agency Pack',
-      inName: 'Agency Pack',
       featured: false,
-      ribbon: 'BEST VALUE',
-      usdCredits: 1000,
-      usdChatsAllowance: '1,000,000 chats or comments',
-      usdSymbol: '$',
-      usdAmount: '49',
-      usdUnitSub: '$0.049 per 1k chats (Save 51%) • Never expires',
-      usdDesc: 'Massive million-chat volume for MCNs, agencies &amp; researchers.',
-      inCredits: 100,
-      inChatsAllowance: '100,000 chats/comments',
-      inSymbol: '₹',
-      inrRegular: '699',
-      inrFirst: '499',
-      inrBadge: '29% OFF 1st Order',
-      inUnitFirst: '₹4.99 / 1k chats • 1st India Order',
-      inUnitReg: '₹6.99 / 1k chats • India UPI Regular',
-      inDesc: 'High-volume archive audits for MCNs, agencies &amp; researchers.',
-      extraFeaturesUsd: [
-        '✓ 1,000+ Stream Parallel Batch Engine',
-        '✓ 100% Ad-Free + All Export Formats',
-      ],
-      extraFeaturesIn: [
-        '✓ Parallel Batch Engine &amp; All Exports',
-        '✓ 100% Ad-Free + Priority Throughput',
-      ],
+      variants: {
+        USD: {
+          volume: {
+            packId: 'credits_1000',
+            name: 'Agency Pack',
+            ribbon: 'BEST VALUE',
+            credits: 1000,
+            chatsAllowance: '1,000,000 chats or comments',
+            symbol: '$',
+            amount: '49',
+            badge: '',
+            sub: '$0.049 per 1k chats (Save 51%) • Never expires',
+            desc: 'Massive million-chat volume for MCNs, agencies &amp; researchers.',
+            extra1: '✓ Bulk Parallel Batch Engine &amp; Exports',
+            extra2: '✓ 100% Ad-Free + VIP Queue Speed',
+          },
+          mini: {
+            packId: 'credits_200',
+            name: 'Starter Volume',
+            ribbon: '6.6× UPGRADE',
+            credits: 200,
+            chatsAllowance: '200,000 chats or comments',
+            symbol: '$',
+            amount: '19.99',
+            badge: 'BEST UPGRADE',
+            sub: '$0.10 per 1k chats (Save 66% vs Mini)',
+            desc: 'Get 200,000 chats instead of 30k for only $13 more — massive value.',
+            extra1: '✓ Single, Custom URL Batch &amp; Date Range',
+            extra2: '✓ 100% Ad-Free + All Export Formats',
+          },
+        },
+        INR: {
+          mini: {
+            packId: 'in_100',
+            name: 'Agency Mini',
+            ribbon: '100K PACK',
+            credits: 100,
+            chatsAllowance: '100,000 chats/comments',
+            symbol: '₹',
+            amount: '499',
+            badge: '',
+            sub: '₹4.99 / 1k chats • India UPI &amp; Cards',
+            desc: 'Solid 1 Lakh chats/comments pack for growing channels &amp; researchers.',
+            extra1: '✓ Parallel Batch Engine &amp; All Exports',
+            extra2: '✓ 100% Ad-Free + Priority Throughput',
+          },
+          volume: {
+            packId: 'in_1000',
+            name: 'Agency Volume',
+            ribbon: 'BEST VALUE',
+            credits: 1000,
+            chatsAllowance: '1,000,000 chats/comments',
+            symbol: '₹',
+            amount: '1,799',
+            badge: '🇮🇳 ₹1.80 / 1k',
+            sub: '₹1.80 / 1k chats (Save 64%) • Never expires',
+            desc: 'Massive 10 Lakh (1M) chat/comment volume for agencies &amp; MCNs.',
+            extra1: '✓ Bulk Parallel Batch Engine &amp; Exports',
+            extra2: '✓ 100% Ad-Free + VIP Queue Speed',
+          },
+        },
+      },
     },
   ];
 
@@ -136,84 +240,86 @@
     userOverrodeRegion = Boolean(localStorage.getItem(CURRENCY_REGION_KEY));
   } catch {}
 
+  let currentPackTier = 'volume';
+  let userOverrodeTier = false;
+  try {
+    const savedTier = localStorage.getItem(PACK_TIER_KEY);
+    if (savedTier === 'mini' || savedTier === 'volume') {
+      currentPackTier = savedTier;
+      userOverrodeTier = true;
+    } else if (currentPricingRegion === 'INR') {
+      currentPackTier = 'mini';
+    }
+  } catch {
+    if (currentPricingRegion === 'INR') currentPackTier = 'mini';
+  }
+
   let regionState = {
     country: null,
     isIndia: null,
     indiaFirstPurchaseEligible: null,
   };
 
-  function isIndiaFirstPromoActive() {
-    if (currentPricingRegion !== 'INR') return false;
-    if (regionState.country === null) {
-      // Before server sync resolves, show preview only if client detected India timezone/locale
-      return currentPricingRegion === 'INR';
-    }
-    return Boolean(regionState.isIndia && regionState.indiaFirstPurchaseEligible);
-  }
-
-  function getPackDisplayPricing(pack) {
-    if (currentPricingRegion === 'INR') {
-      const promoActive = isIndiaFirstPromoActive();
-      const amount = promoActive ? pack.inrFirst : pack.inrRegular;
-      const creditsText = pack.inCredits.toLocaleString('en-US');
-      return {
-        packId: pack.inId,
-        name: pack.inName || pack.name,
-        credits: pack.inCredits,
-        creditsHeadline: `💎 ${creditsText} Credits`,
-        chatsBulletHtml: `✓ <strong>${creditsText} Credits</strong> (= ${pack.inChatsAllowance})`,
-        desc: pack.inDesc,
-        extraFeatures: pack.extraFeaturesIn,
-        symbol: '₹',
-        amount,
-        strikeAmount: promoActive ? `₹${pack.inrRegular}` : '',
-        badge: promoActive ? `🇮🇳 ${pack.inrBadge}` : '',
-        sub: promoActive ? pack.inUnitFirst : pack.inUnitReg,
-        cta: `Buy ${creditsText} Credits (₹${amount}${promoActive ? ' UPI' : ''})`,
-      };
-    }
-
-    const creditsText = pack.usdCredits.toLocaleString('en-US');
+  function getPackDisplayPricing(packSlot, tierOverride = null) {
+    const regKey = currentPricingRegion === 'INR' ? 'INR' : 'USD';
+    const tierKey = (tierOverride || currentPackTier) === 'mini' ? 'mini' : 'volume';
+    const v = packSlot?.variants?.[regKey]?.[tierKey] || packSlot?.variants?.USD?.volume;
+    const creditsText = Number(v.credits || 0).toLocaleString('en-US');
+    const isIndia = regKey === 'INR';
     return {
-      packId: pack.usdId,
-      name: pack.name,
-      credits: pack.usdCredits,
+      packId: v.packId,
+      name: v.name,
+      ribbon: v.ribbon || '',
+      credits: v.credits,
       creditsHeadline: `💎 ${creditsText} Credits`,
-      chatsBulletHtml: `✓ <strong>${creditsText} Credits</strong> (= ${pack.usdChatsAllowance})`,
-      desc: pack.usdDesc,
-      extraFeatures: pack.extraFeaturesUsd,
-      symbol: '$',
-      amount: pack.usdAmount,
+      chatsBulletHtml: `✓ <strong>${creditsText} Credits</strong> (= ${v.chatsAllowance})`,
+      desc: v.desc,
+      extra1: v.extra1,
+      extra2: v.extra2,
+      extraFeatures: [v.extra1, v.extra2],
+      symbol: v.symbol,
+      amount: v.amount,
       strikeAmount: '',
-      badge: '',
-      sub: pack.usdUnitSub,
-      cta: `Buy ${creditsText} Credits (${pack.usdSymbol}${pack.usdAmount})`,
+      badge: v.badge || '',
+      sub: v.sub,
+      cta: `Buy ${creditsText} Credits (${v.symbol}${v.amount}${isIndia ? ' UPI' : ''})`,
     };
   }
 
   function applyRegionPricing(root = document) {
-    const firstPack = getPackDisplayPricing(CREDIT_PACK_CATALOG[0]);
-    const promoActive = isIndiaFirstPromoActive();
-    const bannerLabel = `💎 Buy Credits (From ${firstPack.symbol}${firstPack.amount} • ${firstPack.credits} CR)`;
+    const firstSlot = getPackDisplayPricing(CREDIT_PACK_CATALOG[0]);
+    const isIndia = currentPricingRegion === 'INR';
+    const isMini = currentPackTier === 'mini';
+    const minEntry = isIndia
+      ? { symbol: '₹', amount: isMini ? '49' : '799', credits: isMini ? 10 : 200 }
+      : { symbol: '$', amount: isMini ? '2.99' : '19.99', credits: isMini ? 10 : 200 };
+    const bannerLabel = `💎 Buy Credits (From ${firstSlot.symbol}${firstSlot.amount} • ${firstSlot.credits} CR)`;
 
     root.querySelectorAll('[data-tm-price-target="banner-credits"]').forEach((node) => {
       node.textContent = bannerLabel;
     });
 
     root.querySelectorAll('[data-tm-price-target="pricing-footnote"]').forEach((node) => {
-      node.textContent =
-        currentPricingRegion === 'INR'
-          ? '1 Credit = 1,000 chats/comments • India UPI packs from ₹49 (10k–100k chats) • Credits never expire.'
-          : '1 Credit = 1,000 chats/comments • Global volume packs from $0.049/1k chats (200k–1M) • Credits never expire.';
+      node.textContent = isIndia
+        ? '1 Credit = 1,000 chats/comments • India UPI Mini (₹49–₹499) & Bulk Volume (₹799–₹1,799) packs • Credits never expire.'
+        : '1 Credit = 1,000 chats/comments • Global Volume ($19.99–$49) & Mini ($2.99–$6.99) packs • Credits never expire.';
     });
 
     root.querySelectorAll('[data-tm-price-target="modal-sub-default"]').forEach((node) => {
       if (node.dataset.customSub !== 'true') {
-        node.textContent =
-          currentPricingRegion === 'INR'
-            ? 'No subscriptions — India UPI prepaid packs from ₹49 (10 CR = 10k chats). Credits never expire.'
-            : 'No subscriptions — Global high-volume prepaid packs from $19.99 (200 CR = 200k chats). Credits never expire.';
+        node.textContent = isIndia
+          ? `No subscriptions — India UPI prepaid packs from ${minEntry.symbol}${minEntry.amount} (${minEntry.credits} CR). Credits never expire.`
+          : `No subscriptions — Global prepaid packs from ${minEntry.symbol}${minEntry.amount} (${minEntry.credits} CR). Credits never expire.`;
       }
+    });
+
+    root.querySelectorAll('[data-tm-tier-btn="volume"]').forEach((btn) => {
+      btn.textContent = isIndia ? '💎 Volume (₹799–₹1,799)' : '💎 Volume (200k–1M)';
+      btn.classList.toggle('active', currentPackTier === 'volume');
+    });
+    root.querySelectorAll('[data-tm-tier-btn="mini"]').forEach((btn) => {
+      btn.textContent = isIndia ? '⚡ Mini (₹49–₹499)' : '⚡ Mini ($2.99–$6.99)';
+      btn.classList.toggle('active', currentPackTier === 'mini');
     });
 
     CREDIT_PACK_CATALOG.forEach((pack) => {
@@ -221,11 +327,21 @@
       root.querySelectorAll(`[data-tm-pack-name="${pack.id}"]`).forEach((n) => {
         n.textContent = p.name;
       });
+      root.querySelectorAll(`[data-tm-pack-ribbon="${pack.id}"]`).forEach((n) => {
+        n.textContent = p.ribbon;
+        n.style.display = p.ribbon ? 'block' : 'none';
+      });
       root.querySelectorAll(`[data-tm-pack-credits="${pack.id}"]`).forEach((n) => {
         n.textContent = p.creditsHeadline;
       });
       root.querySelectorAll(`[data-tm-pack-chats-bullet="${pack.id}"]`).forEach((n) => {
         n.innerHTML = p.chatsBulletHtml;
+      });
+      root.querySelectorAll(`[data-tm-pack-extra1="${pack.id}"]`).forEach((n) => {
+        n.innerHTML = p.extra1;
+      });
+      root.querySelectorAll(`[data-tm-pack-extra2="${pack.id}"]`).forEach((n) => {
+        n.innerHTML = p.extra2;
       });
       root.querySelectorAll(`[data-tm-pack-desc="${pack.id}"]`).forEach((n) => {
         n.innerHTML = p.desc;
@@ -245,32 +361,24 @@
         n.style.display = p.badge ? 'inline-flex' : 'none';
       });
       root.querySelectorAll(`[data-tm-pack-sub="${pack.id}"]`).forEach((n) => {
-        n.textContent = p.sub;
+        n.innerHTML = p.sub;
       });
       root.querySelectorAll(`[data-tm-pack-cta="${pack.id}"]`).forEach((n) => {
         n.textContent = p.cta;
+        n.dataset.resolvedPack = p.packId;
       });
     });
 
     root.querySelectorAll('[data-tm-promo-banner]').forEach((node) => {
-      if (currentPricingRegion !== 'INR') {
+      if (!isIndia) {
         node.style.display = 'none';
         return;
       }
       node.style.display = 'block';
-      if (promoActive) {
-        node.className = 'tm-india-promo-banner is-active';
-        node.innerHTML =
-          '🇮🇳 <strong>India 1st Purchase Discount Unlocked:</strong> Up to <strong>50% OFF</strong> (₹49 Starter) auto-applied at checkout via UPI!';
-      } else if (regionState.isIndia && regionState.indiaFirstPurchaseEligible === false) {
-        node.className = 'tm-india-promo-banner is-claimed';
-        node.innerHTML =
-          '🇮🇳 <strong>India UPI Pricing:</strong> 1st-purchase promo already claimed on this account — standard INR rates active (10–100 CR).';
-      } else {
-        node.className = 'tm-india-promo-banner is-preview';
-        node.innerHTML =
-          '🇮🇳 <strong>India Pricing Preview:</strong> Special 1st-purchase discount (₹49 / ₹149 / ₹499 for 10–100 CR) is auto-verified for Indian IP orders at checkout.';
-      }
+      node.className = 'tm-india-promo-banner is-active';
+      node.innerHTML = isMini
+        ? '🇮🇳 <strong>India UPI Mini Packs (10k–100k):</strong> Instant UPI packs from <strong>₹49</strong> — need 200k–1M chats? Switch to <strong>💎 Volume (₹799–₹1,799)</strong> above!'
+        : '🇮🇳 <strong>India UPI Volume Packs (200k–1M):</strong> Massive bulk savings from <strong>₹1.80 / 1k chats</strong> (beats competitor PPP) — or switch to <strong>⚡ Mini (₹49–₹499)</strong> above!';
     });
 
     root.querySelectorAll('[data-tm-region-btn]').forEach((btn) => {
@@ -282,8 +390,20 @@
   function setPricingRegion(region) {
     currentPricingRegion = region === 'INR' ? 'INR' : 'USD';
     userOverrodeRegion = true;
+    if (!userOverrodeTier) {
+      currentPackTier = currentPricingRegion === 'INR' ? 'mini' : 'volume';
+    }
     try {
       localStorage.setItem(CURRENCY_REGION_KEY, currentPricingRegion);
+    } catch {}
+    applyRegionPricing(document);
+  }
+
+  function setPackTier(tier) {
+    currentPackTier = tier === 'mini' ? 'mini' : 'volume';
+    userOverrodeTier = true;
+    try {
+      localStorage.setItem(PACK_TIER_KEY, currentPackTier);
     } catch {}
     applyRegionPricing(document);
   }
@@ -363,6 +483,9 @@
       };
       if (!userOverrodeRegion && regionState.country && regionState.country !== 'XX') {
         currentPricingRegion = regionState.isIndia ? 'INR' : 'USD';
+        if (!userOverrodeTier) {
+          currentPackTier = currentPricingRegion === 'INR' ? 'mini' : 'volume';
+        }
       }
     }
     if (payload.payments && typeof payload.payments === 'object') {
@@ -780,6 +903,20 @@
     box.textContent = message;
   }
 
+  const EXPLICIT_CHECKOUT_PACKS = new Set([
+    'usd_10',
+    'usd_30',
+    'credits_200',
+    'credits_500',
+    'credits_1000',
+    'in_10',
+    'in_30',
+    'in_100',
+    'in_200',
+    'in_500',
+    'in_1000',
+  ]);
+
   async function startDodoCheckout(packId) {
     if (!currentUser) {
       pendingCheckoutPack = packId;
@@ -797,25 +934,26 @@
         openCreditsModal();
         setCheckoutStatus(
           regionState.isIndia
-            ? '🇮🇳 Switched to India INR pricing (10–100 CR via UPI) matching your IP billing region. Click Buy again to continue.'
-            : '🌍 Switched to Global USD pricing (200–1,000 CR) matching your IP billing region. Click Buy again to continue.',
+            ? '🇮🇳 Switched to India INR pricing (₹49–₹1,799 via UPI) matching your IP billing region. Click Buy again to continue.'
+            : '🌍 Switched to Global USD pricing ($2.99–$49) matching your IP billing region. Click Buy again to continue.',
           false
         );
         return;
       }
     }
 
-    const catalogMatch = CREDIT_PACK_CATALOG.find(
-      (p) => p.id === packId || p.usdId === packId || p.inId === packId
-    );
-    const resolvedPackId = catalogMatch
-      ? regionState.isIndia
-        ? catalogMatch.inId
-        : catalogMatch.usdId
-      : packId;
+    let resolvedPackId = packId;
+    if (!EXPLICIT_CHECKOUT_PACKS.has(packId)) {
+      const slotMatch = CREDIT_PACK_CATALOG.find((p) => p.id === packId);
+      if (slotMatch) {
+        resolvedPackId = getPackDisplayPricing(slotMatch).packId;
+      }
+    }
 
     const buttons = document.querySelectorAll('.btn-checkout-plan[data-pack]');
-    const targetBtn = document.querySelector(`.btn-checkout-plan[data-pack="${packId}"]`);
+    const targetBtn =
+      document.querySelector(`.btn-checkout-plan[data-resolved-pack="${resolvedPackId}"]`) ||
+      document.querySelector(`.btn-checkout-plan[data-pack="${packId}"]`);
     const origText = targetBtn ? targetBtn.textContent : '';
 
     buttons.forEach((b) => {
@@ -868,7 +1006,11 @@
   }
 
   // ── Credits Purchase Modal ──
-  function openCreditsModal(customSubtitle = null) {
+  function openCreditsModal(customSubtitle = null, options = {}) {
+    if (options?.neededCredits > 100 && !userOverrodeTier) {
+      currentPackTier = 'volume';
+    }
+
     let backdrop = document.getElementById('tmProModalBackdrop');
     if (!backdrop) {
       backdrop = document.createElement('div');
@@ -878,16 +1020,16 @@
     }
 
     const currentBal = currentUser ? Math.max(0, Number(currentUser.creditsBalance || 0)) : 0;
-    const defaultSub =
-      currentPricingRegion === 'INR'
-        ? 'No subscriptions — India UPI prepaid packs from ₹49 (10 CR = 10k chats). Credits never expire.'
-        : 'No subscriptions — Global high-volume prepaid packs from $19.99 (200 CR = 200k chats). Credits never expire.';
+    const isIndia = currentPricingRegion === 'INR';
+    const defaultSub = isIndia
+      ? 'No subscriptions — India UPI Mini (₹49–₹499) & Volume (₹799–₹1,799) packs. Credits never expire.'
+      : 'No subscriptions — Global Volume ($19.99–$49) & Mini ($2.99–$6.99) packs. Credits never expire.';
 
     const cardsHtml = CREDIT_PACK_CATALOG.map((pack) => {
       const p = getPackDisplayPricing(pack);
       return `
         <div class="pricing-card ${pack.featured ? 'card-featured' : ''}">
-          ${pack.ribbon ? `<div class="featured-ribbon">${pack.ribbon}</div>` : ''}
+          <div class="featured-ribbon" data-tm-pack-ribbon="${pack.id}" style="display:${p.ribbon ? 'block' : 'none'};">${p.ribbon}</div>
           <div class="pricing-card-top">
             <div class="pricing-plan-name" data-tm-pack-name="${pack.id}">${p.name}</div>
             <span class="tm-pack-discount-badge" data-tm-pack-badge="${pack.id}" style="display:${p.badge ? 'inline-flex' : 'none'};">${p.badge}</span>
@@ -902,9 +1044,10 @@
           <p class="pricing-desc" data-tm-pack-desc="${pack.id}">${p.desc}</p>
           <ul class="pricing-features">
             <li data-tm-pack-chats-bullet="${pack.id}">${p.chatsBulletHtml}</li>
-            ${p.extraFeatures.map((f) => `<li>${f}</li>`).join('')}
+            <li data-tm-pack-extra1="${pack.id}">${p.extra1}</li>
+            <li data-tm-pack-extra2="${pack.id}">${p.extra2}</li>
           </ul>
-          <button class="btn-checkout-plan ${pack.featured ? 'btn-checkout-featured' : ''}" data-pack="${pack.id}" data-tm-pack-cta="${pack.id}" type="button">${p.cta}</button>
+          <button class="btn-checkout-plan ${pack.featured ? 'btn-checkout-featured' : ''}" data-pack="${pack.id}" data-resolved-pack="${p.packId}" data-tm-pack-cta="${pack.id}" type="button">${p.cta}</button>
         </div>
       `;
     }).join('');
@@ -916,9 +1059,15 @@
           <div class="tm-pro-pill">💎 PREPAID CREDITS • ${currentUser ? `BALANCE: ${currentBal} CREDITS` : 'PAY AS YOU GO'}</div>
           <h2 class="tm-modal-title">Buy Never-Expiring Credit Packs</h2>
           <p class="tm-modal-subtitle" data-tm-price-target="modal-sub-default" data-custom-sub="${customSubtitle ? 'true' : 'false'}">${escapeHtml(customSubtitle || defaultSub)}</p>
-          <div class="tm-region-toggle" role="group" aria-label="Display currency">
-            <button type="button" class="tm-region-btn ${currentPricingRegion === 'USD' ? 'active' : ''}" data-tm-region-btn="USD">🌍 Global (USD)</button>
-            <button type="button" class="tm-region-btn ${currentPricingRegion === 'INR' ? 'active' : ''}" data-tm-region-btn="INR">🇮🇳 India (INR)</button>
+          <div class="tm-pricing-controls-row">
+            <div class="tm-region-toggle" role="group" aria-label="Display currency">
+              <button type="button" class="tm-region-btn ${currentPricingRegion === 'USD' ? 'active' : ''}" data-tm-region-btn="USD">🌍 Global (USD)</button>
+              <button type="button" class="tm-region-btn ${currentPricingRegion === 'INR' ? 'active' : ''}" data-tm-region-btn="INR">🇮🇳 India (INR)</button>
+            </div>
+            <div class="tm-pack-tier-toggle" role="group" aria-label="Pack size range">
+              <button type="button" class="tm-pack-tier-btn ${currentPackTier === 'volume' ? 'active' : ''}" data-tm-tier-btn="volume">${isIndia ? '💎 Volume (₹799–₹1,799)' : '💎 Volume (200k–1M)'}</button>
+              <button type="button" class="tm-pack-tier-btn ${currentPackTier === 'mini' ? 'active' : ''}" data-tm-tier-btn="mini">${isIndia ? '⚡ Mini (₹49–₹499)' : '⚡ Mini ($2.99–$6.99)'}</button>
+            </div>
           </div>
           <div class="tm-india-promo-banner" data-tm-promo-banner style="display:none;"></div>
         </div>
@@ -945,6 +1094,12 @@
       });
     });
 
+    backdrop.querySelectorAll('[data-tm-tier-btn]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        setPackTier(btn.getAttribute('data-tm-tier-btn'));
+      });
+    });
+
     document.getElementById('closeProModalBtn').onclick = closeCreditsModal;
     backdrop.onclick = (e) => {
       if (e.target === backdrop) closeCreditsModal();
@@ -952,7 +1107,7 @@
 
     backdrop.querySelectorAll('.btn-checkout-plan[data-pack]').forEach((btn) => {
       btn.onclick = () => {
-        startDodoCheckout(btn.dataset.pack);
+        startDodoCheckout(btn.dataset.resolvedPack || btn.dataset.pack);
       };
     });
   }
@@ -1036,10 +1191,12 @@
       if (reason === 'credits_required') {
         const needed = res.data?.creditsNeeded || credits;
         const bal = res.data?.creditsBalance ?? (currentUser?.creditsBalance || 0);
-        const firstPrice = getPackDisplayPricing(CREDIT_PACK_CATALOG[0]);
+        const targetTier = needed > 100 ? 'volume' : null;
+        const firstPrice = getPackDisplayPricing(CREDIT_PACK_CATALOG[0], targetTier);
         if (res.data?.freeExhausted) {
           openCreditsModal(
-            `Weekly Free Single Limit Reached (${FREE_WEEKLY_LIMIT}/${FREE_WEEKLY_LIMIT} used this week). You need ${needed} credit (balance: ${bal}). Grab ${firstPrice.credits} credits from ${firstPrice.symbol}${firstPrice.amount} — never expire!`
+            `Weekly Free Single Limit Reached (${FREE_WEEKLY_LIMIT}/${FREE_WEEKLY_LIMIT} used this week). You need ${needed} credit (balance: ${bal}). Grab ${firstPrice.credits} credits from ${firstPrice.symbol}${firstPrice.amount} — never expire!`,
+            { neededCredits: needed }
           );
         } else {
           const modeName =
@@ -1049,7 +1206,8 @@
                 ? 'Custom URL Batch'
                 : 'This export';
           openCreditsModal(
-            `${modeName} requires ${needed} credit(s) — your current balance is ${bal}. Top up never-expiring credits below!`
+            `${modeName} requires ${needed} credit(s) — your current balance is ${bal}. Top up never-expiring credits below!`,
+            { neededCredits: needed }
           );
         }
         return false;
@@ -1451,6 +1609,8 @@
     updateFeatureLocks,
     getPricingRegion: () => currentPricingRegion,
     setPricingRegion,
+    getPackTier: () => currentPackTier,
+    setPackTier,
   };
 
   // ── Init on DOM Ready ──

@@ -8554,7 +8554,22 @@ body.light-mode .glass-cue-btn {
   padding: 0 24px;
 }
 
-.tm-region-toggle {
+.tm-pricing-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tm-pricing-controls-row .tm-region-toggle,
+.tm-pricing-controls-row .tm-pack-tier-toggle {
+  margin-top: 0;
+}
+
+.tm-region-toggle,
+.tm-pack-tier-toggle {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -8565,12 +8580,14 @@ body.light-mode .glass-cue-btn {
   border: 1px solid rgba(148, 163, 184, 0.22);
 }
 
-[data-theme="light"] .tm-region-toggle {
+[data-theme="light"] .tm-region-toggle,
+[data-theme="light"] .tm-pack-tier-toggle {
   background: rgba(15, 23, 42, 0.06);
   border-color: rgba(15, 23, 42, 0.14);
 }
 
-.tm-region-btn {
+.tm-region-btn,
+.tm-pack-tier-btn {
   appearance: none;
   border: none;
   background: transparent;
@@ -8588,7 +8605,13 @@ body.light-mode .glass-cue-btn {
   color: #ffffff;
 }
 
-[data-theme="light"] .tm-region-btn:not(.active) {
+.tm-pack-tier-btn.active {
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  color: #ffffff;
+}
+
+[data-theme="light"] .tm-region-btn:not(.active),
+[data-theme="light"] .tm-pack-tier-btn:not(.active) {
   color: #475569;
 }
 

@@ -8,10 +8,11 @@ import { timingSafeEqualBytes } from './security.js';
 export const CREDIT_UNIT_MESSAGES = 1000; // 1 Credit = 1,000 chats/comments
 
 export const CREDIT_PACKS = {
-  // Global USD Packs ($19.99 / 200k • $29 / 500k • $49 / 1M)
+  // Global USD Volume Packs ($19.99 / 200k • $29 / 500k • $49 / 1M)
   credits_200: {
     id: 'credits_200',
     tier: 'starter',
+    tierGroup: 'volume',
     market: 'USD',
     name: 'Starter Pack',
     credits: 200,
@@ -24,6 +25,7 @@ export const CREDIT_PACKS = {
   credits_500: {
     id: 'credits_500',
     tier: 'growth',
+    tierGroup: 'volume',
     market: 'USD',
     name: 'Growth Pack',
     credits: 500,
@@ -36,6 +38,7 @@ export const CREDIT_PACKS = {
   credits_1000: {
     id: 'credits_1000',
     tier: 'agency',
+    tierGroup: 'volume',
     market: 'USD',
     name: 'Agency Pack',
     credits: 1000,
@@ -45,76 +48,143 @@ export const CREDIT_PACKS = {
     unitLabel: '$0.049 / 1k chats',
     minUsdCents: 4000,
   },
-  // India INR Packs (₹49-99 / 10k • ₹149-249 / 30k • ₹499-699 / 100k)
-  in_10: {
-    id: 'in_10',
-    tier: 'starter',
-    market: 'INR',
-    name: 'Starter Pack (India)',
+  // Global USD Mini Packs ($2.99 / 10k • $6.99 / 30k)
+  usd_10: {
+    id: 'usd_10',
+    tier: 'mini_starter',
+    tierGroup: 'mini',
+    market: 'USD',
+    name: 'Starter Mini Pack',
     credits: 10,
     chatsAllowance: 10000,
-    inrRegular: 99,
+    usdPrice: 2.99,
+    usdLabel: '$2.99',
+    unitLabel: '$0.30 / 1k chats',
+    minUsdCents: 200,
+  },
+  usd_30: {
+    id: 'usd_30',
+    tier: 'mini_growth',
+    tierGroup: 'mini',
+    market: 'USD',
+    name: 'Creator Mini Pack',
+    credits: 30,
+    chatsAllowance: 30000,
+    usdPrice: 6.99,
+    usdLabel: '$6.99',
+    unitLabel: '$0.23 / 1k chats',
+    minUsdCents: 500,
+  },
+  // India INR Mini Packs (₹49 / 10k • ₹149 / 30k • ₹499 / 100k)
+  in_10: {
+    id: 'in_10',
+    tier: 'mini_starter',
+    tierGroup: 'mini',
+    market: 'INR',
+    name: 'Starter Mini Pack (India)',
+    credits: 10,
+    chatsAllowance: 10000,
+    inrRegular: 49,
     inrFirst: 49,
-    inrDiscountBadge: '50% OFF 1st Order',
-    unitLabel: '₹4.90 / 1k (1st)',
+    unitLabel: '₹4.90 / 1k chats',
   },
   in_30: {
     id: 'in_30',
-    tier: 'growth',
+    tier: 'mini_growth',
+    tierGroup: 'mini',
     market: 'INR',
-    name: 'Creator Pack (India)',
+    name: 'Creator Mini Pack (India)',
     credits: 30,
     chatsAllowance: 30000,
-    inrRegular: 249,
+    inrRegular: 149,
     inrFirst: 149,
-    inrDiscountBadge: '40% OFF 1st Order',
-    unitLabel: '₹4.97 / 1k (1st)',
+    unitLabel: '₹4.97 / 1k chats',
   },
   in_100: {
     id: 'in_100',
-    tier: 'agency',
+    tier: 'mini_agency',
+    tierGroup: 'mini',
     market: 'INR',
-    name: 'Agency Pack (India)',
+    name: 'Agency Mini Pack (India)',
     credits: 100,
     chatsAllowance: 100000,
-    inrRegular: 699,
+    inrRegular: 499,
     inrFirst: 499,
-    inrDiscountBadge: '29% OFF 1st Order',
-    unitLabel: '₹4.99 / 1k (1st)',
+    unitLabel: '₹4.99 / 1k chats',
+  },
+  // India INR Volume Packs (₹799 / 200k • ₹1,299 / 500k • ₹1,799 / 1M)
+  in_200: {
+    id: 'in_200',
+    tier: 'starter',
+    tierGroup: 'volume',
+    market: 'INR',
+    name: 'Starter Volume Pack (India)',
+    credits: 200,
+    chatsAllowance: 200000,
+    inrRegular: 799,
+    inrFirst: 799,
+    unitLabel: '₹4.00 / 1k chats',
+  },
+  in_500: {
+    id: 'in_500',
+    tier: 'growth',
+    tierGroup: 'volume',
+    market: 'INR',
+    name: 'Growth Volume Pack (India)',
+    credits: 500,
+    chatsAllowance: 500000,
+    inrRegular: 1299,
+    inrFirst: 1299,
+    unitLabel: '₹2.60 / 1k chats',
+  },
+  in_1000: {
+    id: 'in_1000',
+    tier: 'agency',
+    tierGroup: 'volume',
+    market: 'INR',
+    name: 'Agency Volume Pack (India)',
+    credits: 1000,
+    chatsAllowance: 1000000,
+    inrRegular: 1799,
+    inrFirst: 1799,
+    unitLabel: '₹1.80 / 1k chats',
   },
   // Backward-compatible keys for legacy payment records
   credits_10: {
     id: 'credits_10',
-    tier: 'starter',
-    market: 'INR',
-    name: 'Starter Pack',
+    tier: 'mini_starter',
+    tierGroup: 'mini',
+    market: 'USD',
+    name: 'Starter Mini Pack',
     credits: 10,
     chatsAllowance: 10000,
-    inrRegular: 99,
+    inrRegular: 49,
     inrFirst: 49,
     usdPrice: 2.99,
     usdLabel: '$2.99',
   },
   credits_30: {
     id: 'credits_30',
-    tier: 'growth',
-    market: 'INR',
-    name: 'Creator Pack',
+    tier: 'mini_growth',
+    tierGroup: 'mini',
+    market: 'USD',
+    name: 'Creator Mini Pack',
     credits: 30,
     chatsAllowance: 30000,
-    inrRegular: 249,
+    inrRegular: 149,
     inrFirst: 149,
     usdPrice: 6.99,
     usdLabel: '$6.99',
   },
   credits_100: {
     id: 'credits_100',
-    tier: 'agency',
+    tier: 'mini_agency',
+    tierGroup: 'mini',
     market: 'INR',
-    name: 'Agency Pack',
+    name: 'Agency Mini Pack',
     credits: 100,
     chatsAllowance: 100000,
-    inrRegular: 699,
+    inrRegular: 499,
     inrFirst: 499,
     usdPrice: 19.99,
     usdLabel: '$19.99',
@@ -123,14 +193,19 @@ export const CREDIT_PACKS = {
 
 export const PUBLIC_CREDIT_PACKS = {
   USD: {
+    mini_starter: CREDIT_PACKS.usd_10,
+    mini_growth: CREDIT_PACKS.usd_30,
     starter: CREDIT_PACKS.credits_200,
     growth: CREDIT_PACKS.credits_500,
     agency: CREDIT_PACKS.credits_1000,
   },
   INR: {
-    starter: CREDIT_PACKS.in_10,
-    growth: CREDIT_PACKS.in_30,
-    agency: CREDIT_PACKS.in_100,
+    mini_starter: CREDIT_PACKS.in_10,
+    mini_growth: CREDIT_PACKS.in_30,
+    mini_agency: CREDIT_PACKS.in_100,
+    starter: CREDIT_PACKS.in_200,
+    growth: CREDIT_PACKS.in_500,
+    agency: CREDIT_PACKS.in_1000,
   },
 };
 
@@ -141,16 +216,41 @@ export function getCreditPack(packId) {
 export function normalizePackForCountry(requestedPackId, country) {
   const isIndia = String(country || '').toUpperCase() === 'IN';
   const raw = String(requestedPackId || '').trim().toLowerCase();
-  let tier = 'starter';
-  if (raw.includes('500') || raw.includes('30') || raw === 'growth' || raw === 'creator') {
-    tier = 'growth';
-  } else if (raw.includes('1000') || raw.includes('100') || raw === 'agency') {
-    tier = 'agency';
-  }
+
   if (isIndia) {
-    return tier === 'growth' ? 'in_30' : tier === 'agency' ? 'in_100' : 'in_10';
+    if (raw === 'in_200' || raw === 'credits_200' || raw === 'vol_starter' || raw === 'starter') {
+      return 'in_200';
+    }
+    if (raw === 'in_500' || raw === 'credits_500' || raw === 'vol_growth' || raw === 'growth' || raw === 'creator') {
+      return 'in_500';
+    }
+    if (raw === 'in_1000' || raw === 'credits_1000' || raw === 'vol_agency' || raw === 'agency') {
+      return 'in_1000';
+    }
+    if (raw === 'in_100' || raw === 'credits_100' || raw === 'mini_agency') {
+      return 'in_100';
+    }
+    if (raw === 'in_30' || raw === 'credits_30' || raw === 'usd_30' || raw === 'mini_growth') {
+      return 'in_30';
+    }
+    return 'in_10';
   }
-  return tier === 'growth' ? 'credits_500' : tier === 'agency' ? 'credits_1000' : 'credits_200';
+
+  // Non-India (Global USD): Mini ($2.99/$6.99) + Volume ($19.99/$29/$49)
+  if (raw === 'usd_10' || raw === 'credits_10' || raw === 'in_10' || raw === 'mini_starter') {
+    return 'usd_10';
+  }
+  if (raw === 'usd_30' || raw === 'credits_30' || raw === 'in_30' || raw === 'mini_growth') {
+    return 'usd_30';
+  }
+  if (raw === 'in_500' || raw === 'credits_500' || raw === 'vol_growth' || raw === 'growth' || raw === 'creator') {
+    return 'credits_500';
+  }
+  if (raw === 'in_1000' || raw === 'credits_1000' || raw === 'vol_agency' || raw === 'agency') {
+    return 'credits_1000';
+  }
+  // Note: credits_100 / in_100 / in_200 / credits_200 / starter map to 200 CR ($19.99) outside India
+  return 'credits_200';
 }
 
 export function getDodoConfig(env) {
@@ -167,6 +267,8 @@ export function getDodoConfig(env) {
   };
 
   const usdDedicatedProducts = {
+    usd_10: (env.DODO_PRODUCT_USD_10 || '').trim(),
+    usd_30: (env.DODO_PRODUCT_USD_30 || '').trim(),
     credits_200: (env.DODO_PRODUCT_USD_200 || env.DODO_PRODUCT_CREDITS_200 || '').trim(),
     credits_500: (env.DODO_PRODUCT_USD_500 || env.DODO_PRODUCT_CREDITS_500 || '').trim(),
     credits_1000: (env.DODO_PRODUCT_USD_1000 || env.DODO_PRODUCT_CREDITS_1000 || '').trim(),
@@ -176,24 +278,32 @@ export function getDodoConfig(env) {
     in_10: (env.DODO_PRODUCT_IN_10 || '').trim(),
     in_30: (env.DODO_PRODUCT_IN_30 || '').trim(),
     in_100: (env.DODO_PRODUCT_IN_100 || '').trim(),
-  };
-
-  const usdProducts = {
-    credits_200: usdDedicatedProducts.credits_200 || legacyShared.starter,
-    credits_500: usdDedicatedProducts.credits_500 || legacyShared.growth,
-    credits_1000: usdDedicatedProducts.credits_1000 || legacyShared.agency,
-  };
-
-  const inrProducts = {
-    in_10: inrDedicatedProducts.in_10 || legacyShared.starter,
-    in_30: inrDedicatedProducts.in_30 || legacyShared.growth,
-    in_100: inrDedicatedProducts.in_100 || legacyShared.agency,
+    in_200: (env.DODO_PRODUCT_IN_200 || '').trim(),
+    in_500: (env.DODO_PRODUCT_IN_500 || '').trim(),
+    in_1000: (env.DODO_PRODUCT_IN_1000 || '').trim(),
   };
 
   const indiaFirstProducts = {
     in_10: (env.DODO_PRODUCT_IN_FIRST_10 || '').trim(),
     in_30: (env.DODO_PRODUCT_IN_FIRST_30 || '').trim(),
     in_100: (env.DODO_PRODUCT_IN_FIRST_100 || '').trim(),
+  };
+
+  const usdProducts = {
+    usd_10: usdDedicatedProducts.usd_10 || legacyShared.starter,
+    usd_30: usdDedicatedProducts.usd_30 || legacyShared.growth,
+    credits_200: usdDedicatedProducts.credits_200 || legacyShared.starter,
+    credits_500: usdDedicatedProducts.credits_500 || legacyShared.growth,
+    credits_1000: usdDedicatedProducts.credits_1000 || legacyShared.agency,
+  };
+
+  const inrProducts = {
+    in_10: inrDedicatedProducts.in_10 || indiaFirstProducts.in_10 || legacyShared.starter,
+    in_30: inrDedicatedProducts.in_30 || indiaFirstProducts.in_30 || legacyShared.growth,
+    in_100: inrDedicatedProducts.in_100 || indiaFirstProducts.in_100 || legacyShared.agency,
+    in_200: inrDedicatedProducts.in_200 || usdDedicatedProducts.credits_200,
+    in_500: inrDedicatedProducts.in_500 || usdDedicatedProducts.credits_500,
+    in_1000: inrDedicatedProducts.in_1000 || usdDedicatedProducts.credits_1000,
   };
 
   const sharedFirstCode = (env.DODO_INDIA_FIRST_DISCOUNT_CODE || '').trim();
@@ -206,13 +316,17 @@ export function getDodoConfig(env) {
   const products = {
     ...usdProducts,
     ...inrProducts,
-    credits_10: legacyShared.starter,
-    credits_30: legacyShared.growth,
+    credits_10: usdProducts.usd_10 || legacyShared.starter,
+    credits_30: usdProducts.usd_30 || legacyShared.growth,
     credits_100: legacyShared.agency,
   };
 
   const configured = Boolean(
-    apiKey && (usdProducts.credits_200 || usdProducts.credits_500 || usdProducts.credits_1000)
+    apiKey &&
+      (usdProducts.credits_200 ||
+        usdProducts.credits_500 ||
+        usdProducts.credits_1000 ||
+        inrProducts.in_10)
   );
 
   return {
@@ -237,18 +351,18 @@ export function resolvePackFromProductId(env, productId, context = {}) {
   const { metaPack = '', pendingPlan = '', payment = null } = context || {};
 
   if (productId) {
-    // 1. Strict India 1st-purchase or dedicated India regular products -> ALWAYS 10 / 30 / 100 CR
-    for (const inPackId of ['in_10', 'in_30', 'in_100']) {
+    // 1. Dedicated India INR products (₹49 / ₹149 / ₹499 / ₹799 / ₹1,299 / ₹1,799) -> exact CR
+    for (const inPackId of ['in_10', 'in_30', 'in_100', 'in_200', 'in_500', 'in_1000']) {
       if (
-        (cfg.indiaFirstProducts[inPackId] && cfg.indiaFirstProducts[inPackId] === productId) ||
-        (cfg.inrDedicatedProducts[inPackId] && cfg.inrDedicatedProducts[inPackId] === productId)
+        (cfg.inrDedicatedProducts[inPackId] && cfg.inrDedicatedProducts[inPackId] === productId) ||
+        (cfg.indiaFirstProducts[inPackId] && cfg.indiaFirstProducts[inPackId] === productId)
       ) {
         return inPackId;
       }
     }
 
-    // 2. Dedicated Global USD products -> ALWAYS 200 / 500 / 1,000 CR
-    for (const usdPackId of ['credits_200', 'credits_500', 'credits_1000']) {
+    // 2. Dedicated Global USD products ($2.99 / $6.99 / $19.99 / $29 / $49) -> exact CR
+    for (const usdPackId of ['usd_10', 'usd_30', 'credits_200', 'credits_500', 'credits_1000']) {
       if (cfg.usdDedicatedProducts[usdPackId] && cfg.usdDedicatedProducts[usdPackId] === productId) {
         return usdPackId;
       }
@@ -282,6 +396,10 @@ export function resolvePackFromProductId(env, productId, context = {}) {
         return tierPair.usdPack;
       }
 
+      if (candidate === 'usd_10' || candidate === 'usd_30') {
+        return candidate;
+      }
+
       if (
         candidate === tierPair.inPack ||
         candidate === 'credits_10' ||
@@ -301,8 +419,9 @@ export function resolvePackFromProductId(env, productId, context = {}) {
 
   for (const fallback of [pendingPlan, metaPack]) {
     if (getCreditPack(fallback)) {
-      if (payCurrency === 'INR' && (totalAmount === null || totalAmount < 120000)) {
-        return normalizePackForCountry(fallback, 'IN');
+      if (payCurrency === 'INR' && (totalAmount === null || totalAmount < 70000)) {
+        // Low INR payment (< ₹700) can only correspond to 10/30/100 CR India mini packs
+        return fallback === 'in_30' || fallback === 'in_100' ? fallback : 'in_10';
       }
       return fallback;
     }
@@ -320,9 +439,11 @@ export async function createDodoCheckoutSession(
     throw new Error('Unknown credit pack.');
   }
 
-  const dedicatedFirstIn = indiaFirstPurchase ? cfg.indiaFirstProducts[packId] : '';
-  const dedicatedRepeatIn = countryCode === 'IN' ? cfg.inrDedicatedProducts[packId] : '';
-  const productId = dedicatedFirstIn || dedicatedRepeatIn || cfg.products[packId];
+  const isIndia = countryCode === 'IN';
+  const dedicatedIn = isIndia ? cfg.inrDedicatedProducts[packId] : '';
+  const dedicatedFirstIn = isIndia && indiaFirstPurchase ? cfg.indiaFirstProducts[packId] : '';
+  const dedicatedUsd = !isIndia ? cfg.usdDedicatedProducts[packId] : '';
+  const productId = dedicatedIn || dedicatedFirstIn || dedicatedUsd || cfg.products[packId];
 
   if (!cfg.apiKey || !productId) {
     throw new Error('Dodo Payments credentials or Credit Pack Product ID not configured.');
@@ -339,17 +460,14 @@ export async function createDodoCheckoutSession(
       email: String(user.email),
       pack_id: String(pack.id),
       credits: String(pack.credits),
-      market: String(pack.market || (countryCode === 'IN' ? 'INR' : 'USD')),
+      market: String(pack.market || (isIndia ? 'INR' : 'USD')),
       india_first_purchase: indiaFirstPurchase ? 'true' : 'false',
       country: String(countryCode || 'XX'),
     },
     return_url: returnUrl,
   };
 
-  if (indiaFirstPurchase && !dedicatedFirstIn && cfg.indiaFirstDiscountCodes[packId]) {
-    payload.discount_codes = [cfg.indiaFirstDiscountCodes[packId]];
-    payload.billing_currency = 'INR';
-  } else if (countryCode === 'IN' && (dedicatedFirstIn || dedicatedRepeatIn)) {
+  if (isIndia) {
     payload.billing_currency = 'INR';
   }
 
