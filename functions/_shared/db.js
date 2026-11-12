@@ -2,7 +2,12 @@
  * Cloudflare D1 Persistence Layer for Users, Weekly Free Quota, Credits & Payments
  */
 
-import { FREE_WEEKLY_LIMIT, GUEST_WEEKLY_LIMIT, getWeekKeyUtc } from './security.js';
+import {
+  FREE_WEEKLY_LIMIT,
+  GUEST_LIFETIME_KEY,
+  GUEST_LIFETIME_LIMIT,
+  getWeekKeyUtc,
+} from './security.js';
 import { getCreditPack } from './dodo.js';
 
 export function serializeUser(row) {
@@ -154,18 +159,89 @@ export async function consumeSubjectQuota(db, subjectKey, weekKey, amount, limit
   };
 }
 
+export async function getGuestLifetimeUsageCount(db, guestSubjectKey) {
+  const row = await db
+    .prepare('SELECT COALESCE(SUM(used_count), 0) AS total_used FROM daily_usage WHERE subject_key = ?1')
+    .bind(guestSubjectKey)
+    .first();
+  return row ? Number(row.total_used || 0) : 0;
+}
+
+/**
+ * Atomically checks and consumes `amount` one-time (lifetime) guest single-stream runs up to `limit`.
+ * Aggregates any prior weekly guest rows with the permanent 'lifetime' row so limits never reset weekly.
+ */
+export async function consumeGuestLifetimeQuota(
+  db,
+  guestSubjectKey,
+  amount,
+  limit = GUEST_LIFETIME_LIMIT
+) {
+  const count = Math.max(0, Math.floor(Number(amount) || 0));
+  if (count === 0) {
+    const used = await getGuestLifetimeUsageCount(db, guestSubjectKey);
+    return {
+      allowed: used <= limit,
+      used,
+      limit,
+      remaining: Math.max(0, limit - used),
+    };
+  }
+
+  const nowIso = new Date().toISOString();
+  await db
+    .prepare(
+      'INSERT OR IGNORE INTO daily_usage (subject_key, usage_date, used_count, updated_at) VALUES (?1, ?2, 0, ?3)'
+    )
+    .bind(guestSubjectKey, GUEST_LIFETIME_KEY, nowIso)
+    .run();
+
+  const updated = await db
+    .prepare(
+      `UPDATE daily_usage
+       SET used_count = used_count + ?4, updated_at = ?3
+       WHERE subject_key = ?1
+         AND usage_date = ?2
+         AND (
+           SELECT COALESCE(SUM(used_count), 0)
+           FROM daily_usage
+           WHERE subject_key = ?1
+         ) + ?4 <= ?5
+       RETURNING used_count`
+    )
+    .bind(guestSubjectKey, GUEST_LIFETIME_KEY, nowIso, count, limit)
+    .first();
+
+  const totalUsed = await getGuestLifetimeUsageCount(db, guestSubjectKey);
+  if (updated) {
+    return {
+      allowed: true,
+      used: totalUsed,
+      limit,
+      remaining: Math.max(0, limit - totalUsed),
+    };
+  }
+
+  return {
+    allowed: false,
+    used: totalUsed,
+    limit,
+    remaining: Math.max(0, limit - totalUsed),
+  };
+}
+
 export async function buildQuotaSnapshot(db, user, guestSubjectKey) {
   const weekKey = getWeekKeyUtc();
   if (!user) {
-    const guestUsed = await getSubjectUsageCount(db, guestSubjectKey, weekKey);
+    const guestUsed = await getGuestLifetimeUsageCount(db, guestSubjectKey);
     return {
-      period: 'weekly',
+      period: 'lifetime',
       week: weekKey,
       guestUsed,
       userUsed: 0,
-      guestLimit: GUEST_WEEKLY_LIMIT,
+      guestLimit: GUEST_LIFETIME_LIMIT,
       freeLimit: FREE_WEEKLY_LIMIT,
-      remaining: Math.max(0, GUEST_WEEKLY_LIMIT - guestUsed),
+      remaining: Math.max(0, GUEST_LIFETIME_LIMIT - guestUsed),
     };
   }
 
@@ -175,7 +251,7 @@ export async function buildQuotaSnapshot(db, user, guestSubjectKey) {
     week: weekKey,
     guestUsed: 0,
     userUsed,
-    guestLimit: GUEST_WEEKLY_LIMIT,
+    guestLimit: GUEST_LIFETIME_LIMIT,
     freeLimit: FREE_WEEKLY_LIMIT,
     remaining: Math.max(0, FREE_WEEKLY_LIMIT - userUsed),
   };

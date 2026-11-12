@@ -11,7 +11,7 @@
     window.TUBEMETRIX_GOOGLE_CLIENT_ID ||
     '83599777834-drdbj74ur8o1q5isch9avpltjs6a7qj2.apps.googleusercontent.com';
 
-  const GUEST_WEEKLY_LIMIT = 2;
+  const GUEST_LIFETIME_LIMIT = 2;
   const FREE_WEEKLY_LIMIT = 3;
   const CURRENCY_REGION_KEY = 'TubeMetrix_currency_region';
 
@@ -416,13 +416,14 @@
 
   let currentUser = null;
   let quotaState = {
-    period: 'weekly',
+    period: 'lifetime',
     week: '',
     guestUsed: 0,
     userUsed: 0,
-    guestLimit: GUEST_WEEKLY_LIMIT,
+    guestLimit: GUEST_LIFETIME_LIMIT,
     freeLimit: FREE_WEEKLY_LIMIT,
   };
+  let pendingGuestExhaustedPrompt = false;
   let paymentMeta = {
     provider: 'dodo',
     configured: false,
@@ -469,6 +470,9 @@
     if (!payload || typeof payload !== 'object') return;
     if ('user' in payload) {
       currentUser = payload.user || null;
+      if (currentUser) {
+        pendingGuestExhaustedPrompt = false;
+      }
     }
     if (payload.quota && typeof payload.quota === 'object') {
       quotaState = {
@@ -638,10 +642,10 @@
 
     if (!currentUser) {
       const used = Number(quotaState.guestUsed || 0);
-      const rem = Math.max(0, GUEST_WEEKLY_LIMIT - used);
+      const rem = Math.max(0, GUEST_LIFETIME_LIMIT - used);
       container.innerHTML = `
         <div class="auth-guest-group">
-          <span class="guest-quota-pill" title="Weekly Free Single-Stream Quota">${rem}/${GUEST_WEEKLY_LIMIT} Free / Wk</span>
+          <span class="guest-quota-pill" title="One-Time Free Guest Fetches — Sign in for 3/week">${rem}/${GUEST_LIFETIME_LIMIT} Free</span>
           <button class="btn-auth-signin" id="navSignInBtn" type="button" title="Sign in with Google">
             <svg class="google-icon" viewBox="0 0 24 24" width="16" height="16">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -831,7 +835,7 @@
     }
 
     const defaultSub =
-      "You've reached your weekly free guest limit (2 single streams). Sign in with Google for 3 free single streams every week and never-expiring credits!";
+      "You've used your 2 one-time free guest fetches. Sign in with Google to get 3 free single-stream fetches every week and never-expiring credits!";
 
     backdrop.innerHTML = `
       <div class="tm-modal-card">
@@ -845,7 +849,7 @@
         <div class="tm-benefits-list">
           <div class="benefit-item">
             <span class="benefit-icon">🎁</span>
-            <span class="benefit-text"><strong>3 Free Single Streams / Week</strong> (Up from 2 guest runs)</span>
+            <span class="benefit-text"><strong>3 Free Single-Stream Fetches / Week</strong> (Guests get 2 fetches one-time only)</span>
           </div>
           <div class="benefit-item">
             <span class="benefit-icon">💎</span>
@@ -1197,6 +1201,14 @@
       }
 
       if (res.ok && res.data?.allowed) {
+        if (
+          !checkOnly &&
+          !currentUser &&
+          res.data?.reason === 'guest' &&
+          Number(res.data?.quota?.remaining ?? 1) === 0
+        ) {
+          pendingGuestExhaustedPrompt = true;
+        }
         return true;
       }
 
@@ -1213,8 +1225,9 @@
       }
       if (reason === 'guest_limit') {
         const used = res.data?.quota?.guestUsed ?? quotaState.guestUsed;
+        pendingGuestExhaustedPrompt = false;
         openAuthModal(
-          `Weekly Guest Limit Reached (${used}/${GUEST_WEEKLY_LIMIT} free single streams used this week). Sign in with Google for ${FREE_WEEKLY_LIMIT} free single streams/week or buy credits!`
+          `One-Time Guest Limit Reached (${used}/${GUEST_LIFETIME_LIMIT} free single-stream fetches used). Sign in with Google to get ${FREE_WEEKLY_LIMIT} free single-stream fetches every week!`
         );
         return false;
       }
@@ -1269,9 +1282,10 @@
     }
     if (!currentUser) {
       const used = Number(quotaState.guestUsed || 0);
-      if (used + streamCount > GUEST_WEEKLY_LIMIT) {
+      if (used + streamCount > GUEST_LIFETIME_LIMIT) {
+        pendingGuestExhaustedPrompt = false;
         openAuthModal(
-          `Weekly Guest Limit Reached (${used}/${GUEST_WEEKLY_LIMIT} single streams). Sign in with Google for ${FREE_WEEKLY_LIMIT} free single streams/week!`
+          `One-Time Guest Limit Reached (${used}/${GUEST_LIFETIME_LIMIT} free single-stream fetches used). Sign in with Google to get ${FREE_WEEKLY_LIMIT} free single-stream fetches every week!`
         );
         return false;
       }
@@ -1284,10 +1298,20 @@
     return false;
   }
 
+  function maybePromptGuestUpgrade() {
+    if (!pendingGuestExhaustedPrompt || currentUser) return false;
+    if (Number(quotaState.guestUsed || 0) < GUEST_LIFETIME_LIMIT) return false;
+    pendingGuestExhaustedPrompt = false;
+    openAuthModal(
+      `You've used your ${GUEST_LIFETIME_LIMIT} one-time free guest fetches! Sign in with Google to get ${FREE_WEEKLY_LIMIT} free single-stream fetches every week.`
+    );
+    return true;
+  }
+
   function getRemainingStreams() {
     const creditsBal = Number(currentUser?.creditsBalance || 0);
     if (!currentUser) {
-      return Math.max(0, GUEST_WEEKLY_LIMIT - Number(quotaState.guestUsed || 0));
+      return Math.max(0, GUEST_LIFETIME_LIMIT - Number(quotaState.guestUsed || 0));
     }
     const freeLeft = Math.max(0, FREE_WEEKLY_LIMIT - Number(quotaState.userUsed || 0));
     return freeLeft + creditsBal;
@@ -1635,6 +1659,7 @@
     },
     checkQuota: checkQuotaAndGate,
     authorizeRun,
+    maybePromptGuestUpgrade,
     incrementUsage,
     refreshSession: syncFromServer,
     openAuthModal,

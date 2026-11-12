@@ -3,7 +3,9 @@
  * Runs natively on Cloudflare Pages Functions (Web Crypto API, zero npm dependencies).
  */
 
-export const GUEST_WEEKLY_LIMIT = 2;
+export const GUEST_LIFETIME_LIMIT = 2;
+export const GUEST_WEEKLY_LIMIT = GUEST_LIFETIME_LIMIT;
+export const GUEST_LIFETIME_KEY = 'lifetime';
 export const FREE_WEEKLY_LIMIT = 3;
 export const SESSION_COOKIE_NAME = 'tm_session';
 export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days

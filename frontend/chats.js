@@ -1821,6 +1821,7 @@
             isComments: false,
           });
         }
+        setTimeout(() => window.TubeMetrixAuth?.maybePromptGuestUpgrade?.(), 650);
       }, 400);
 
     } catch (err) {
@@ -2473,6 +2474,9 @@
             reportData: finalReport,
             isComments: true,
           });
+        }
+        if (!isHighVolume) {
+          setTimeout(() => window.TubeMetrixAuth?.maybePromptGuestUpgrade?.(), 650);
         }
       }, 400);
 

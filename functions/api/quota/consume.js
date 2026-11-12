@@ -1,11 +1,12 @@
 import {
   FREE_WEEKLY_LIMIT,
-  GUEST_WEEKLY_LIMIT,
+  GUEST_LIFETIME_LIMIT,
   getWeekKeyUtc,
   jsonResponse,
 } from '../../_shared/security.js';
 import {
   buildQuotaSnapshot,
+  consumeGuestLifetimeQuota,
   consumeSubjectQuota,
   consumeUserCredits,
   resolveActiveUser,
@@ -198,9 +199,7 @@ export async function onRequestPost({ request, env }) {
       });
     }
 
-    // Standard single stream: Weekly Free Allowance first (2/wk Guest, 3/wk Signed-In)
-    const subjectKey = isLoggedIn ? `user:${user.id}` : guestSubjectKey;
-    const limit = isLoggedIn ? FREE_WEEKLY_LIMIT : GUEST_WEEKLY_LIMIT;
+    // Standard single stream: 2 one-time fetches for Guest, 3/wk Free for Signed-In users
     const weekKey = getWeekKeyUtc();
     const runCount = Math.max(1, count || 1);
 
@@ -233,13 +232,15 @@ export async function onRequestPost({ request, env }) {
       });
     }
 
-    const freeResult = await consumeSubjectQuota(env.DB, subjectKey, weekKey, runCount, limit);
+    const freeResult = isLoggedIn
+      ? await consumeSubjectQuota(env.DB, `user:${user.id}`, weekKey, runCount, FREE_WEEKLY_LIMIT)
+      : await consumeGuestLifetimeQuota(env.DB, guestSubjectKey, runCount, GUEST_LIFETIME_LIMIT);
     const freeQuota = {
-      period: 'weekly',
+      period: isLoggedIn ? 'weekly' : 'lifetime',
       week: weekKey,
       guestUsed: isLoggedIn ? 0 : freeResult.used,
       userUsed: isLoggedIn ? freeResult.used : 0,
-      guestLimit: GUEST_WEEKLY_LIMIT,
+      guestLimit: GUEST_LIFETIME_LIMIT,
       freeLimit: FREE_WEEKLY_LIMIT,
       remaining: freeResult.remaining,
     };

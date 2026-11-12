@@ -2225,6 +2225,9 @@ async function startProcessing(urls, label = null, options = {}) {
       renderEarningsCloudBadge('idle', runBackupId, failedUrls);
     }
   }
+  if (mode === 'single') {
+    setTimeout(() => window.TubeMetrixAuth?.maybePromptGuestUpgrade?.(), 650);
+  }
 }
 
 function updateMetricsDisplay() {

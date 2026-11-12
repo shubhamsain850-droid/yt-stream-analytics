@@ -42,7 +42,7 @@
   {"@context":"https://schema.org","@type":"WebApplication","name":"TubeMetrix — YouTube Live Stream Earnings Auditor","url":"https://tubemetrix.net/","description":"Calculate exact YouTube live stream earnings from Super Chats, Memberships and YouTube Jewels. Export to CSV, Excel and TXT.","applicationCategory":"FinanceApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["YouTube Super Chat Revenue Calculator","YouTube Jewels to INR Converter","YouTube Membership Earnings Tracker","Bulk Live Stream Batch Export","Multi-Currency Forex Conversion","CSV and Excel Export"]}
   </script>
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much do YouTubers earn from Super Chats?","acceptedAnswer":{"@type":"Answer","text":"YouTubers keep approximately 70% of Super Chat revenue after YouTube's 30% cut. TubeMetrix calculates exact net creator earnings for every stream."}},{"@type":"Question","name":"How to calculate YouTube live stream revenue?","acceptedAnswer":{"@type":"Answer","text":"Paste your YouTube live stream URL into TubeMetrix. The tool fetches all Super Chats, Memberships, and YouTube Jewels gifts and calculates total gross and net creator earnings."}},{"@type":"Question","name":"What are YouTube Jewels and how much are they worth?","acceptedAnswer":{"@type":"Answer","text":"YouTube Jewels are virtual gifts sent during live streams in India. The creator rate is approximately ₹1.20 per jewel. TubeMetrix automatically converts all jewel gifts to INR/USD."}},{"@type":"Question","name":"Can I export YouTube Super Chat data to Excel?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix exports full Super Chat logs, Membership records, and Jewels data to Excel (.xls), CSV, and Notepad (.txt) with one click."}},{"@type":"Question","name":"Does TubeMetrix support free audits and bulk credit packs?","acceptedAnswer":{"@type":"Answer","text":"Yes! Single Stream mode gives 2 free audits/week as a Guest and 3 free audits/week with Google Sign-In. Custom URL Batch and Channel Date Range run on pay-as-you-go prepaid Credits (Global volume packs from $0.049 per 1k chats; India UPI packs from ₹49) with no recurring subscriptions."}}]}
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much do YouTubers earn from Super Chats?","acceptedAnswer":{"@type":"Answer","text":"YouTubers keep approximately 70% of Super Chat revenue after YouTube's 30% cut. TubeMetrix calculates exact net creator earnings for every stream."}},{"@type":"Question","name":"How to calculate YouTube live stream revenue?","acceptedAnswer":{"@type":"Answer","text":"Paste your YouTube live stream URL into TubeMetrix. The tool fetches all Super Chats, Memberships, and YouTube Jewels gifts and calculates total gross and net creator earnings."}},{"@type":"Question","name":"What are YouTube Jewels and how much are they worth?","acceptedAnswer":{"@type":"Answer","text":"YouTube Jewels are virtual gifts sent during live streams in India. The creator rate is approximately ₹1.20 per jewel. TubeMetrix automatically converts all jewel gifts to INR/USD."}},{"@type":"Question","name":"Can I export YouTube Super Chat data to Excel?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix exports full Super Chat logs, Membership records, and Jewels data to Excel (.xls), CSV, and Notepad (.txt) with one click."}},{"@type":"Question","name":"Does TubeMetrix support free audits and bulk credit packs?","acceptedAnswer":{"@type":"Answer","text":"Yes! Single Stream mode gives 2 one-time free audits as a Guest and 3 free audits/week with Google Sign-In. Custom URL Batch and Channel Date Range run on pay-as-you-go prepaid Credits (Global volume packs from $0.049 per 1k chats; India UPI packs from ₹49) with no recurring subscriptions."}}]}
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -774,7 +774,7 @@
     <section class="public-pricing-section" id="pricing" aria-label="TubeMetrix Credit Packs &amp; Free Limits">
       <div style="text-align: center;">
         <h2 style="font-size: 1.45rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Pay-As-You-Go Credits — Zero Subscriptions</h2>
-        <p style="font-size: 0.92rem; color: var(--text-secondary); margin: 0;">Start free on Single Streams (2/week Guest • 3/week Google Sign-In) or buy never-expiring prepaid credits for Batch &amp; Date Range.</p>
+        <p style="font-size: 0.92rem; color: var(--text-secondary); margin: 0;">Start free on Single Streams (2 one-time Guest • 3/week Google Sign-In) or buy never-expiring prepaid credits for Batch &amp; Date Range.</p>
         <div class="tm-pricing-controls-row">
           <div class="tm-region-toggle" role="group" aria-label="Display currency">
             <button type="button" class="tm-region-btn" data-tm-region-btn="USD" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.setPricingRegion('USD')">🌍 Global (USD)</button>
@@ -792,7 +792,7 @@
         <div class="tm-free-strip-left">
           <span class="tm-free-strip-badge">FREE WEEKLY TIER • SINGLE STREAM ONLY</span>
           <div class="tm-free-strip-text">
-            <strong>2 Free Single Streams / week</strong> (Guest) • <strong>3 Free Single Streams / week</strong> (Google Sign-In) — includes Single Live Chat &amp; Video Comments up to 1,000. Custom URL Batch &amp; Date Range require Credits.
+            <strong>2 Free Single Streams (One-Time Guest)</strong> • <strong>3 Free Single Streams / week (Google Sign-In)</strong> — includes Single Live Chat &amp; Video Comments up to 1,000. Custom URL Batch &amp; Date Range require Credits.
           </div>
         </div>
         <button class="tm-free-strip-btn" type="button" onclick="window.TubeMetrixAuth && (window.TubeMetrixAuth.isLoggedIn() ? window.TubeMetrixAuth.openCreditsModal() : window.TubeMetrixAuth.openAuthModal('Sign in with Google to get 3 free single streams every week!'))">Sign In Free (3/Wk)</button>
@@ -925,7 +925,7 @@
               style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
               Does TubeMetrix support bulk export for multiple live streams? <span class="faq-icon">+</span></summary>
             <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Yes!
-              TubeMetrix has three modes: (A) Single Stream — free up to 2 streams/week (Guest) or 3 streams/week (Google
+              TubeMetrix has three modes: (A) Single Stream — free up to 2 streams one-time (Guest) or 3 streams/week (Google
               Sign-In), (B) Channel &amp; Date Range (Credits), and (C) Custom URL Batch (Credits). Prepaid credits
               never expire (Global volume packs from $0.049/1k chats; India UPI packs from ₹49).</p>
           </details>
@@ -1008,9 +1008,9 @@
     </div>
   </footer>
 
-  <script src="auth.js?v=3.7"></script>
+  <script src="auth.js?v=3.8"></script>
   <script src="cloud-backup.js?v=1.0"></script>
-  <script src="app.js?v=6.9"></script>
+  <script src="app.js?v=7.0"></script>
   <!-- Adsterra Social Bar Integration -->
   <script data-cfasync="false" src="https://bauval.org/14/1130b0119de2f33b3a0f98fff91280bc"></script>
 </body>
