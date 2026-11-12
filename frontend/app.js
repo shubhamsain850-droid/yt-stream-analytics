@@ -2148,9 +2148,19 @@ async function startProcessing(urls, label = null, options = {}) {
     renderEarningsPauseAndResumeBanners();
     renderEarningsCloudBadge('idle', runBackupId, failedUrls);
 
+    if (!hasShownFirstResult) {
+      elements.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    const remBalAfterPause = window.TubeMetrixAuth?.getCreditsBalance?.() ?? 0;
+    if (stopReason === 'credits_exhausted' && remBalAfterPause === 0) {
+      window.TubeMetrixAuth?.openCreditsModal?.(
+        `Credits finished (${completedUrlsTotal.length} of ${totalPlanned} streams completed, ${remainingUrls.length} left). Your progress is safely saved — recharge Credits below and click Resume Remaining!`,
+        { neededCredits: remainingUrls.length }
+      );
+    }
+
     if (window.TubeMetrixBackups?.isEligible?.()) {
       renderEarningsCloudBadge('saving', runBackupId, failedUrls);
-      await window.TubeMetrixBackups.flushBackupSave(runBackupId);
       const pauseBundle = state.metrics.success > 0
         ? buildEarningsBundleFiles(resultsAccumulator, runTitle)
         : null;
@@ -2169,17 +2179,6 @@ async function startProcessing(urls, label = null, options = {}) {
       });
       await window.TubeMetrixBackups.flushBackupSave(runBackupId);
       renderEarningsCloudBadge('paused', runBackupId, failedUrls);
-    }
-
-    if (!hasShownFirstResult) {
-      elements.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    const remBalAfterPause = window.TubeMetrixAuth?.getCreditsBalance?.() ?? 0;
-    if (stopReason === 'credits_exhausted' && remBalAfterPause === 0) {
-      window.TubeMetrixAuth?.openCreditsModal?.(
-        `Credits finished (${completedUrlsTotal.length} of ${totalPlanned} streams completed, ${remainingUrls.length} left). Your progress is safely saved — recharge Credits below and click Resume Remaining!`,
-        { neededCredits: remainingUrls.length }
-      );
     }
     return;
   }
@@ -2202,7 +2201,6 @@ async function startProcessing(urls, label = null, options = {}) {
     }
     if (window.TubeMetrixBackups?.isEligible?.()) {
       renderEarningsCloudBadge('saving', runBackupId, failedUrls);
-      await window.TubeMetrixBackups.flushBackupSave(runBackupId);
       window.TubeMetrixBackups.queueBackupSave({
         id: runBackupId,
         toolKind: 'earnings',

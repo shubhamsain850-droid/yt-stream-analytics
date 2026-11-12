@@ -1,11 +1,14 @@
 import { jsonResponse } from '../../_shared/security.js';
 import { resolveRequestIdentity } from '../../_shared/context.js';
+import { b2PutObject, createBackupStorageAdapter, hasB2Config } from '../../_shared/b2.js';
 import {
   BACKUP_RETENTION_MS,
+  deleteBackupBlobFromD1,
   getBackupOwner,
   getUserBackupById,
   isUserPremiumForBackups,
   purgeExpiredBackupsForUser,
+  saveBackupBlobToD1,
   serializeBackupRow,
   upsertUserBackup,
 } from '../../_shared/db.js';
@@ -33,11 +36,12 @@ export async function onRequestPost({ request, env }) {
       );
     }
 
-    if (!env?.BACKUPS) {
+    const storageAdapter = createBackupStorageAdapter(env);
+    if (!env?.DB && !storageAdapter.hasObjectStorage) {
       return jsonResponse(
         {
-          error: 'Cloudflare R2 backup bucket (BACKUPS) is not configured yet.',
-          code: 'r2_not_configured',
+          error: 'Cloud backup storage (Backblaze B2 / D1 / R2) is not configured yet.',
+          code: 'storage_not_configured',
         },
         503
       );
@@ -99,28 +103,77 @@ export async function onRequestPost({ request, env }) {
     const nowMs = Date.now();
     const nowIso = new Date(nowMs).toISOString();
     const expiresAt = new Date(nowMs + BACKUP_RETENTION_MS).toISOString();
-    await purgeExpiredBackupsForUser(env.DB, env.BACKUPS, user.id, nowIso);
+    await purgeExpiredBackupsForUser(env.DB, storageAdapter, user.id, nowIso);
 
+    const useB2 = hasB2Config(env);
+    const hasR2 = !useB2 && Boolean(env?.BACKUPS);
     let resumeKey = existingOwner?.resume_key || null;
     let zipKey = existingOwner?.zip_key || null;
     let zipSizeBytes = Number(existingOwner?.zip_size_bytes || 0);
 
+    if (!useB2 && !hasR2) {
+      const totalD1Bytes = (resumeBuf?.byteLength || 0) + (zipBuf?.byteLength || 0);
+      if (totalD1Bytes > 25 * 1024 * 1024) {
+        return jsonResponse(
+          { error: 'Backup payload exceeds 25 MB cloud storage limit.', code: 'payload_too_large' },
+          413
+        );
+      }
+    }
+
+    const uploadTasks = [];
+
     if (resumeBuf && resumeBuf.byteLength > 0) {
-      resumeKey = `users/${user.id}/${id}/resume.json`;
-      await env.BACKUPS.put(resumeKey, resumeBuf, {
-        httpMetadata: { contentType: 'application/json; charset=utf-8' },
-      });
+      const objectPath = `users/${user.id}/${id}/resume.json`;
+      uploadTasks.push(
+        (async () => {
+          if (useB2) {
+            resumeKey = await b2PutObject(env, objectPath, resumeBuf, 'application/json; charset=utf-8');
+          } else if (hasR2) {
+            resumeKey = objectPath;
+            await env.BACKUPS.put(resumeKey, resumeBuf, {
+              httpMetadata: { contentType: 'application/json; charset=utf-8' },
+            });
+          } else {
+            resumeKey = await saveBackupBlobToD1(env.DB, id, 'resume', resumeBuf, { compress: true });
+          }
+        })()
+      );
     } else if (status === 'completed' && resumeKey) {
-      await env.BACKUPS.delete(resumeKey).catch(() => {});
+      const prevResumeKey = resumeKey;
       resumeKey = null;
+      uploadTasks.push(
+        (async () => {
+          if (prevResumeKey.startsWith('d1')) {
+            await deleteBackupBlobFromD1(env.DB, id, 'resume').catch(() => {});
+          } else {
+            await storageAdapter.deleteKey(prevResumeKey).catch(() => {});
+          }
+        })()
+      );
     }
 
     if (zipBuf && zipBuf.byteLength > 0) {
-      zipKey = `users/${user.id}/${id}/bundle.zip`;
       zipSizeBytes = zipBuf.byteLength;
-      await env.BACKUPS.put(zipKey, zipBuf, {
-        httpMetadata: { contentType: 'application/zip' },
-      });
+      const objectPath = `users/${user.id}/${id}/bundle.zip`;
+      uploadTasks.push(
+        (async () => {
+          if (useB2) {
+            zipKey = await b2PutObject(env, objectPath, zipBuf, 'application/zip');
+          } else if (hasR2) {
+            zipKey = objectPath;
+            await env.BACKUPS.put(zipKey, zipBuf, {
+              httpMetadata: { contentType: 'application/zip' },
+            });
+          } else {
+            zipKey = await saveBackupBlobToD1(env.DB, id, 'zip', zipBuf, { compress: false });
+          }
+        })()
+      );
+    }
+
+    if (uploadTasks.length > 0) {
+      await Promise.all(uploadTasks);
     }
 
     await upsertUserBackup(env.DB, {

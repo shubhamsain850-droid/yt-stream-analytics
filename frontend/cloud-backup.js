@@ -196,6 +196,7 @@
 
   const latestPendingByBackupId = new Map();
   const activeUploadPromiseById = new Map();
+  const pendingTimersById = new Map();
 
   function escapeHtml(str) {
     return String(str || '')
@@ -341,36 +342,65 @@
     return null;
   }
 
-  function queueBackupSave(snapshot, { immediate = false } = {}) {
-    if (!snapshot?.id || !isEligible()) return Promise.resolve(null);
-    latestPendingByBackupId.set(snapshot.id, snapshot);
-
-    if (activeUploadPromiseById.has(snapshot.id)) {
-      return immediate ? activeUploadPromiseById.get(snapshot.id) : activeUploadPromiseById.get(snapshot.id);
+  function startUploadWorker(backupId) {
+    if (activeUploadPromiseById.has(backupId)) {
+      return activeUploadPromiseById.get(backupId);
     }
-
     const worker = (async () => {
       let lastSaved = null;
       try {
-        while (latestPendingByBackupId.has(snapshot.id)) {
-          const nextSnap = latestPendingByBackupId.get(snapshot.id);
-          latestPendingByBackupId.delete(snapshot.id);
+        while (latestPendingByBackupId.has(backupId)) {
+          const nextSnap = latestPendingByBackupId.get(backupId);
+          latestPendingByBackupId.delete(backupId);
           lastSaved = await executeSingleUpload(nextSnap);
         }
       } catch (err) {
         console.warn('Cloud backup sync warning:', err);
       } finally {
-        activeUploadPromiseById.delete(snapshot.id);
+        activeUploadPromiseById.delete(backupId);
       }
       return lastSaved;
     })();
-
-    activeUploadPromiseById.set(snapshot.id, worker);
+    activeUploadPromiseById.set(backupId, worker);
     return worker;
   }
 
+  function queueBackupSave(snapshot, { immediate = false } = {}) {
+    if (!snapshot?.id || !isEligible()) return Promise.resolve(null);
+    const id = snapshot.id;
+    latestPendingByBackupId.set(id, snapshot);
+
+    const existingTimer = pendingTimersById.get(id);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+      pendingTimersById.delete(id);
+    }
+
+    if (immediate || snapshot.status !== 'in_progress') {
+      return startUploadWorker(id);
+    }
+
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        pendingTimersById.delete(id);
+        startUploadWorker(id).then(resolve).catch(() => resolve(null));
+      }, 1800);
+      pendingTimersById.set(id, timer);
+    });
+  }
+
   async function flushBackupSave(backupId) {
-    if (backupId && activeUploadPromiseById.has(backupId)) {
+    if (!backupId) return;
+    const existingTimer = pendingTimersById.get(backupId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+      pendingTimersById.delete(backupId);
+      if (latestPendingByBackupId.has(backupId)) {
+        await startUploadWorker(backupId);
+        return;
+      }
+    }
+    if (activeUploadPromiseById.has(backupId)) {
       await activeUploadPromiseById.get(backupId);
     }
   }

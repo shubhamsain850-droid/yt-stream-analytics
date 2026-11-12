@@ -1236,26 +1236,29 @@
     const shouldZip = (status === 'completed' || status === 'paused') && reportData && itemsCount > 0;
     if (shouldZip) {
       renderChatCloudBadge(sectionType, 'saving', backupId);
-      await window.TubeMetrixBackups.flushBackupSave(backupId);
     }
     const bundleFiles = shouldZip
       ? buildChatOrCommentsBundleFiles(reportData, isComments, title)
       : null;
-    window.TubeMetrixBackups.queueBackupSave({
-      id: backupId,
-      toolKind,
-      mode,
-      title,
-      status,
-      completedCount,
-      totalCount,
-      itemsCount,
-      streamKeys,
-      resumePayload: status === 'completed' ? null : resumePayload,
-      bundleFiles,
-    });
-    if (status === 'completed' || status === 'paused') {
-      await window.TubeMetrixBackups.flushBackupSave(backupId);
+    const isFinalState = status === 'completed' || status === 'paused';
+    const savePromise = window.TubeMetrixBackups.queueBackupSave(
+      {
+        id: backupId,
+        toolKind,
+        mode,
+        title,
+        status,
+        completedCount,
+        totalCount,
+        itemsCount,
+        streamKeys,
+        resumePayload: status === 'completed' ? null : resumePayload,
+        bundleFiles,
+      },
+      { immediate: isFinalState }
+    );
+    if (isFinalState) {
+      await savePromise;
       renderChatCloudBadge(sectionType, status === 'completed' ? 'completed' : 'paused', backupId);
     }
     return true;
@@ -2171,7 +2174,9 @@
     setChatRunningFlag(false);
 
     if (window.TubeMetrixBackups?.isEligible?.() && (stoppedEarly ? completedVids.length > 0 : allMessages.length > 0)) {
-      await syncCloudChatOrCommentsBackup({
+      finalStats.cloudStatus = 'saving';
+      finalStats.cloudBackupId = runBackupId;
+      syncCloudChatOrCommentsBackup({
         backupId: runBackupId,
         toolKind: 'chats',
         mode,
@@ -2184,9 +2189,7 @@
         resumePayload: stoppedEarly ? ckptPayload : null,
         reportData: finalStats,
         isComments: false,
-      });
-      finalStats.cloudStatus = stoppedEarly ? 'paused' : 'completed';
-      finalStats.cloudBackupId = runBackupId;
+      }).catch(() => {});
     }
 
     return finalStats;

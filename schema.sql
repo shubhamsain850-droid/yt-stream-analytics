@@ -87,3 +87,11 @@ CREATE TABLE IF NOT EXISTS user_backups (
 
 CREATE INDEX IF NOT EXISTS idx_user_backups_user_date ON user_backups(user_id, backup_date DESC, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_user_backups_expires ON user_backups(expires_at);
+
+CREATE TABLE IF NOT EXISTS user_backup_chunks (
+  backup_id TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  chunk_index INTEGER NOT NULL,
+  data_b64 TEXT NOT NULL,
+  PRIMARY KEY (backup_id, kind, chunk_index)
+);

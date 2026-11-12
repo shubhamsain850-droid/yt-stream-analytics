@@ -1,5 +1,6 @@
 import { jsonResponse } from '../../_shared/security.js';
 import { resolveRequestIdentity } from '../../_shared/context.js';
+import { createBackupStorageAdapter } from '../../_shared/b2.js';
 import { deleteUserBackupRow } from '../../_shared/db.js';
 
 export async function onRequestPost({ request, env }) {
@@ -28,7 +29,7 @@ async function handleDelete(request, env) {
       return jsonResponse({ error: 'Missing backup id.' }, 400);
     }
 
-    const deleted = await deleteUserBackupRow(env.DB, env?.BACKUPS || null, user.id, id);
+    const deleted = await deleteUserBackupRow(env.DB, createBackupStorageAdapter(env), user.id, id);
     if (!deleted) {
       return jsonResponse({ error: 'Backup not found.' }, 404);
     }

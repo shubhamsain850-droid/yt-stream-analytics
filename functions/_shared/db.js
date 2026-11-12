@@ -569,10 +569,48 @@ export async function markWebhookProcessed(db, webhookId, eventType) {
   return Boolean(res?.meta?.changes && res.meta.changes > 0);
 }
 
-// ── 14-Day Cloud Backups & Cross-Device Resume Helpers (D1 Metadata + R2 Blobs) ──
+// ── 14-Day Cloud Backups & Cross-Device Resume Helpers (D1 Metadata + Zero-Card D1 Chunks / Optional R2) ──
 export const BACKUP_RETENTION_DAYS = 14;
 export const BACKUP_RETENTION_MS = BACKUP_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+const D1_CHUNK_B64_LEN = 200000; // 200 KB ASCII text per row, well below D1's 2 MB row limit
 let _backupsTableEnsured = false;
+
+function bytesToBase64(bytes) {
+  const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  let bin = '';
+  const step = 0x8000;
+  for (let i = 0; i < u8.length; i += step) {
+    bin += String.fromCharCode.apply(null, u8.subarray(i, i + step));
+  }
+  return btoa(bin);
+}
+
+function base64ToBytes(b64) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) {
+    out[i] = bin.charCodeAt(i);
+  }
+  return out;
+}
+
+async function gzipBytes(rawBuf) {
+  if (typeof CompressionStream !== 'function') {
+    return { bytes: new Uint8Array(rawBuf), compressed: false };
+  }
+  const stream = new Blob([rawBuf]).stream().pipeThrough(new CompressionStream('gzip'));
+  const ab = await new Response(stream).arrayBuffer();
+  return { bytes: new Uint8Array(ab), compressed: true };
+}
+
+async function gunzipBytes(compBytes) {
+  if (typeof DecompressionStream !== 'function') {
+    return compBytes;
+  }
+  const stream = new Blob([compBytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+  const ab = await new Response(stream).arrayBuffer();
+  return new Uint8Array(ab);
+}
 
 export async function ensureBackupsTable(db) {
   if (_backupsTableEnsured) return;
@@ -607,7 +645,82 @@ export async function ensureBackupsTable(db) {
   await db
     .prepare('CREATE INDEX IF NOT EXISTS idx_user_backups_expires ON user_backups(expires_at)')
     .run();
+  await db
+    .prepare(
+      `CREATE TABLE IF NOT EXISTS user_backup_chunks (
+        backup_id TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        chunk_index INTEGER NOT NULL,
+        data_b64 TEXT NOT NULL,
+        PRIMARY KEY (backup_id, kind, chunk_index)
+      )`
+    )
+    .run();
   _backupsTableEnsured = true;
+}
+
+export async function saveBackupBlobToD1(db, backupId, kind, arrayBuf, { compress = false } = {}) {
+  await ensureBackupsTable(db);
+  let payloadBytes = new Uint8Array(arrayBuf);
+  let isCompressed = false;
+  if (compress) {
+    const gz = await gzipBytes(arrayBuf);
+    payloadBytes = gz.bytes;
+    isCompressed = gz.compressed;
+  }
+  const b64 = bytesToBase64(payloadBytes);
+  const chunks = [];
+  for (let off = 0; off < b64.length; off += D1_CHUNK_B64_LEN) {
+    chunks.push(b64.slice(off, off + D1_CHUNK_B64_LEN));
+  }
+  if (chunks.length === 0) chunks.push('');
+
+  await db
+    .prepare('DELETE FROM user_backup_chunks WHERE backup_id = ?1 AND kind = ?2')
+    .bind(backupId, kind)
+    .run();
+
+  const batchSize = 15;
+  for (let start = 0; start < chunks.length; start += batchSize) {
+    const slice = chunks.slice(start, start + batchSize);
+    const stmts = slice.map((chunkStr, i) =>
+      db
+        .prepare('INSERT INTO user_backup_chunks (backup_id, kind, chunk_index, data_b64) VALUES (?1, ?2, ?3, ?4)')
+        .bind(backupId, kind, start + i, chunkStr)
+    );
+    await db.batch(stmts);
+  }
+  return `${isCompressed ? 'd1gzip' : 'd1raw'}:${backupId}:${kind}`;
+}
+
+export async function loadBackupBlobFromD1(db, backupId, kind, compressed = false) {
+  await ensureBackupsTable(db);
+  const res = await db
+    .prepare(
+      'SELECT data_b64 FROM user_backup_chunks WHERE backup_id = ?1 AND kind = ?2 ORDER BY chunk_index ASC'
+    )
+    .bind(backupId, kind)
+    .all();
+  const rows = res?.results || [];
+  if (!rows.length) return null;
+  const b64 = rows.map((r) => r.data_b64 || '').join('');
+  const rawBytes = base64ToBytes(b64);
+  if (compressed) {
+    return gunzipBytes(rawBytes);
+  }
+  return rawBytes;
+}
+
+export async function deleteBackupBlobFromD1(db, backupId, kind = null) {
+  await ensureBackupsTable(db);
+  if (kind) {
+    await db
+      .prepare('DELETE FROM user_backup_chunks WHERE backup_id = ?1 AND kind = ?2')
+      .bind(backupId, kind)
+      .run();
+  } else {
+    await db.prepare('DELETE FROM user_backup_chunks WHERE backup_id = ?1').bind(backupId).run();
+  }
 }
 
 export async function isUserPremiumForBackups(db, user) {
@@ -658,15 +771,20 @@ export async function purgeExpiredBackupsForUser(db, bucket, userId, nowIso = ne
   if (rows.length === 0) return 0;
 
   if (bucket) {
+    const delFn = typeof bucket.deleteKey === 'function' ? (k) => bucket.deleteKey(k) : (k) => bucket.delete(k);
     const keysToDelete = [];
     rows.forEach((r) => {
-      if (r.resume_key) keysToDelete.push(r.resume_key);
-      if (r.zip_key) keysToDelete.push(r.zip_key);
+      if (r.resume_key && !r.resume_key.startsWith('d1')) keysToDelete.push(r.resume_key);
+      if (r.zip_key && !r.zip_key.startsWith('d1')) keysToDelete.push(r.zip_key);
     });
     if (keysToDelete.length > 0) {
-      await Promise.allSettled(keysToDelete.map((k) => bucket.delete(k)));
+      await Promise.allSettled(keysToDelete.map((k) => delFn(k)));
     }
   }
+
+  await Promise.allSettled(
+    rows.map((r) => db.prepare('DELETE FROM user_backup_chunks WHERE backup_id = ?1').bind(r.id).run())
+  );
 
   await db
     .prepare('DELETE FROM user_backups WHERE user_id = ?1 AND expires_at <= ?2')
@@ -766,11 +884,13 @@ export async function deleteUserBackupRow(db, bucket, userId, backupId) {
     .first();
   if (!row) return false;
   if (bucket) {
+    const delFn = typeof bucket.deleteKey === 'function' ? (k) => bucket.deleteKey(k) : (k) => bucket.delete(k);
     const ops = [];
-    if (row.resume_key) ops.push(bucket.delete(row.resume_key));
-    if (row.zip_key) ops.push(bucket.delete(row.zip_key));
+    if (row.resume_key && !row.resume_key.startsWith('d1')) ops.push(delFn(row.resume_key));
+    if (row.zip_key && !row.zip_key.startsWith('d1')) ops.push(delFn(row.zip_key));
     if (ops.length > 0) await Promise.allSettled(ops);
   }
+  await db.prepare('DELETE FROM user_backup_chunks WHERE backup_id = ?1').bind(backupId).run();
   await db
     .prepare('DELETE FROM user_backups WHERE id = ?1 AND user_id = ?2')
     .bind(backupId, userId)
