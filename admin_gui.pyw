@@ -1,6 +1,7 @@
 """TubeMetrix - Owner & Admin Desktop Dashboard.
 
 A modern dark-themed desktop application for managing users, credits, and exporting customer data from Cloudflare D1.
+Features separate views for Premium (Paying) and Free users.
 """
 
 from __future__ import annotations
@@ -37,6 +38,9 @@ COLOR_CARD_BORDER = "#2b2b36"
 COLOR_CARD_HOVER = "#242430"
 COLOR_TEXT_MUTED = "#94a3b8"
 COLOR_SUCCESS = "#10b981"
+COLOR_GOLD = "#f59e0b"
+COLOR_PREMIUM_BORDER = "#854d0e"
+COLOR_PREMIUM_BG = "#1f1d17"
 
 
 def run_d1_query(sql: str) -> list[dict]:
@@ -69,13 +73,27 @@ def run_d1_query(sql: str) -> list[dict]:
     return []
 
 
+def is_premium_user(user: dict) -> bool:
+    """A user is premium if they have bought credits or have an active credit balance."""
+    bought = NumberSafe(user.get("total_purchased_credits", 0))
+    balance = NumberSafe(user.get("credits_balance", 0))
+    return bought > 0 or balance > 0
+
+
+def NumberSafe(val) -> int:
+    try:
+        return int(val or 0)
+    except Exception:
+        return 0
+
+
 class TubeMetrixAdminApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         self.title("TubeMetrix — Owner & Admin Dashboard")
-        self.geometry("1100x720")
-        self.minsize(980, 640)
+        self.geometry("1140x740")
+        self.minsize(1020, 660)
         self.configure(fg_color=COLOR_BG)
 
         if ICON_PATH.exists():
@@ -87,6 +105,7 @@ class TubeMetrixAdminApp(ctk.CTk):
         self.users_cache: list[dict] = []
         self.selected_user: dict | None = None
         self.is_busy = False
+        self.active_tab = "all"  # 'all', 'premium', 'free'
 
         self._build_header()
         self._build_stats_row()
@@ -155,19 +174,19 @@ class TubeMetrixAdminApp(ctk.CTk):
 
     def _build_stats_row(self):
         self.stats_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.stats_frame.pack(fill="x", padx=24, pady=(0, 14))
+        self.stats_frame.pack(fill="x", padx=24, pady=(0, 12))
 
-        self.card_total_users = self._create_stat_card("👥 Total Registered Users", "--")
-        self.card_paying_users = self._create_stat_card("💎 Paying / Credit Buyers", "--")
-        self.card_balance_credits = self._create_stat_card("⚡ Total Active Credits", "--")
-        self.card_total_bought = self._create_stat_card("🛒 Lifetime Credits Purchased", "--")
+        self.card_total_users = self._create_stat_card("👥 Total Registered Users", "--", COLOR_CARD)
+        self.card_paying_users = self._create_stat_card("💎 Premium / Paid Users", "--", "#221d15", border_col="#713f12")
+        self.card_balance_credits = self._create_stat_card("⚡ Active Credits in Pool", "--", COLOR_CARD)
+        self.card_total_bought = self._create_stat_card("🛒 Lifetime Credits Purchased", "--", COLOR_CARD)
 
-    def _create_stat_card(self, title: str, val: str):
+    def _create_stat_card(self, title: str, val: str, bg_color: str, border_col: str = COLOR_CARD_BORDER):
         card = ctk.CTkFrame(
             self.stats_frame,
-            fg_color=COLOR_CARD,
+            fg_color=bg_color,
             border_width=1,
-            border_color=COLOR_CARD_BORDER,
+            border_color=border_col,
             corner_radius=10,
         )
         card.pack(side="left", fill="both", expand=True, padx=4)
@@ -184,7 +203,7 @@ class TubeMetrixAdminApp(ctk.CTk):
             card,
             text=val,
             font=ctk.CTkFont(family="Segoe UI", size=20, weight="bold"),
-            text_color="#ffffff",
+            text_color="#ffffff" if bg_color == COLOR_CARD else COLOR_GOLD,
         )
         lbl_v.pack(anchor="w", padx=14, pady=(0, 10))
         return lbl_v
@@ -193,7 +212,7 @@ class TubeMetrixAdminApp(ctk.CTk):
         work_frame = ctk.CTkFrame(self, fg_color="transparent")
         work_frame.pack(fill="both", expand=True, padx=24, pady=(0, 10))
 
-        # LEFT COLUMN: User Directory & Search
+        # LEFT COLUMN: User Directory, Category Tabs & Search
         left_col = ctk.CTkFrame(
             work_frame,
             fg_color=COLOR_CARD,
@@ -203,13 +222,32 @@ class TubeMetrixAdminApp(ctk.CTk):
         )
         left_col.pack(side="left", fill="both", expand=True, padx=(0, 8))
 
-        # Search Box
+        # TOP BAR: Tab Switcher (Separate Premium vs Free vs All)
+        tab_box = ctk.CTkFrame(left_col, fg_color="transparent")
+        tab_box.pack(fill="x", padx=14, pady=(14, 8))
+
+        self.seg_filter = ctk.CTkSegmentedButton(
+            tab_box,
+            values=["All Users (0)", "💎 Premium Users (0)", "🆓 Free Users (0)"],
+            height=36,
+            corner_radius=8,
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+            selected_color=COLOR_ACCENT,
+            selected_hover_color=COLOR_ACCENT_HOVER,
+            unselected_color="#181820",
+            unselected_hover_color="#262632",
+            command=self._on_tab_change,
+        )
+        self.seg_filter.set("All Users (0)")
+        self.seg_filter.pack(fill="x")
+
+        # Search Bar
         search_bar = ctk.CTkFrame(left_col, fg_color="transparent")
-        search_bar.pack(fill="x", padx=14, pady=(14, 10))
+        search_bar.pack(fill="x", padx=14, pady=(0, 10))
 
         self.search_entry = ctk.CTkEntry(
             search_bar,
-            placeholder_text="🔍 Search user by email or name...",
+            placeholder_text="🔍 Search users in current view by email or name...",
             height=36,
             corner_radius=8,
             fg_color="#121217",
@@ -241,7 +279,7 @@ class TubeMetrixAdminApp(ctk.CTk):
         # RIGHT COLUMN: Manage & Add Credits Panel
         self.right_col = ctk.CTkFrame(
             work_frame,
-            width=380,
+            width=400,
             fg_color=COLOR_CARD,
             border_width=1,
             border_color=COLOR_CARD_BORDER,
@@ -271,13 +309,26 @@ class TubeMetrixAdminApp(ctk.CTk):
         )
         self.selected_user_box.pack(fill="x", padx=16, pady=(0, 14))
 
+        # Tier Badge (Premium vs Free)
+        self.lbl_sel_tier_badge = ctk.CTkLabel(
+            self.selected_user_box,
+            text="NO USER SELECTED",
+            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+            text_color="#ffffff",
+            fg_color="#374151",
+            corner_radius=4,
+            padx=8,
+            pady=2,
+        )
+        self.lbl_sel_tier_badge.pack(anchor="w", padx=12, pady=(10, 4))
+
         self.lbl_sel_name = ctk.CTkLabel(
             self.selected_user_box,
-            text="Select a user from the left",
-            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
+            text="Select a user from the list",
+            font=ctk.CTkFont(family="Segoe UI", size=15, weight="bold"),
             text_color="#ffffff",
         )
-        self.lbl_sel_name.pack(anchor="w", padx=12, pady=(10, 2))
+        self.lbl_sel_name.pack(anchor="w", padx=12, pady=(0, 2))
 
         self.lbl_sel_email = ctk.CTkLabel(
             self.selected_user_box,
@@ -312,7 +363,7 @@ class TubeMetrixAdminApp(ctk.CTk):
             btn = ctk.CTkButton(
                 preset_row,
                 text=f"+{amt}",
-                width=54,
+                width=58,
                 height=30,
                 corner_radius=6,
                 fg_color="#262633",
@@ -364,7 +415,7 @@ class TubeMetrixAdminApp(ctk.CTk):
             border_width=1,
             border_color=COLOR_CARD_BORDER,
             corner_radius=8,
-            height=140,
+            height=135,
         )
         self.hist_scroll.pack(fill="both", expand=True, padx=16, pady=(0, 16))
 
@@ -372,18 +423,30 @@ class TubeMetrixAdminApp(ctk.CTk):
         footer = ctk.CTkFrame(self, fg_color="transparent")
         footer.pack(fill="x", padx=24, pady=(0, 16))
 
-        # Left: Export Button
-        btn_export = ctk.CTkButton(
+        # Left: Separate Export Buttons
+        btn_export_prem = ctk.CTkButton(
             footer,
-            text="📥 Export All Customers to CSV",
+            text="💎 Export Premium Emails (.csv)",
+            height=34,
+            corner_radius=8,
+            fg_color="#854d0e",
+            hover_color="#a16207",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            command=lambda: self.export_csv_action(premium_only=True),
+        )
+        btn_export_prem.pack(side="left", padx=(0, 8))
+
+        btn_export_all = ctk.CTkButton(
+            footer,
+            text="👥 Export All Users (.csv)",
             height=34,
             corner_radius=8,
             fg_color="#1e293b",
             hover_color="#334155",
             font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-            command=self.export_csv_action,
+            command=lambda: self.export_csv_action(premium_only=False),
         )
-        btn_export.pack(side="left", padx=(0, 10))
+        btn_export_all.pack(side="left")
 
         # Right: Quick Web Links
         btn_web = ctk.CTkButton(
@@ -410,6 +473,15 @@ class TubeMetrixAdminApp(ctk.CTk):
         )
         btn_d1.pack(side="right", padx=(0, 10))
 
+    def _on_tab_change(self, selected_val: str):
+        if "Premium" in selected_val:
+            self.active_tab = "premium"
+        elif "Free" in selected_val:
+            self.active_tab = "free"
+        else:
+            self.active_tab = "all"
+        self.filter_users()
+
     def _set_credit_input(self, amt: int):
         self.entry_credit_amt.delete(0, "end")
         self.entry_credit_amt.insert(0, str(amt))
@@ -430,7 +502,7 @@ class TubeMetrixAdminApp(ctk.CTk):
     def _fetch_users_thread(self):
         sql = (
             "SELECT id, email, name, credits_balance, total_purchased_credits, created_at, updated_at "
-            "FROM users ORDER BY updated_at DESC"
+            "FROM users ORDER BY total_purchased_credits DESC, updated_at DESC"
         )
         try:
             results = run_d1_query(sql)
@@ -450,16 +522,34 @@ class TubeMetrixAdminApp(ctk.CTk):
         self.users_cache = results
         self.status_pill.configure(text="● Online: tubemetrix-db", text_color=COLOR_SUCCESS)
 
-        # Update stats
+        # Calculate counts
         total_users = len(results)
-        paying_users = sum(1 for u in results if (u.get("total_purchased_credits") or 0) > 0)
+        premium_users = [u for u in results if is_premium_user(u)]
+        free_users = [u for u in results if not is_premium_user(u)]
+
         tot_balance = sum(u.get("credits_balance") or 0 for u in results)
         tot_purchased = sum(u.get("total_purchased_credits") or 0 for u in results)
 
         self.card_total_users.configure(text=str(total_users))
-        self.card_paying_users.configure(text=str(paying_users))
+        self.card_paying_users.configure(text=f"{len(premium_users)} users")
         self.card_balance_credits.configure(text=str(tot_balance))
         self.card_total_bought.configure(text=str(tot_purchased))
+
+        # Update Tab Labels with dynamic counts
+        tab_vals = [
+            f"All Users ({total_users})",
+            f"💎 Premium Users ({len(premium_users)})",
+            f"🆓 Free Users ({len(free_users)})",
+        ]
+        self.seg_filter.configure(values=tab_vals)
+
+        # Restore current tab
+        if self.active_tab == "premium":
+            self.seg_filter.set(tab_vals[1])
+        elif self.active_tab == "free":
+            self.seg_filter.set(tab_vals[2])
+        else:
+            self.seg_filter.set(tab_vals[0])
 
         self.filter_users()
 
@@ -480,15 +570,29 @@ class TubeMetrixAdminApp(ctk.CTk):
         for child in self.users_scroll.winfo_children():
             child.destroy()
 
+        # 1. Filter by Tab (Premium vs Free vs All)
+        if self.active_tab == "premium":
+            base_list = [u for u in self.users_cache if is_premium_user(u)]
+        elif self.active_tab == "free":
+            base_list = [u for u in self.users_cache if not is_premium_user(u)]
+        else:
+            base_list = self.users_cache
+
+        # 2. Filter by Search Query
         filtered = [
-            u for u in self.users_cache
+            u for u in base_list
             if not query or query in str(u.get("email", "")).lower() or query in str(u.get("name", "")).lower()
         ]
 
         if not filtered:
+            msg = (
+                "No Premium users found." if self.active_tab == "premium"
+                else "No Free users found." if self.active_tab == "free"
+                else "No users found matching search."
+            )
             no_lbl = ctk.CTkLabel(
                 self.users_scroll,
-                text="No users found matching your search.",
+                text=msg,
                 text_color=COLOR_TEXT_MUTED,
                 font=ctk.CTkFont(family="Segoe UI", size=13),
             )
@@ -500,8 +604,18 @@ class TubeMetrixAdminApp(ctk.CTk):
 
     def _render_user_card(self, user: dict):
         is_selected = self.selected_user and self.selected_user.get("id") == user.get("id")
-        card_bg = COLOR_CARD_HOVER if is_selected else "#14141a"
-        border_col = COLOR_ACCENT if is_selected else COLOR_CARD_BORDER
+        prem = is_premium_user(user)
+
+        # Premium users get gold/amber tint; free users get neutral card
+        if is_selected:
+            card_bg = COLOR_CARD_HOVER
+            border_col = COLOR_ACCENT
+        elif prem:
+            card_bg = COLOR_PREMIUM_BG
+            border_col = COLOR_PREMIUM_BORDER
+        else:
+            card_bg = "#14141a"
+            border_col = COLOR_CARD_BORDER
 
         card = ctk.CTkFrame(
             self.users_scroll,
@@ -517,13 +631,43 @@ class TubeMetrixAdminApp(ctk.CTk):
         info_box = ctk.CTkFrame(card, fg_color="transparent")
         info_box.pack(side="left", fill="both", expand=True, padx=12, pady=10)
 
+        # Name row with badge
+        name_row = ctk.CTkFrame(info_box, fg_color="transparent")
+        name_row.pack(anchor="w", fill="x")
+
         name_lbl = ctk.CTkLabel(
-            info_box,
+            name_row,
             text=str(user.get("name", "Unknown")),
             font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
             text_color="#ffffff",
         )
-        name_lbl.pack(anchor="w")
+        name_lbl.pack(side="left")
+
+        # Category tag
+        if prem:
+            tag_lbl = ctk.CTkLabel(
+                name_row,
+                text="💎 PREMIUM",
+                font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+                text_color="#fef08a",
+                fg_color="#713f12",
+                corner_radius=4,
+                padx=6,
+                pady=1,
+            )
+            tag_lbl.pack(side="left", padx=(8, 0))
+        else:
+            tag_lbl = ctk.CTkLabel(
+                name_row,
+                text="FREE",
+                font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+                text_color="#94a3b8",
+                fg_color="#1e293b",
+                corner_radius=4,
+                padx=6,
+                pady=1,
+            )
+            tag_lbl.pack(side="left", padx=(8, 0))
 
         email_lbl = ctk.CTkLabel(
             info_box,
@@ -531,7 +675,7 @@ class TubeMetrixAdminApp(ctk.CTk):
             font=ctk.CTkFont(family="Segoe UI", size=12),
             text_color=COLOR_TEXT_MUTED,
         )
-        email_lbl.pack(anchor="w")
+        email_lbl.pack(anchor="w", pady=(2, 0))
 
         # Right Credit Badge
         bal = user.get("credits_balance", 0)
@@ -554,25 +698,40 @@ class TubeMetrixAdminApp(ctk.CTk):
 
         bought_lbl = ctk.CTkLabel(
             badge_box,
-            text=f"{tot} Bought" if tot > 0 else "Free tier",
-            font=ctk.CTkFont(family="Segoe UI", size=11),
-            text_color=COLOR_TEXT_MUTED,
+            text=f"🛒 {tot} Bought" if tot > 0 else "0 Bought (Free)",
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold" if tot > 0 else "normal"),
+            text_color=COLOR_GOLD if tot > 0 else COLOR_TEXT_MUTED,
         )
         bought_lbl.pack(anchor="e", pady=(2, 0))
 
         # Bind click events on card and children
-        for widget in [card, info_box, name_lbl, email_lbl, badge_box, badge_lbl, bought_lbl]:
+        for widget in [card, info_box, name_row, name_lbl, tag_lbl, email_lbl, badge_box, badge_lbl, bought_lbl]:
             widget.bind("<Button-1>", lambda e, u=user: self.select_user(u))
 
     def select_user(self, user: dict):
         self.selected_user = user
+        prem = is_premium_user(user)
+
+        if prem:
+            self.lbl_sel_tier_badge.configure(
+                text="💎 PREMIUM / PAYING CUSTOMER",
+                fg_color="#713f12",
+                text_color="#fef08a",
+            )
+        else:
+            self.lbl_sel_tier_badge.configure(
+                text="🆓 FREE TIER USER",
+                fg_color="#1e293b",
+                text_color="#94a3b8",
+            )
+
         self.lbl_sel_name.configure(text=str(user.get("name", "User")))
         self.lbl_sel_email.configure(text=str(user.get("email", "")))
 
         bal = user.get("credits_balance", 0)
         tot = user.get("total_purchased_credits", 0)
         self.lbl_sel_balance.configure(
-            text=f"Current: {bal} Credits  (Lifetime: {tot})",
+            text=f"Current: {bal} Credits  •  Lifetime: {tot} Bought",
             text_color=COLOR_SUCCESS if bal > 0 else COLOR_TEXT_MUTED,
         )
 
@@ -706,12 +865,16 @@ class TubeMetrixAdminApp(ctk.CTk):
         )
         self.refresh_data()
 
-    def export_csv_action(self):
+    def export_csv_action(self, premium_only: bool = False):
         EXPORT_DIR.mkdir(parents=True, exist_ok=True)
-        csv_file = EXPORT_DIR / f"tubemetrix_users_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
+        prefix = "premium_customers" if premium_only else "all_users"
+        csv_file = EXPORT_DIR / f"tubemetrix_{prefix}_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
 
-        if not self.users_cache:
-            messagebox.showwarning("Empty", "No user data available to export.")
+        dataset = [u for u in self.users_cache if is_premium_user(u)] if premium_only else self.users_cache
+
+        if not dataset:
+            label = "Premium" if premium_only else "Registered"
+            messagebox.showwarning("Empty", f"No {label} user records available to export.")
             return
 
         fields = ["email", "name", "credits_balance", "total_purchased_credits", "created_at", "updated_at"]
@@ -719,12 +882,13 @@ class TubeMetrixAdminApp(ctk.CTk):
             with csv_file.open("w", newline="", encoding="utf-8") as fh:
                 writer = csv.DictWriter(fh, fieldnames=fields)
                 writer.writeheader()
-                for u in self.users_cache:
+                for u in dataset:
                     writer.writerow({f: u.get(f, "") for f in fields})
 
+            kind = "Premium Customers" if premium_only else "Total Users"
             confirm_open = messagebox.askyesno(
                 "Export Complete",
-                f"Exported {len(self.users_cache)} users to:\n{csv_file}\n\nOpen folder now?",
+                f"Exported {len(dataset)} {kind} to:\n{csv_file}\n\nOpen exports folder now?",
             )
             if confirm_open:
                 os.startfile(str(EXPORT_DIR))

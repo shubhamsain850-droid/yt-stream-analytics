@@ -1,8 +1,11 @@
 """TubeMetrix Owner Tool - View, Search & Add Credits to any User Account.
+Supports separate listing for Premium (Paying) and Free users.
 
 Run directly or with arguments:
-  python manage_credits.py list
-  python manage_credits.py search <email_or_name>
+  python manage_credits.py list           (Shows Premium & Free users separated)
+  python manage_credits.py list --premium (Shows only Premium / Paying users)
+  python manage_credits.py list --free    (Shows only Free tier users)
+  python manage_credits.py search <query>
   python manage_credits.py add <email> <amount>
 """
 
@@ -54,16 +57,19 @@ def run_d1_query(sql: str) -> list[dict]:
     return []
 
 
-def list_users() -> None:
-    """Print all registered users with their credits."""
-    sql = "SELECT id, email, name, credits_balance, total_purchased_credits, created_at, updated_at FROM users ORDER BY updated_at DESC"
-    users = run_d1_query(sql)
+def is_premium(u: dict) -> bool:
+    try:
+        return int(u.get("total_purchased_credits") or 0) > 0 or int(u.get("credits_balance") or 0) > 0
+    except Exception:
+        return False
 
+
+def _print_user_table(users: list[dict], title: str) -> None:
     print("\n" + "=" * 80)
-    print("Registered Users in TubeMetrix Database:")
+    print(f"{title} ({len(users)} users):")
     print("=" * 80)
     if not users:
-        print("No users found.")
+        print("No users found in this category.")
         return
 
     print(f"{'Email':<32} {'Name':<22} {'Credits':<10} {'Total Bought':<12}")
@@ -74,7 +80,24 @@ def list_users() -> None:
         bal = u.get("credits_balance", 0)
         tot = u.get("total_purchased_credits", 0)
         print(f"{email:<32} {name:<22} {bal:<10} {tot:<12}")
-    print("=" * 80 + "\n")
+    print("=" * 80)
+
+
+def list_users(mode: str = "all") -> None:
+    """Print users with Premium vs Free separation."""
+    sql = "SELECT id, email, name, credits_balance, total_purchased_credits, created_at, updated_at FROM users ORDER BY total_purchased_credits DESC, updated_at DESC"
+    users = run_d1_query(sql)
+
+    premium_users = [u for u in users if is_premium(u)]
+    free_users = [u for u in users if not is_premium(u)]
+
+    if mode == "premium":
+        _print_user_table(premium_users, "💎 PREMIUM / PAYING USERS")
+    elif mode == "free":
+        _print_user_table(free_users, "🆓 FREE TIER USERS")
+    else:
+        _print_user_table(premium_users, "💎 PREMIUM / PAYING USERS")
+        _print_user_table(free_users, "🆓 FREE TIER USERS")
 
 
 def search_user(query: str) -> None:
@@ -87,7 +110,7 @@ def search_user(query: str) -> None:
     sql = (
         f"SELECT id, email, name, credits_balance, total_purchased_credits, created_at, updated_at "
         f"FROM users WHERE LOWER(email) LIKE '%{clean_query}%' OR LOWER(name) LIKE '%{clean_query}%' "
-        f"ORDER BY updated_at DESC"
+        f"ORDER BY total_purchased_credits DESC, updated_at DESC"
     )
     users = run_d1_query(sql)
 
@@ -104,8 +127,10 @@ def search_user(query: str) -> None:
         tot = u.get("total_purchased_credits", 0)
         created = u.get("created_at", "N/A")
         updated = u.get("updated_at", "N/A")
+        tier_label = "💎 PREMIUM CUSTOMER" if is_premium(u) else "🆓 FREE USER"
 
         print("=" * 65)
+        print(f"Tier:             {tier_label}")
         print(f"Name:             {name}")
         print(f"Email:            {email}")
         print(f"Current Credits:  {bal} credits available")
@@ -188,19 +213,25 @@ def interactive_menu() -> None:
         print("==================================================")
         print("       TubeMetrix - Owner Credit Manager          ")
         print("==================================================")
-        print("1. View all users & current credit balances")
-        print("2. Search user by email (check balance & history)")
-        print("3. Add credits to an account (by email)")
-        print("4. Exit")
-        choice = input("\nSelect an option (1-4): ").strip()
+        print("1. View 💎 Premium / Paying Users")
+        print("2. View 🆓 Free Users")
+        print("3. View 👥 All Users (Separated)")
+        print("4. Search user by email (check balance & history)")
+        print("5. Add credits to an account (by email)")
+        print("6. Exit")
+        choice = input("\nSelect an option (1-6): ").strip()
 
         if choice == "1":
-            list_users()
+            list_users("premium")
         elif choice == "2":
+            list_users("free")
+        elif choice == "3":
+            list_users("all")
+        elif choice == "4":
             email = input("Enter email (or part of email/name to search): ").strip()
             if email:
                 search_user(email)
-        elif choice == "3":
+        elif choice == "5":
             email = input("Enter user's Google Email: ").strip()
             if not email:
                 print("Email cannot be empty.\n")
@@ -211,11 +242,11 @@ def interactive_menu() -> None:
                 add_credits(email, amt)
             except ValueError:
                 print("Invalid number. Please enter a valid integer.\n")
-        elif choice == "4":
+        elif choice == "6":
             print("Exiting.")
             break
         else:
-            print("Invalid choice, please select 1, 2, 3, or 4.\n")
+            print("Invalid choice, please select 1 to 6.\n")
 
 
 def main() -> None:
@@ -226,7 +257,12 @@ def main() -> None:
 
     cmd = args[0].lower()
     if cmd == "list":
-        list_users()
+        if len(args) > 1 and args[1] in ("--premium", "-p"):
+            list_users("premium")
+        elif len(args) > 1 and args[1] in ("--free", "-f"):
+            list_users("free")
+        else:
+            list_users("all")
     elif cmd in ("search", "find"):
         if len(args) < 2:
             print("Usage: python manage_credits.py search <email_or_name>")
@@ -245,7 +281,7 @@ def main() -> None:
             sys.exit(1)
     else:
         print(f"Unknown command: {cmd}")
-        print("Usage: python manage_credits.py [list | search <query> | add <email> <amount>]")
+        print("Usage: python manage_credits.py [list [--premium|--free] | search <query> | add <email> <amount>]")
 
 
 if __name__ == "__main__":
