@@ -253,7 +253,7 @@
       <div class="status-header">
         <div class="status-title-group">
           <div class="spinner-dot"></div>
-          <h3 class="status-title" id="loadingTitle">Fetching Channel Intelligence...</h3>
+          <div class="status-title" id="loadingTitle">Fetching Channel Intelligence...</div>
         </div>
         <span class="percentage-badge">Real-Time</span>
       </div>
@@ -267,13 +267,21 @@
     </div>
 
     <!-- ======================================================== -->
-        <!-- Empty Search Prompt Card (Visible initially before searching) -->
+    <!-- Empty Search Prompt Card (Visible initially before searching) -->
+    <!-- ======================================================== -->
     <div class="empty-search-state" id="emptySearchState" style="text-align: center; padding: 48px 20px; background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 16px; margin: 24px 0 32px;">
       <div style="font-size: 2.8rem; margin-bottom: 12px; line-height: 1;">🔍</div>
-      <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Search Any YouTube Channel</h3>
-      <p style="color: var(--text-secondary); font-size: 0.92rem; max-width: 500px; margin: 0 auto; line-height: 1.6;">
+      <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Free YouTube Channel Statistics &amp; Money Calculator</h2>
+      <p style="color: var(--text-secondary); font-size: 0.92rem; max-width: 540px; margin: 0 auto 18px; line-height: 1.6;">
         Type any creator name, @handle, or paste a channel link in the search bar above to audit live subscribers, SocialBlade grade, daily views velocity, and AdSense revenue estimates.
       </p>
+      <div class="quick-channels-bar" style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; font-size: 0.85rem;">
+        <span style="color: var(--text-muted); font-weight: 600;">Popular Creators:</span>
+        <button class="quick-ch-btn" data-handle="@CarryisLive" type="button" style="background: rgba(255, 0, 51, 0.08); border: 1px solid rgba(255, 0, 51, 0.2); color: var(--text-primary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 500;">CarryisLive</button>
+        <button class="quick-ch-btn" data-handle="@MortaL" type="button" style="background: rgba(255, 0, 51, 0.08); border: 1px solid rgba(255, 0, 51, 0.2); color: var(--text-primary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 500;">MortaL</button>
+        <button class="quick-ch-btn" data-handle="@TotalGamingOfficial" type="button" style="background: rgba(255, 0, 51, 0.08); border: 1px solid rgba(255, 0, 51, 0.2); color: var(--text-primary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 500;">Total Gaming</button>
+        <button class="quick-ch-btn" data-handle="@MrBeast" type="button" style="background: rgba(255, 0, 51, 0.08); border: 1px solid rgba(255, 0, 51, 0.2); color: var(--text-primary); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 500;">MrBeast</button>
+      </div>
     </div>
 
     <!-- ======================================================== -->
@@ -292,34 +300,34 @@
           </div>
           <div class="profile-info-box">
             <div class="profile-title-row">
-              <h2 class="profile-channel-name" id="chTitle">Channel Name</h2>
-              <span class="profile-handle-pill" id="chHandle">@handle</span>
+              <div class="profile-channel-name" id="chTitle" style="font-size: 1.4rem; font-weight: 800;">--</div>
+              <span class="profile-handle-pill" id="chHandle">--</span>
               <span class="badge-verified" title="Verified Creator">✓</span>
             </div>
             <div class="profile-meta-grid">
               <div class="p-meta-item">
                 <span class="p-meta-lbl">Subscribers</span>
-                <span class="p-meta-val" id="chSubs">4.69M</span>
+                <span class="p-meta-val" id="chSubs">--</span>
               </div>
               <div class="p-meta-item">
                 <span class="p-meta-lbl">Total Views</span>
-                <span class="p-meta-val" id="chViews">538,607,889</span>
+                <span class="p-meta-val" id="chViews">--</span>
               </div>
               <div class="p-meta-item">
                 <span class="p-meta-lbl">Videos</span>
-                <span class="p-meta-val" id="chVideos">1,084</span>
+                <span class="p-meta-val" id="chVideos">--</span>
               </div>
               <div class="p-meta-item">
                 <span class="p-meta-lbl">Created On</span>
-                <span class="p-meta-val" id="chJoined">March 1, 2019</span>
+                <span class="p-meta-val" id="chJoined">--</span>
               </div>
               <div class="p-meta-item">
                 <span class="p-meta-lbl">Country</span>
-                <span class="p-meta-val" id="chCountry">India (IN)</span>
+                <span class="p-meta-val" id="chCountry">--</span>
               </div>
               <div class="p-meta-item">
                 <span class="p-meta-lbl">Channel Type</span>
-                <span class="p-meta-val text-success" id="chCategory">Gaming</span>
+                <span class="p-meta-val text-success" id="chCategory">--</span>
               </div>
             </div>
           </div>
@@ -344,42 +352,42 @@
         <!-- Grade Card -->
         <div class="rank-card grade-card">
           <span class="rank-card-lbl">GRADE</span>
-          <div class="grade-badge-val" id="rankGrade">B+</div>
+          <div class="grade-badge-val" id="rankGrade">--</div>
           <span class="rank-card-sub">SocialBlade Index</span>
         </div>
 
         <!-- SB Rank -->
         <div class="rank-card">
           <span class="rank-card-lbl">SB RANK</span>
-          <div class="rank-main-num" id="rankSb">345,970th</div>
+          <div class="rank-main-num" id="rankSb">--</div>
           <span class="rank-card-sub">Global Platform Position</span>
         </div>
 
         <!-- Subscriber Rank -->
         <div class="rank-card">
           <span class="rank-card-lbl">SUBSCRIBERS RANK</span>
-          <div class="rank-main-num" id="rankSubs">977th</div>
-          <span class="rank-card-sub">Top 0.01% Globally</span>
+          <div class="rank-main-num" id="rankSubs">--</div>
+          <span class="rank-card-sub">Global Ranking</span>
         </div>
 
         <!-- Views Rank -->
         <div class="rank-card">
           <span class="rank-card-lbl">VIEWS RANK</span>
-          <div class="rank-main-num" id="rankViews">65,352nd</div>
+          <div class="rank-main-num" id="rankViews">--</div>
           <span class="rank-card-sub">Cumulative Video Views</span>
         </div>
 
         <!-- Country Rank -->
         <div class="rank-card">
           <span class="rank-card-lbl" id="rankCountryLbl">COUNTRY RANK</span>
-          <div class="rank-main-num" id="rankCountry">716th IN</div>
+          <div class="rank-main-num" id="rankCountry">--</div>
           <span class="rank-card-sub">National Rank</span>
         </div>
 
         <!-- Category Rank -->
         <div class="rank-card">
           <span class="rank-card-lbl" id="rankCategoryLbl">CATEGORY RANK</span>
-          <div class="rank-main-num" id="rankCategory">484th Games</div>
+          <div class="rank-main-num" id="rankCategory">--</div>
           <span class="rank-card-sub">Niche Benchmark</span>
         </div>
       </div>
@@ -392,7 +400,7 @@
             <span class="stat-growth-title">SUBSCRIBERS FOR LAST 30 DAYS</span>
             <span class="stat-badge green">+Gained</span>
           </div>
-          <div class="stat-growth-val" id="statSubs30">+10K</div>
+          <div class="stat-growth-val" id="statSubs30">--</div>
           <span class="stat-growth-sub">New community growth</span>
         </div>
 
@@ -402,7 +410,7 @@
             <span class="stat-growth-title">VIEWS FOR LAST 30 DAYS</span>
             <span class="stat-badge blue">30D Velocity</span>
           </div>
-          <div class="stat-growth-val" id="statViews30">2.3M</div>
+          <div class="stat-growth-val" id="statViews30">--</div>
           <span class="stat-growth-sub">Total monthly audience impressions</span>
         </div>
 
@@ -412,7 +420,7 @@
             <span class="stat-growth-title">MONTHLY ESTIMATED EARNINGS</span>
             <span class="stat-badge green">AdSense Net</span>
           </div>
-          <div class="stat-growth-val text-success" id="statMonthlyEarnings">₹47.3K – ₹755K</div>
+          <div class="stat-growth-val text-success" id="statMonthlyEarnings">--</div>
           <span class="stat-growth-sub">Calculated at standard $0.25 – $4.00 CPM benchmark</span>
         </div>
 
@@ -422,7 +430,7 @@
             <span class="stat-growth-title">YEARLY ESTIMATED EARNINGS</span>
             <span class="stat-badge amber">Annual Projection</span>
           </div>
-          <div class="stat-growth-val text-gold" id="statYearlyEarnings">₹567K – ₹9.06M</div>
+          <div class="stat-growth-val text-gold" id="statYearlyEarnings">--</div>
           <span class="stat-growth-sub">Projected annual AdSense earnings</span>
         </div>
       </div>
@@ -544,7 +552,8 @@
           <span class="footer-col-title">Legal &amp; Info</span>
           <a href="/privacy" class="footer-link">Privacy Policy</a>
           <a href="/terms" class="footer-link">Terms of Service</a>
-          <a href="sitemap.xml" class="footer-link">Sitemap</a>
+          <a href="/sitemap.xml" class="footer-link">Sitemap</a>
+          <a href="mailto:support@tubemetrix.net" class="footer-link">Contact Support</a>
         </div>
       </div>
     </div>

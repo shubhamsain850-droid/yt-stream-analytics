@@ -400,6 +400,18 @@
         analyzeChannel(ch);
       });
     });
+
+    // Quick channel lookup buttons in empty search state
+    document.querySelectorAll('.quick-ch-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const handle = btn.dataset.handle;
+        if (handle && el.channelSearchInput) {
+          el.channelSearchInput.value = handle;
+          if (el.clearSearchBtn) el.clearSearchBtn.style.display = 'block';
+          analyzeChannel(handle);
+        }
+      });
+    });
   }
 
   function closeDropdown() {

@@ -610,7 +610,7 @@
 
   function updateCommentsCostPreview() {
     if (!el.commentsCostPreviewBar || !el.commentsLimitSelect) return;
-    const limit = parseInt(el.commentsLimitSelect.value, 10) || 300;
+    const limit = parseInt(el.commentsLimitSelect.value, 10) || 1000;
     const isHighVolume = limit > 1000;
     const neededCredits = Math.max(1, Math.ceil(limit / 1000));
     const auth = window.TubeMetrixAuth;
@@ -2219,7 +2219,7 @@
       if (dupHandled) return;
     }
 
-    const limit = parseInt(el.commentsLimitSelect.value, 10) || 300;
+    const limit = parseInt(el.commentsLimitSelect.value, 10) || 1000;
     const isHighVolume = limit > 1000;
     if (window.TubeMetrixAuth) {
       if (isHighVolume) {
