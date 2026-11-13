@@ -1,8 +1,9 @@
-"""TubeMetrix Owner Tool - View & Add Credits to any User Account.
+"""TubeMetrix Owner Tool - View, Search & Add Credits to any User Account.
 
 Run directly or with arguments:
   python manage_credits.py list
-  python manage_credits.py add user@example.com 50
+  python manage_credits.py search <email_or_name>
+  python manage_credits.py add <email> <amount>
 """
 
 from __future__ import annotations
@@ -76,6 +77,60 @@ def list_users() -> None:
     print("=" * 80 + "\n")
 
 
+def search_user(query: str) -> None:
+    """Search for users by email or name and display detailed credit info."""
+    clean_query = query.strip().lower()
+    if not clean_query:
+        print("Please enter a search keyword.")
+        return
+
+    sql = (
+        f"SELECT id, email, name, credits_balance, total_purchased_credits, created_at, updated_at "
+        f"FROM users WHERE LOWER(email) LIKE '%{clean_query}%' OR LOWER(name) LIKE '%{clean_query}%' "
+        f"ORDER BY updated_at DESC"
+    )
+    users = run_d1_query(sql)
+
+    if not users:
+        print(f"\nNo users found matching '{query}'.\n")
+        return
+
+    print(f"\nFound {len(users)} matching user(s):\n")
+    for u in users:
+        uid = u.get("id")
+        email = u.get("email")
+        name = u.get("name")
+        bal = u.get("credits_balance", 0)
+        tot = u.get("total_purchased_credits", 0)
+        created = u.get("created_at", "N/A")
+        updated = u.get("updated_at", "N/A")
+
+        print("=" * 65)
+        print(f"Name:             {name}")
+        print(f"Email:            {email}")
+        print(f"Current Credits:  {bal} credits available")
+        print(f"Lifetime Bought:  {tot} credits")
+        print(f"Joined At:        {created}")
+        print(f"Last Active:      {updated}")
+
+        # Fetch recent credit ledger history
+        ledger_sql = (
+            f"SELECT delta, reason, created_at FROM credit_ledger "
+            f"WHERE user_id = '{uid}' ORDER BY created_at DESC LIMIT 5"
+        )
+        history = run_d1_query(ledger_sql)
+        if history:
+            print("-" * 65)
+            print("Recent Credit History (Last 5 transactions):")
+            for h in history:
+                d = h.get("delta", 0)
+                d_str = f"+{d}" if d > 0 else str(d)
+                r = h.get("reason", "")
+                t = h.get("created_at", "")[:19].replace("T", " ")
+                print(f"  [{t}] {d_str:>4} credits  ({r})")
+        print("=" * 65 + "\n")
+
+
 def add_credits(email: str, amount: int) -> bool:
     """Add credits to a user by email, update ledger, and refresh user row."""
     email_clean = email.strip().lower()
@@ -134,13 +189,18 @@ def interactive_menu() -> None:
         print("       TubeMetrix - Owner Credit Manager          ")
         print("==================================================")
         print("1. View all users & current credit balances")
-        print("2. Add credits to an account (by email)")
-        print("3. Exit")
-        choice = input("\nSelect an option (1-3): ").strip()
+        print("2. Search user by email (check balance & history)")
+        print("3. Add credits to an account (by email)")
+        print("4. Exit")
+        choice = input("\nSelect an option (1-4): ").strip()
 
         if choice == "1":
             list_users()
         elif choice == "2":
+            email = input("Enter email (or part of email/name to search): ").strip()
+            if email:
+                search_user(email)
+        elif choice == "3":
             email = input("Enter user's Google Email: ").strip()
             if not email:
                 print("Email cannot be empty.\n")
@@ -151,11 +211,11 @@ def interactive_menu() -> None:
                 add_credits(email, amt)
             except ValueError:
                 print("Invalid number. Please enter a valid integer.\n")
-        elif choice == "3":
+        elif choice == "4":
             print("Exiting.")
             break
         else:
-            print("Invalid choice, please select 1, 2, or 3.\n")
+            print("Invalid choice, please select 1, 2, 3, or 4.\n")
 
 
 def main() -> None:
@@ -167,6 +227,11 @@ def main() -> None:
     cmd = args[0].lower()
     if cmd == "list":
         list_users()
+    elif cmd in ("search", "find"):
+        if len(args) < 2:
+            print("Usage: python manage_credits.py search <email_or_name>")
+            sys.exit(1)
+        search_user(args[1])
     elif cmd == "add":
         if len(args) < 3:
             print("Usage: python manage_credits.py add <email> <amount>")
@@ -180,7 +245,7 @@ def main() -> None:
             sys.exit(1)
     else:
         print(f"Unknown command: {cmd}")
-        print("Usage: python manage_credits.py [list | add <email> <amount>]")
+        print("Usage: python manage_credits.py [list | search <query> | add <email> <amount>]")
 
 
 if __name__ == "__main__":
