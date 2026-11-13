@@ -39,6 +39,37 @@
   <meta name="twitter:description"
     content="Free tool to audit YouTube live stream revenue: Super Chats, Memberships, YouTube Jewels with multi-currency support. Export to Excel/CSV.">
   <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://tubemetrix.net/#organization",
+        "name": "TubeMetrix",
+        "alternateName": ["TubeMetrix Official", "TubeMetrix.net"],
+        "url": "https://tubemetrix.net/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://tubemetrix.net/icon-512.png",
+          "width": 512,
+          "height": 512
+        },
+        "description": "Official TubeMetrix creator intelligence suite: YouTube live stream earnings auditor, live chat & comments downloader, and channel statistics analytics.",
+        "email": "support@tubemetrix.net"
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://tubemetrix.net/#website",
+        "url": "https://tubemetrix.net/",
+        "name": "TubeMetrix",
+        "publisher": {
+          "@id": "https://tubemetrix.net/#organization"
+        }
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"WebApplication","name":"TubeMetrix — YouTube Live Stream Earnings Auditor","url":"https://tubemetrix.net/","description":"Calculate exact YouTube live stream earnings from Super Chats, Memberships and YouTube Jewels. Export to CSV, Excel and TXT.","applicationCategory":"FinanceApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["YouTube Super Chat Revenue Calculator","YouTube Jewels to INR Converter","YouTube Membership Earnings Tracker","Bulk Live Stream Batch Export","Multi-Currency Forex Conversion","CSV and Excel Export"]}
   </script>
   <script type="application/ld+json">
@@ -174,6 +205,17 @@
         Accurately audit live stream revenue, filter Super Chats, calculate YouTube Jewels to INR, and export clean CSV
         reports for creators, managers &amp; editors.
       </p>
+      <div class="hero-suite-nav" style="margin-top: 14px; display: inline-flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 12px; font-size: 0.88rem; color: var(--text-secondary);">
+        <span style="font-weight: 600; color: var(--text-primary); display: inline-flex; align-items: center; gap: 6px;">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent-red, #ff0033);"></span>
+          TubeMetrix Suite:
+        </span>
+        <span style="color: var(--accent-red, #ff0033); font-weight: 600; background: rgba(255, 0, 51, 0.08); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(255, 0, 51, 0.2);">🔴 Live Stream Earnings</span>
+        <span style="color: var(--text-muted, #64748b);">•</span>
+        <a href="/chats" style="color: var(--text-primary); text-decoration: none; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='#ff0033'" onmouseout="this.style.color='var(--text-primary)'">💬 Live Chat Downloader ➔</a>
+        <span style="color: var(--text-muted, #64748b);">•</span>
+        <a href="/revenue" style="color: var(--text-primary); text-decoration: none; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='#ff0033'" onmouseout="this.style.color='var(--text-primary)'">📊 Channel Stats ➔</a>
+      </div>
     </section>
 
     <!-- Main Tool Container -->
