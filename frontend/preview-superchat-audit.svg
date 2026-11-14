@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" fill="none">
+  <defs>
+    <linearGradient id="bgG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0b10"/>
+      <stop offset="100%" stop-color="#11131c"/>
+    </linearGradient>
+    <linearGradient id="cardG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e2230" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#131622" stop-opacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="redG" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff1744"/>
+      <stop offset="100%" stop-color="#ff5252"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#bgG)"/>
+  <rect x="40" y="30" width="1120" height="615" rx="20" fill="#0e1017" stroke="#262a3b" stroke-width="1.5"/>
+  <rect x="40" y="30" width="1120" height="52" rx="20" fill="#161925"/>
+  <circle cx="75" cy="56" r="6" fill="#ff5f56"/>
+  <circle cx="95" cy="56" r="6" fill="#ffbd2e"/>
+  <circle cx="115" cy="56" r="6" fill="#27c93f"/>
+  <rect x="300" y="42" width="600" height="28" rx="8" fill="#0c0d13" stroke="#232838"/>
+  <text x="600" y="61" fill="#94a3b8" font-family="sans-serif" font-size="12" font-weight="500" text-anchor="middle">https://tubemetrix.net/ — YouTube Live Stream Super Chat Earnings Auditor</text>
+
+  <!-- Banner -->
+  <rect x="70" y="105" width="1060" height="110" rx="16" fill="url(#cardG)" stroke="#272c40"/>
+  <circle cx="125" cy="160" r="32" fill="#22273a" stroke="#ff1744" stroke-width="2"/>
+  <text x="125" y="167" fill="#ff5252" font-family="sans-serif" font-size="20" font-weight="800" text-anchor="middle">LIVE</text>
+  <text x="175" y="150" fill="#ffffff" font-family="sans-serif" font-size="22" font-weight="800">PUBG Mobile World Invitational — Grand Finals Day 3</text>
+  <text x="175" y="175" fill="#94a3b8" font-family="sans-serif" font-size="13">Stream Duration: 4h 22m · 8,420 Chat Messages Audited · High-Frequency Chat Cache</text>
+
+  <!-- Stat Cards -->
+  <rect x="70" y="235" width="250" height="110" rx="14" fill="url(#cardG)" stroke="#262b3d"/>
+  <text x="90" y="262" fill="#94a3b8" font-family="sans-serif" font-size="11" font-weight="700">GROSS EARNINGS</text>
+  <text x="90" y="298" fill="#10b981" font-family="sans-serif" font-size="26" font-weight="900">₹84,250</text>
+  <text x="90" y="325" fill="#64748b" font-family="sans-serif" font-size="11.5">142 Paid Super Chats</text>
+
+  <rect x="340" y="235" width="250" height="110" rx="14" fill="url(#cardG)" stroke="#262b3d"/>
+  <text x="360" y="262" fill="#94a3b8" font-family="sans-serif" font-size="11" font-weight="700">CREATOR NET (70% SPLIT)</text>
+  <text x="360" y="298" fill="#38bdf8" font-family="sans-serif" font-size="26" font-weight="900">₹58,975</text>
+  <text x="360" y="325" fill="#64748b" font-family="sans-serif" font-size="11.5">Official YouTube 70/30 Share</text>
+
+  <rect x="610" y="235" width="250" height="110" rx="14" fill="url(#cardG)" stroke="#262b3d"/>
+  <text x="630" y="262" fill="#94a3b8" font-family="sans-serif" font-size="11" font-weight="700">TOP SINGLE SUPER CHAT</text>
+  <text x="630" y="298" fill="#fbbf24" font-family="sans-serif" font-size="26" font-weight="900">₹10,000</text>
+  <text x="630" y="325" fill="#64748b" font-family="sans-serif" font-size="11.5">Red Tier Super Chat</text>
+
+  <rect x="880" y="235" width="250" height="110" rx="14" fill="url(#cardG)" stroke="#262b3d"/>
+  <text x="900" y="262" fill="#94a3b8" font-family="sans-serif" font-size="11" font-weight="700">SUPER STICKERS &amp; TIERS</text>
+  <text x="900" y="298" fill="#e879f9" font-family="sans-serif" font-size="26" font-weight="900">38 Stickers</text>
+  <text x="900" y="325" fill="#64748b" font-family="sans-serif" font-size="11.5">Across 7 YouTube Color Tiers</text>
+
+  <!-- Super Chat Log Table Preview -->
+  <rect x="70" y="365" width="1060" height="260" rx="14" fill="url(#cardG)" stroke="#262b3d"/>
+  <rect x="70" y="365" width="1060" height="38" rx="14" fill="#171a28"/>
+  <rect x="70" y="392" width="1060" height="11" fill="#171a28"/>
+  <text x="100" y="390" fill="#94a3b8" font-family="sans-serif" font-size="11.5" font-weight="700">DONOR NAME</text>
+  <text x="360" y="390" fill="#94a3b8" font-family="sans-serif" font-size="11.5" font-weight="700">AMOUNT (INR)</text>
+  <text x="560" y="390" fill="#94a3b8" font-family="sans-serif" font-size="11.5" font-weight="700">TIER COLOR</text>
+  <text x="760" y="390" fill="#94a3b8" font-family="sans-serif" font-size="11.5" font-weight="700">MESSAGE TEXT</text>
+
+  <line x1="70" y1="440" x2="1130" y2="440" stroke="#222738"/>
+  <text x="100" y="426" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Rahul Sharma</text>
+  <text x="360" y="426" fill="#ff1744" font-family="sans-serif" font-size="12.5" font-weight="800">₹10,000.00</text>
+  <text x="560" y="426" fill="#ff5252" font-family="sans-serif" font-size="12" font-weight="700">🔴 Red Tier</text>
+  <text x="760" y="426" fill="#e2e8f0" font-family="sans-serif" font-size="12">Bhai clutch God level tha! Keep grinding!</text>
+
+  <line x1="70" y1="490" x2="1130" y2="490" stroke="#222738"/>
+  <text x="100" y="476" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Aman_Gamer99</text>
+  <text x="360" y="476" fill="#f59e0b" font-family="sans-serif" font-size="12.5" font-weight="800">₹2,000.00</text>
+  <text x="560" y="476" fill="#fbbf24" font-family="sans-serif" font-size="12" font-weight="700">🟠 Orange Tier</text>
+  <text x="760" y="476" fill="#e2e8f0" font-family="sans-serif" font-size="12">Super gameplay bhai! Love from Delhi</text>
+
+  <line x1="70" y1="540" x2="1130" y2="540" stroke="#222738"/>
+  <text x="100" y="526" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Sneha Patel</text>
+  <text x="360" y="526" fill="#10b981" font-family="sans-serif" font-size="12.5" font-weight="800">₹500.00</text>
+  <text x="560" y="526" fill="#34d399" font-family="sans-serif" font-size="12" font-weight="700">🟢 Green Tier</text>
+  <text x="760" y="526" fill="#e2e8f0" font-family="sans-serif" font-size="12">Big fan! Shoutout please</text>
+
+  <line x1="70" y1="590" x2="1130" y2="590" stroke="#222738"/>
+  <text x="100" y="576" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">Vikram Singh</text>
+  <text x="360" y="576" fill="#3b82f6" font-family="sans-serif" font-size="12.5" font-weight="800">₹100.00</text>
+  <text x="560" y="576" fill="#60a5fa" font-family="sans-serif" font-size="12" font-weight="700">🔵 Blue Tier</text>
+  <text x="760" y="576" fill="#e2e8f0" font-family="sans-serif" font-size="12">OP Stream</text>
+</svg>

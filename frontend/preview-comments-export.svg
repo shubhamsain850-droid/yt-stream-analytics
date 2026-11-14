@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" fill="none">
+  <defs>
+    <linearGradient id="bgG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0b10"/>
+      <stop offset="100%" stop-color="#11131c"/>
+    </linearGradient>
+    <linearGradient id="cardG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e2230" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#131622" stop-opacity="0.8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#bgG)"/>
+  <rect x="40" y="30" width="1120" height="615" rx="20" fill="#0e1017" stroke="#262a3b" stroke-width="1.5"/>
+  <rect x="40" y="30" width="1120" height="52" rx="20" fill="#161925"/>
+  <circle cx="75" cy="56" r="6" fill="#ff5f56"/>
+  <circle cx="95" cy="56" r="6" fill="#ffbd2e"/>
+  <circle cx="115" cy="56" r="6" fill="#27c93f"/>
+  <rect x="300" y="42" width="600" height="28" rx="8" fill="#0c0d13" stroke="#232838"/>
+  <text x="600" y="61" fill="#94a3b8" font-family="sans-serif" font-size="12" font-weight="500" text-anchor="middle">https://tubemetrix.net/youtube-comments-downloader — YouTube Comments Exporter</text>
+
+  <!-- Export Banner -->
+  <rect x="70" y="105" width="1060" height="120" rx="16" fill="url(#cardG)" stroke="#272c40"/>
+  <text x="100" y="145" fill="#ffffff" font-family="sans-serif" font-size="22" font-weight="800">1,000 Verified YouTube Comments Extracted</text>
+  <text x="100" y="172" fill="#94a3b8" font-family="sans-serif" font-size="13">Export Formats: Microsoft Excel (.xlsx), CSV (.csv), JSON Data (.json) · Timestamp &amp; Author Badges Included</text>
+  <rect x="880" y="135" width="120" height="38" rx="8" fill="#10b981"/>
+  <text x="940" y="159" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">⬇ Export Excel</text>
+  <rect x="1015" y="135" width="95" height="38" rx="8" fill="#222738" stroke="#333a4f"/>
+  <text x="1062" y="159" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="700" text-anchor="middle">⬇ CSV</text>
+
+  <!-- Extracted Comments Preview Table -->
+  <rect x="70" y="245" width="1060" height="380" rx="14" fill="url(#cardG)" stroke="#262b3d"/>
+  <rect x="70" y="245" width="1060" height="38" rx="14" fill="#171a28"/>
+  <rect x="70" y="272" width="1060" height="11" fill="#171a28"/>
+  <text x="100" y="270" fill="#94a3b8" font-family="sans-serif" font-size="11.5" font-weight="700">AUTHOR</text>
+  <text x="320" y="270" fill="#94a3b8" font-family="sans-serif" font-size="11.5" font-weight="700">COMMENT TEXT</text>
+  <text x="860" y="270" fill="#94a3b8" font-family="sans-serif" font-size="11.5" font-weight="700">LIKES</text>
+  <text x="960" y="270" fill="#94a3b8" font-family="sans-serif" font-size="11.5" font-weight="700">TIMESTAMP</text>
+
+  <!-- Row 1 -->
+  <line x1="70" y1="320" x2="1130" y2="320" stroke="#222738"/>
+  <text x="100" y="305" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">@DevRathore</text>
+  <text x="320" y="305" fill="#e2e8f0" font-family="sans-serif" font-size="12">This tutorial explained the entire backend architecture so simply! Thank you.</text>
+  <text x="860" y="305" fill="#10b981" font-family="sans-serif" font-size="12" font-weight="700">👍 1,420</text>
+  <text x="960" y="305" fill="#94a3b8" font-family="sans-serif" font-size="12">2 hours ago</text>
+
+  <!-- Row 2 -->
+  <line x1="70" y1="375" x2="1130" y2="375" stroke="#222738"/>
+  <text x="100" y="360" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">@TechAnalyst_Pro</text>
+  <text x="320" y="360" fill="#e2e8f0" font-family="sans-serif" font-size="12">Bookmarked! Looking forward to part 2 on database optimization.</text>
+  <text x="860" y="360" fill="#10b981" font-family="sans-serif" font-size="12" font-weight="700">👍 854</text>
+  <text x="960" y="360" fill="#94a3b8" font-family="sans-serif" font-size="12">5 hours ago</text>
+
+  <!-- Row 3 -->
+  <line x1="70" y1="430" x2="1130" y2="430" stroke="#222738"/>
+  <text x="100" y="415" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">@CodeWithPooja</text>
+  <text x="320" y="415" fill="#e2e8f0" font-family="sans-serif" font-size="12">Clear audio, crisp explanations and no fluff. Great work creator!</text>
+  <text x="860" y="415" fill="#10b981" font-family="sans-serif" font-size="12" font-weight="700">👍 412</text>
+  <text x="960" y="415" fill="#94a3b8" font-family="sans-serif" font-size="12">1 day ago</text>
+
+  <!-- Row 4 -->
+  <line x1="70" y1="485" x2="1130" y2="485" stroke="#222738"/>
+  <text x="100" y="470" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">@GamingArenaOfficial</text>
+  <text x="320" y="470" fill="#e2e8f0" font-family="sans-serif" font-size="12">That timing at 14:32 was insanely precise, how did you calculate that?</text>
+  <text x="860" y="470" fill="#10b981" font-family="sans-serif" font-size="12" font-weight="700">👍 289</text>
+  <text x="960" y="470" fill="#94a3b8" font-family="sans-serif" font-size="12">2 days ago</text>
+
+  <!-- Row 5 -->
+  <text x="100" y="525" fill="#ffffff" font-family="sans-serif" font-size="12" font-weight="700">@Ankit_Creator</text>
+  <text x="320" y="525" fill="#e2e8f0" font-family="sans-serif" font-size="12">Downloading this whole comment dataset for sentiment analysis research.</text>
+  <text x="860" y="525" fill="#10b981" font-family="sans-serif" font-size="12" font-weight="700">👍 145</text>
+  <text x="960" y="525" fill="#94a3b8" font-family="sans-serif" font-size="12">3 days ago</text>
+</svg>

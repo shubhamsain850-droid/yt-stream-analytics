@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0b10"/>
+      <stop offset="50%" stop-color="#12141c"/>
+      <stop offset="100%" stop-color="#0c0d14"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e2230" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#141724" stop-opacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff1744"/>
+      <stop offset="100%" stop-color="#ff5252"/>
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00f2fe"/>
+      <stop offset="100%" stop-color="#4facfe"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="675" fill="url(#bgGrad)"/>
+  <circle cx="200" cy="150" r="260" fill="#ff1744" opacity="0.07" filter="url(#glow)"/>
+  <circle cx="1000" cy="500" r="300" fill="#00f2fe" opacity="0.05" filter="url(#glow)"/>
+
+  <!-- Window Chrome -->
+  <rect x="40" y="30" width="1120" height="615" rx="20" fill="#0e1017" stroke="#262a3b" stroke-width="1.5"/>
+  <rect x="40" y="30" width="1120" height="52" rx="20" fill="#161925"/>
+  <rect x="40" y="62" width="1120" height="20" fill="#161925"/>
+  <!-- Window dots -->
+  <circle cx="75" cy="56" r="6" fill="#ff5f56"/>
+  <circle cx="95" cy="56" r="6" fill="#ffbd2e"/>
+  <circle cx="115" cy="56" r="6" fill="#27c93f"/>
+  <!-- URL Bar -->
+  <rect x="300" y="42" width="600" height="28" rx="8" fill="#0c0d13" stroke="#232838"/>
+  <text x="600" y="61" fill="#94a3b8" font-family="sans-serif" font-size="12" font-weight="500" text-anchor="middle">https://tubemetrix.net/revenue — YouTube Channel Analytics &amp; Side-by-Side Comparison</text>
+
+  <!-- Navigation Header inside App -->
+  <rect x="70" y="102" width="36" height="36" rx="10" fill="url(#redGrad)"/>
+  <text x="78" y="126" fill="#ffffff" font-family="sans-serif" font-size="18" font-weight="900">T</text>
+  <text x="116" y="127" fill="#ffffff" font-family="sans-serif" font-size="20" font-weight="800">Tube<tspan fill="#ff1744">Metrix</tspan></text>
+
+  <!-- Mode Switcher Tabs -->
+  <rect x="420" y="102" width="360" height="40" rx="10" fill="#151824" stroke="#24293c"/>
+  <rect x="424" y="106" width="170" height="32" rx="8" fill="#222738"/>
+  <text x="509" y="127" fill="#ffffff" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">🔍 Single Channel</text>
+  <rect x="602" y="106" width="174" height="32" rx="8" fill="url(#redGrad)" opacity="0.15" stroke="#ff1744" stroke-width="1"/>
+  <text x="689" y="127" fill="#ff5252" font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">⚖️ Compare 2 Channels</text>
+
+  <!-- Side-by-Side Comparison Banner -->
+  <rect x="70" y="160" width="1060" height="175" rx="16" fill="url(#cardGrad)" stroke="#272c40" stroke-width="1.5"/>
+  
+  <!-- Creator A (CarryisLive) -->
+  <circle cx="145" cy="225" r="42" fill="#22273a" stroke="#ff1744" stroke-width="2.5"/>
+  <text x="145" y="233" fill="#ff5252" font-family="sans-serif" font-size="26" font-weight="800" text-anchor="middle">C</text>
+  <text x="205" y="215" fill="#ffffff" font-family="sans-serif" font-size="22" font-weight="800">CarryisLive ✓</text>
+  <text x="205" y="238" fill="#94a3b8" font-family="sans-serif" font-size="13">@CarryisLive · Gaming · India</text>
+  <rect x="205" y="250" width="86" height="24" rx="6" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-width="1"/>
+  <text x="248" y="266" fill="#10b981" font-family="sans-serif" font-size="11.5" font-weight="700" text-anchor="middle">GRADE A</text>
+
+  <!-- VS Badge -->
+  <circle cx="600" cy="230" r="28" fill="#ff1744" filter="url(#glow)"/>
+  <circle cx="600" cy="230" r="26" fill="#12141c" stroke="#ff1744" stroke-width="2"/>
+  <text x="600" y="237" fill="#ffffff" font-family="sans-serif" font-size="16" font-weight="900" text-anchor="middle">VS</text>
+
+  <!-- Creator B (MortaL) -->
+  <circle cx="1055" cy="225" r="42" fill="#22273a" stroke="#3b82f6" stroke-width="2.5"/>
+  <text x="1055" y="233" fill="#60a5fa" font-family="sans-serif" font-size="26" font-weight="800" text-anchor="middle">M</text>
+  <text x="995" y="215" fill="#ffffff" font-family="sans-serif" font-size="22" font-weight="800" text-anchor="end">MortaL ✓</text>
+  <text x="995" y="238" fill="#94a3b8" font-family="sans-serif" font-size="13" text-anchor="end">@MortaLyt · Gaming · India</text>
+  <rect x="920" y="250" width="75" height="24" rx="6" fill="#3b82f6" fill-opacity="0.15" stroke="#3b82f6" stroke-width="1"/>
+  <text x="957" y="266" fill="#60a5fa" font-family="sans-serif" font-size="11.5" font-weight="700" text-anchor="middle">GRADE B+</text>
+
+  <!-- Comparison Metrics Grid (4 Stat Boxes) -->
+  <!-- Box 1: Subscribers -->
+  <rect x="70" y="350" width="250" height="120" rx="14" fill="url(#cardGrad)" stroke="#262b3d"/>
+  <text x="90" y="376" fill="#94a3b8" font-family="sans-serif" font-size="11" font-weight="700" letter-spacing="0.5">SUBSCRIBERS HEAD-TO-HEAD</text>
+  <text x="90" y="412" fill="#10b981" font-family="sans-serif" font-size="24" font-weight="900">12.7M</text>
+  <text x="165" y="410" fill="#64748b" font-family="sans-serif" font-size="14">vs</text>
+  <text x="190" y="412" fill="#ffffff" font-family="sans-serif" font-size="20" font-weight="800">6.94M</text>
+  <rect x="90" y="428" width="160" height="22" rx="6" fill="#10b981" fill-opacity="0.12"/>
+  <text x="170" y="443" fill="#10b981" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="middle">▲ +5.76M Subs Ahead</text>
+
+  <!-- Box 2: 30-Day Views -->
+  <rect x="340" y="350" width="250" height="120" rx="14" fill="url(#cardGrad)" stroke="#262b3d"/>
+  <text x="360" y="376" fill="#94a3b8" font-family="sans-serif" font-size="11" font-weight="700" letter-spacing="0.5">30-DAY VIEW VELOCITY</text>
+  <text x="360" y="412" fill="#38bdf8" font-family="sans-serif" font-size="24" font-weight="900">9.23M</text>
+  <text x="435" y="410" fill="#64748b" font-family="sans-serif" font-size="14">vs</text>
+  <text x="460" y="412" fill="#ffffff" font-family="sans-serif" font-size="20" font-weight="800">5.18M</text>
+  <rect x="360" y="428" width="160" height="22" rx="6" fill="#38bdf8" fill-opacity="0.12"/>
+  <text x="440" y="443" fill="#38bdf8" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="middle">▲ +4.05M Views Faster</text>
+
+  <!-- Box 3: Monthly AdSense -->
+  <rect x="610" y="350" width="250" height="120" rx="14" fill="url(#cardGrad)" stroke="#262b3d"/>
+  <text x="630" y="376" fill="#94a3b8" font-family="sans-serif" font-size="11" font-weight="700" letter-spacing="0.5">ESTIMATED MONTHLY EARNINGS</text>
+  <text x="630" y="412" fill="#10b981" font-family="sans-serif" font-size="22" font-weight="900">₹2.0L – ₹32L</text>
+  <text x="630" y="443" fill="#94a3b8" font-family="sans-serif" font-size="11">MortaL: ₹1.1L – ₹18L / mo</text>
+
+  <!-- Box 4: Total Cumulative Views -->
+  <rect x="880" y="350" width="250" height="120" rx="14" fill="url(#cardGrad)" stroke="#262b3d"/>
+  <text x="900" y="376" fill="#94a3b8" font-family="sans-serif" font-size="11" font-weight="700" letter-spacing="0.5">LIFETIME YOUTUBE VIEWS</text>
+  <text x="900" y="412" fill="#fbbf24" font-family="sans-serif" font-size="24" font-weight="900">2.25B</text>
+  <text x="975" y="410" fill="#64748b" font-family="sans-serif" font-size="14">vs</text>
+  <text x="1000" y="412" fill="#ffffff" font-family="sans-serif" font-size="20" font-weight="800">1.31B</text>
+  <rect x="900" y="428" width="150" height="22" rx="6" fill="#fbbf24" fill-opacity="0.12"/>
+  <text x="975" y="443" fill="#fbbf24" font-family="sans-serif" font-size="11" font-weight="700" text-anchor="middle">▲ +940M Views Lead</text>
+
+  <!-- Mini Comparison Table Preview -->
+  <rect x="70" y="485" width="1060" height="140" rx="14" fill="url(#cardGrad)" stroke="#262b3d"/>
+  <rect x="70" y="485" width="1060" height="36" rx="14" fill="#171a28"/>
+  <rect x="70" y="510" width="1060" height="11" fill="#171a28"/>
+  <text x="100" y="508" fill="#94a3b8" font-family="sans-serif" font-size="11.5" font-weight="700">METRIC / BENCHMARK</text>
+  <text x="540" y="508" fill="#ff5252" font-family="sans-serif" font-size="11.5" font-weight="700">CarryisLive (@CarryisLive)</text>
+  <text x="880" y="508" fill="#60a5fa" font-family="sans-serif" font-size="11.5" font-weight="700">MortaL (@MortaLyt)</text>
+
+  <!-- Row 1 -->
+  <line x1="70" y1="555" x2="1130" y2="555" stroke="#222738"/>
+  <text x="100" y="542" fill="#e2e8f0" font-family="sans-serif" font-size="12" font-weight="600">SocialBlade Grade Rating</text>
+  <text x="540" y="542" fill="#10b981" font-family="sans-serif" font-size="12" font-weight="800">Grade A (Superior Velocity)</text>
+  <text x="880" y="542" fill="#3b82f6" font-family="sans-serif" font-size="12" font-weight="700">Grade B+</text>
+
+  <!-- Row 2 -->
+  <line x1="70" y1="590" x2="1130" y2="590" stroke="#222738"/>
+  <text x="100" y="577" fill="#e2e8f0" font-family="sans-serif" font-size="12" font-weight="600">Uploaded Videos Count</text>
+  <text x="540" y="577" fill="#ffffff" font-family="sans-serif" font-size="12">1,040+ Streams &amp; Videos</text>
+  <text x="880" y="577" fill="#ffffff" font-family="sans-serif" font-size="12">1,980+ Streams &amp; Videos</text>
+
+  <!-- Row 3 -->
+  <text x="100" y="612" fill="#e2e8f0" font-family="sans-serif" font-size="12" font-weight="600">Country &amp; Category</text>
+  <text x="540" y="612" fill="#94a3b8" font-family="sans-serif" font-size="12">India (IN) · Gaming</text>
+  <text x="880" y="612" fill="#94a3b8" font-family="sans-serif" font-size="12">India (IN) · Gaming</text>
+</svg>

@@ -40,7 +40,9 @@
   const state = {
     currency: localStorage.getItem('TubeMetrix_currency') || 'INR',
     theme: localStorage.getItem('TubeMetrix_theme') || localStorage.getItem('theme') || 'dark',
+    activeMode: 'single', // 'single' | 'compare'
     activeChannelData: null,
+    activeComparisonData: null,
     searchDebounceTimer: null,
     activeChartTab: 'views', // 'views' | 'subs'
     daysFilter: 14
@@ -58,7 +60,14 @@
     currBtns: document.querySelectorAll('.curr-btn[data-curr]'),
     moreCurrSelect: document.getElementById('moreCurrencySelect'),
 
-    // Search Controls
+    // Mode Switcher & Panels
+    revenueModeTabs: document.getElementById('revenueModeTabs'),
+    tabModeSingle: document.getElementById('tabModeSingle'),
+    tabModeCompare: document.getElementById('tabModeCompare'),
+    panelSingleChannel: document.getElementById('panelSingleChannel'),
+    panelCompareChannels: document.getElementById('panelCompareChannels'),
+
+    // Single Search Controls
     channelSearchInput: document.getElementById('channelSearchInput'),
     pasteSearchBtn: document.getElementById('pasteSearchBtn'),
     clearSearchBtn: document.getElementById('clearSearchBtn'),
@@ -67,6 +76,19 @@
     dropdownList: document.getElementById('dropdownList'),
     trendingPills: document.querySelectorAll('#trendingPills .preset-pill'),
     channelErrorMsg: document.getElementById('channelErrorMsg'),
+
+    // Dual Compare Controls
+    compareInputA: document.getElementById('compareInputA'),
+    compareInputB: document.getElementById('compareInputB'),
+    clearCompareABtn: document.getElementById('clearCompareABtn'),
+    clearCompareBBtn: document.getElementById('clearCompareBBtn'),
+    btnStartCompare: document.getElementById('btnStartCompare'),
+    comparePresets: document.querySelectorAll('.compare-preset-pill'),
+    compareResultsCard: document.getElementById('compareResultsCard'),
+
+    // Leaderboard & Empty State
+    emptySearchState: document.getElementById('emptySearchState'),
+    leaderboardTbody: document.getElementById('leaderboardTbody'),
 
     // Loading Card
     loadingCard: document.getElementById('loadingCard'),
@@ -299,6 +321,10 @@
       if (state.activeChannelData) {
         renderChannelStats(state.activeChannelData);
       }
+      if (state.activeComparisonData) {
+        renderChannelComparison(state.activeComparisonData.a, state.activeComparisonData.b);
+      }
+      renderLeaderboard();
     }
 
     el.currBtns.forEach(btn => {
@@ -524,6 +550,492 @@
     el.dropdownList.appendChild(footer);
 
     el.searchDropdown.style.display = 'block';
+  }
+
+  // ─────────────────────────────────────────────
+  // TOP 16 AUDITED YOUTUBE CREATORS LEADERBOARD
+  // ─────────────────────────────────────────────
+
+  const TOP_CREATORS_LEADERBOARD = [
+    { rank: 1, name: 'MrBeast', handle: '@MrBeast', category: 'Entertainment', avatar: 'https://yt3.googleusercontent.com/fxGKYucJAVme-YzgnKiYDhP0vStNu_l_Rr602cnhn2DpFlgIsHyGhjfnhEk1UABDRIrrdua8qw=s176-c-k-c0x00ffffff-no-rj', subs: '526M', grade: 'A++', gradeClass: 'grade-a', views30d: '1.8B', monthlyUsdMin: 450000, monthlyUsdMax: 7200000 },
+    { rank: 2, name: 'T-Series', handle: '@tseries', category: 'Music', avatar: 'https://yt3.googleusercontent.com/v_fg9LjXDqodJScbvqbLXIrRIqOTLvdq9ELn4oeg1p8rWkQ8vW2zI7P6n98w=s176-c-k-c0x00ffffff-no-rj', subs: '316M', grade: 'A++', gradeClass: 'grade-a', views30d: '2.1B', monthlyUsdMin: 520000, monthlyUsdMax: 8300000 },
+    { rank: 3, name: 'SET India', handle: '@SETIndia', category: 'Entertainment', avatar: 'https://yt3.googleusercontent.com/eu0f2MxgE8x0m5h936B1cE0jXU1N_9y7_i221762=s176-c-k-c0x00ffffff-no-rj', subs: '190M', grade: 'A+', gradeClass: 'grade-a', views30d: '1.4B', monthlyUsdMin: 350000, monthlyUsdMax: 5600000 },
+    { rank: 4, name: 'Techno Gamerz', handle: '@TechnoGamerzOfficial', category: 'Gaming', avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_kX44kO47JzS_83_L-K8Xg8928=s176-c-k-c0x00ffffff-no-rj', subs: '53.6M', grade: 'A+', gradeClass: 'grade-a', views30d: '210M', monthlyUsdMin: 52500, monthlyUsdMax: 840000 },
+    { rank: 5, name: 'Total Gaming', handle: '@TotalGaming093', category: 'Gaming', avatar: 'https://yt3.googleusercontent.com/b_838848_k-929_18182717=s176-c-k-c0x00ffffff-no-rj', subs: '46M', grade: 'A+', gradeClass: 'grade-a', views30d: '115M', monthlyUsdMin: 28750, monthlyUsdMax: 460000 },
+    { rank: 6, name: 'CarryMinati', handle: '@CarryMinati', category: 'Entertainment', avatar: 'https://yt3.googleusercontent.com/j0oQ_12381273981729=s176-c-k-c0x00ffffff-no-rj', subs: '45.8M', grade: 'A', gradeClass: 'grade-a', views30d: '95M', monthlyUsdMin: 23750, monthlyUsdMax: 380000 },
+    { rank: 7, name: 'Round2hell', handle: '@Round2hell', category: 'Comedy', avatar: 'https://yt3.googleusercontent.com/b9918271928_1827=s176-c-k-c0x00ffffff-no-rj', subs: '36.5M', grade: 'A', gradeClass: 'grade-a', views30d: '65M', monthlyUsdMin: 16250, monthlyUsdMax: 260000 },
+    { rank: 8, name: 'Dhruv Rathee', handle: '@dhruvrathee', category: 'Education', avatar: 'https://yt3.googleusercontent.com/k912871928_1827=s176-c-k-c0x00ffffff-no-rj', subs: '33.3M', grade: 'A', gradeClass: 'grade-a', views30d: '120M', monthlyUsdMin: 30000, monthlyUsdMax: 480000 },
+    { rank: 9, name: 'Ashish Chanchlani', handle: '@ashishchanchlanivines', category: 'Comedy', avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_m918271928=s176-c-k-c0x00ffffff-no-rj', subs: '32.8M', grade: 'B+', gradeClass: 'grade-b', views30d: '38M', monthlyUsdMin: 9500, monthlyUsdMax: 152000 },
+    { rank: 10, name: 'Sandeep Maheshwari', handle: '@SandeepSeminars', category: 'Education', avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_s918271928=s176-c-k-c0x00ffffff-no-rj', subs: '28.3M', grade: 'A', gradeClass: 'grade-a', views30d: '45M', monthlyUsdMin: 0, monthlyUsdMax: 0, nonMonetized: true },
+    { rank: 11, name: 'Triggered Insaan', handle: '@triggeredinsaan', category: 'Entertainment', avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_t918271928=s176-c-k-c0x00ffffff-no-rj', subs: '27M', grade: 'A', gradeClass: 'grade-a', views30d: '78M', monthlyUsdMin: 19500, monthlyUsdMax: 312000 },
+    { rank: 12, name: 'BB Ki Vines', handle: '@BBKiVines', category: 'Entertainment', avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_b918271928=s176-c-k-c0x00ffffff-no-rj', subs: '26.5M', grade: 'B+', gradeClass: 'grade-b', views30d: '30M', monthlyUsdMin: 7500, monthlyUsdMax: 120000 },
+    { rank: 13, name: 'Mythpat', handle: '@Mythpat', category: 'Gaming', avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_m818271928=s176-c-k-c0x00ffffff-no-rj', subs: '17.7M', grade: 'A', gradeClass: 'grade-a', views30d: '52M', monthlyUsdMin: 13000, monthlyUsdMax: 208000 },
+    { rank: 14, name: 'CarryisLive', handle: '@CarryisLive', category: 'Gaming', avatar: 'https://yt3.googleusercontent.com/BkYkX3sg_NJTNZilCQhObmqDiyJER4_9U8VG7gNOxTnPnd-eXv-AVzJoau-VQQI0JBAaqbP7EA=s176-c-k-c0x00ffffff-no-rj', subs: '12.7M', grade: 'A', gradeClass: 'grade-a', views30d: '26M', monthlyUsdMin: 6500, monthlyUsdMax: 104000 },
+    { rank: 15, name: 'JONATHAN GAMING', handle: '@JONATHANGAMINGYT', category: 'Gaming', avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_j918271928=s176-c-k-c0x00ffffff-no-rj', subs: '8.04M', grade: 'B+', gradeClass: 'grade-b', views30d: '18M', monthlyUsdMin: 4500, monthlyUsdMax: 72000 },
+    { rank: 16, name: 'MortaL', handle: '@MortaLyt', category: 'Gaming', avatar: 'https://yt3.googleusercontent.com/ytc/AIdro_mo918271928=s176-c-k-c0x00ffffff-no-rj', subs: '6.94M', grade: 'B+', gradeClass: 'grade-b', views30d: '22M', monthlyUsdMin: 5500, monthlyUsdMax: 88000 }
+  ];
+
+  function renderLeaderboard() {
+    if (!el.leaderboardTbody) return;
+    el.leaderboardTbody.innerHTML = '';
+
+    const medalIcons = ['🥇', '🥈', '🥉'];
+
+    TOP_CREATORS_LEADERBOARD.forEach(c => {
+      const tr = document.createElement('tr');
+      const isTop3 = c.rank <= 3;
+      const rankBadge = isTop3
+        ? `<span class="leaderboard-rank rank-top3">${medalIcons[c.rank - 1]} #${c.rank}</span>`
+        : `<span class="leaderboard-rank">#${c.rank}</span>`;
+
+      const monthlyRev = c.nonMonetized
+        ? `<span style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">₹0 (Non-Monetized)</span>`
+        : `<span style="color: #10b981; font-weight: 700;">${formatMoneyRange(c.monthlyUsdMin, c.monthlyUsdMax)}</span>`;
+
+      tr.innerHTML = `
+        <td>${rankBadge}</td>
+        <td>
+          <div class="leaderboard-creator-cell">
+            <img src="${c.avatar}" alt="${c.name}" class="leaderboard-avatar" referrerpolicy="no-referrer"
+              onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%2364748b\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 1 0-16 0\\'/></svg>'">
+            <div class="leaderboard-creator-info">
+              <span class="leaderboard-creator-name">${c.name}</span>
+              <span class="leaderboard-creator-handle">${c.handle}</span>
+            </div>
+          </div>
+        </td>
+        <td><span style="font-size: 0.78rem; padding: 2px 7px; border-radius: 4px; background: rgba(255,255,255,0.04); color: var(--text-secondary);">${c.category}</span></td>
+        <td><strong style="color: var(--text-primary); font-family: var(--font-mono);">${c.subs}</strong></td>
+        <td><span class="leaderboard-grade-badge ${c.gradeClass}">${c.grade}</span></td>
+        <td><span style="color: #38bdf8; font-weight: 600; font-family: var(--font-mono);">${c.views30d}</span></td>
+        <td>${monthlyRev}</td>
+        <td style="text-align: right;">
+          <button class="leaderboard-audit-btn" data-handle="${c.handle}" type="button">Audit Channel ➔</button>
+        </td>
+      `;
+      el.leaderboardTbody.appendChild(tr);
+    });
+
+    // Wire clicks on newly rendered audit buttons
+    el.leaderboardTbody.querySelectorAll('.leaderboard-audit-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const handle = btn.dataset.handle;
+        if (!handle) return;
+        switchMode('single');
+        if (el.channelSearchInput) el.channelSearchInput.value = handle;
+        analyzeChannel(handle);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // MODE SWITCHER (SINGLE AUDIT VS COMPARE 2 CHANNELS)
+  // ─────────────────────────────────────────────
+
+  function switchMode(mode) {
+    state.activeMode = mode;
+    if (mode === 'compare') {
+      if (el.tabModeSingle) {
+        el.tabModeSingle.classList.remove('active');
+        el.tabModeSingle.setAttribute('aria-selected', 'false');
+      }
+      if (el.tabModeCompare) {
+        el.tabModeCompare.classList.add('active');
+        el.tabModeCompare.setAttribute('aria-selected', 'true');
+      }
+      if (el.panelSingleChannel) el.panelSingleChannel.style.display = 'none';
+      if (el.panelCompareChannels) el.panelCompareChannels.style.display = 'block';
+
+      if (state.activeComparisonData) {
+        if (el.compareResultsCard) el.compareResultsCard.style.display = 'block';
+        if (el.channelDashboard) el.channelDashboard.style.display = 'none';
+        if (el.emptySearchState) el.emptySearchState.style.display = 'none';
+      } else {
+        if (el.compareResultsCard) el.compareResultsCard.style.display = 'none';
+        if (el.channelDashboard) el.channelDashboard.style.display = 'none';
+        if (el.emptySearchState) el.emptySearchState.style.display = 'block';
+      }
+    } else {
+      if (el.tabModeSingle) {
+        el.tabModeSingle.classList.add('active');
+        el.tabModeSingle.setAttribute('aria-selected', 'true');
+      }
+      if (el.tabModeCompare) {
+        el.tabModeCompare.classList.remove('active');
+        el.tabModeCompare.setAttribute('aria-selected', 'false');
+      }
+      if (el.panelSingleChannel) el.panelSingleChannel.style.display = 'block';
+      if (el.panelCompareChannels) el.panelCompareChannels.style.display = 'none';
+
+      if (state.activeChannelData) {
+        if (el.channelDashboard) el.channelDashboard.style.display = 'block';
+        if (el.compareResultsCard) el.compareResultsCard.style.display = 'none';
+        if (el.emptySearchState) el.emptySearchState.style.display = 'none';
+      } else {
+        if (el.channelDashboard) el.channelDashboard.style.display = 'none';
+        if (el.compareResultsCard) el.compareResultsCard.style.display = 'none';
+        if (el.emptySearchState) el.emptySearchState.style.display = 'block';
+      }
+    }
+  }
+
+  function getGradeScore(grade) {
+    const g = String(grade || '').trim().toUpperCase();
+    if (g === 'A++') return 100;
+    if (g === 'A+') return 90;
+    if (g === 'A') return 80;
+    if (g === 'A-') return 70;
+    if (g === 'B+') return 60;
+    if (g === 'B') return 50;
+    if (g === 'B-') return 40;
+    if (g === 'C+') return 30;
+    if (g === 'C') return 20;
+    if (g === 'D') return 10;
+    return 0;
+  }
+
+  function getGradeClass(g) {
+    const s = String(g || '').toUpperCase();
+    if (s.startsWith('A')) return 'grade-a';
+    if (s.startsWith('B')) return 'grade-b';
+    return 'grade-c';
+  }
+
+  async function fetchChannelData(query) {
+    if (!query || !query.trim()) {
+      throw new Error('Please enter a valid channel name or @handle.');
+    }
+    const cleanQ = query.trim();
+    const resp = await fetch(`${API_BASE}/channel-analytics`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channel: cleanQ })
+    });
+
+    if (!resp.ok) {
+      const errJson = await resp.json().catch(() => ({}));
+      throw new Error(errJson.detail || errJson.error || `Channel "${cleanQ}" could not be found.`);
+    }
+
+    const data = await resp.json();
+    if (!data || !data.success) {
+      throw new Error(data?.error || `Could not find YouTube channel "${cleanQ}".`);
+    }
+    return data;
+  }
+
+  // ─────────────────────────────────────────────
+  // CHANNEL COMPARISON ENGINE
+  // ─────────────────────────────────────────────
+
+  async function runChannelComparison(queryA, queryB) {
+    const qA = (queryA || '').trim();
+    const qB = (queryB || '').trim();
+
+    if (!qA || !qB) {
+      showError('Please enter both Channel A and Channel B to compare.');
+      return;
+    }
+
+    if (qA.toLowerCase().replace(/[@\s]/g, '') === qB.toLowerCase().replace(/[@\s]/g, '')) {
+      showError('Please select two different channels to compare.');
+      return;
+    }
+
+    showLoading(true, `Comparing ${qA} vs ${qB}...`);
+    hideError();
+
+    try {
+      const [dataA, dataB] = await Promise.all([
+        fetchChannelData(qA),
+        fetchChannelData(qB)
+      ]);
+
+      state.activeComparisonData = { a: dataA, b: dataB };
+      renderChannelComparison(dataA, dataB);
+      showToast(`⚖️ Compared ${dataA.title} vs ${dataB.title}!`);
+    } catch (e) {
+      console.error('Channel Comparison Error:', e);
+      showError(`❌ Comparison failed: ${e.message}`);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function renderChannelComparison(a, b) {
+    if (!a || !b || !el.compareResultsCard) return;
+
+    if (el.emptySearchState) el.emptySearchState.style.display = 'none';
+    if (el.channelDashboard) el.channelDashboard.style.display = 'none';
+    el.compareResultsCard.style.display = 'block';
+
+    const aSubs = a.subscribers_count || parseYtNumber(a.subscribers_text);
+    const bSubs = b.subscribers_count || parseYtNumber(b.subscribers_text);
+    const subsDiff = aSubs - bSubs;
+
+    const aViews30 = a.thirty_day_stats?.views || 0;
+    const bViews30 = b.thirty_day_stats?.views || 0;
+    const views30Diff = aViews30 - bViews30;
+
+    const aTotalViews = a.total_views_count || parseYtNumber(a.total_views_text);
+    const bTotalViews = b.total_views_count || parseYtNumber(b.total_views_text);
+    const totalViewsDiff = aTotalViews - bTotalViews;
+
+    const aGrade = a.ranks?.grade || 'B';
+    const bGrade = b.ranks?.grade || 'B';
+    const aGradeScore = getGradeScore(aGrade);
+    const bGradeScore = getGradeScore(bGrade);
+
+    const aMonthlyMin = a.thirty_day_stats?.monthly_earnings_min || 0;
+    const aMonthlyMax = a.thirty_day_stats?.monthly_earnings_max || 0;
+    const bMonthlyMin = b.thirty_day_stats?.monthly_earnings_min || 0;
+    const bMonthlyMax = b.thirty_day_stats?.monthly_earnings_max || 0;
+
+    const aYearlyMin = a.thirty_day_stats?.yearly_earnings_min || 0;
+    const aYearlyMax = a.thirty_day_stats?.yearly_earnings_max || 0;
+    const bYearlyMin = b.thirty_day_stats?.yearly_earnings_min || 0;
+    const bYearlyMax = b.thirty_day_stats?.yearly_earnings_max || 0;
+
+    // Determine overall category wins
+    let aWins = 0;
+    let bWins = 0;
+    if (aSubs >= bSubs) aWins++; else bWins++;
+    if (aViews30 >= bViews30) aWins++; else bWins++;
+    if (aTotalViews >= bTotalViews) aWins++; else bWins++;
+    if (aGradeScore >= bGradeScore) aWins++; else bWins++;
+    if (aMonthlyMax >= bMonthlyMax) aWins++; else bWins++;
+
+    const winnerA = aWins >= bWins;
+    const winnerB = bWins > aWins;
+
+    // Difference pills
+    const subsDiffText = subsDiff >= 0
+      ? `▲ +${formatViews(subsDiff)} Subs Ahead`
+      : `▲ +${formatViews(Math.abs(subsDiff))} Subs Ahead`;
+
+    const viewsDiffText = views30Diff >= 0
+      ? `▲ +${formatViews(views30Diff)} 30D Velocity`
+      : `▲ +${formatViews(Math.abs(views30Diff))} 30D Velocity`;
+
+    const totalViewsDiffText = totalViewsDiff >= 0
+      ? `▲ +${formatViews(totalViewsDiff)} Lifetime Lead`
+      : `▲ +${formatViews(Math.abs(totalViewsDiff))} Lifetime Lead`;
+
+    const avatarA = a.avatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2364748b"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>';
+    const avatarB = b.avatar || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2364748b"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>';
+
+    el.compareResultsCard.innerHTML = `
+      <!-- 1. Hero Side-by-Side Banner -->
+      <div class="compare-hero-banner">
+        <div class="compare-hero-col col-a ${winnerA ? 'winner-col' : ''}">
+          <img src="${avatarA}" alt="${a.title}" class="compare-hero-avatar" referrerpolicy="no-referrer"
+            onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%2364748b\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 1 0-16 0\\'/></svg>'">
+          <div class="compare-hero-info">
+            <div class="compare-hero-name">
+              <span>${a.title}</span>
+              <span class="badge-verified" title="Verified Creator">✓</span>
+              ${winnerA ? '<span style="font-size: 0.72rem; padding: 2px 7px; border-radius: 4px; background: #10b981; color: #fff; font-weight: 800;">👑 WINNER</span>' : ''}
+            </div>
+            <span class="compare-hero-handle">${a.handle || ''} · ${a.category || 'General'} · ${a.country || 'Global'}</span>
+            <span class="leaderboard-grade-badge ${getGradeClass(aGrade)}">GRADE ${aGrade}</span>
+          </div>
+        </div>
+
+        <div class="compare-center-vs">
+          <div class="vs-circle">VS</div>
+          <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 800; letter-spacing: 0.5px;">HEAD-TO-HEAD</span>
+        </div>
+
+        <div class="compare-hero-col col-b ${winnerB ? 'winner-col' : ''}">
+          <img src="${avatarB}" alt="${b.title}" class="compare-hero-avatar" referrerpolicy="no-referrer"
+            onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%2364748b\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 1 0-16 0\\'/></svg>'">
+          <div class="compare-hero-info">
+            <div class="compare-hero-name">
+              <span>${b.title}</span>
+              <span class="badge-verified" title="Verified Creator">✓</span>
+              ${winnerB ? '<span style="font-size: 0.72rem; padding: 2px 7px; border-radius: 4px; background: #10b981; color: #fff; font-weight: 800;">👑 WINNER</span>' : ''}
+            </div>
+            <span class="compare-hero-handle">${b.handle || ''} · ${b.category || 'General'} · ${b.country || 'Global'}</span>
+            <span class="leaderboard-grade-badge ${getGradeClass(bGrade)}">GRADE ${bGrade}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Share & Action Bar -->
+      <div class="compare-share-bar">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-primary);">⚖️ Head-to-Head Creator Analysis</span>
+          <span style="font-size: 0.78rem; color: var(--text-muted);">(Real-time data sourced from YouTube)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <button class="action-btn" id="btnCopyCompareLink" type="button">
+            <span>📋 Copy Comparison Link</span>
+          </button>
+          <button class="action-btn" id="btnAuditFromCompareA" type="button">
+            <span>🔍 Audit ${a.title}</span>
+          </button>
+          <button class="action-btn" id="btnAuditFromCompareB" type="button">
+            <span>🔍 Audit ${b.title}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. Key Highlight Stat Cards -->
+      <div class="compare-cards-grid">
+        <!-- Subscribers Box -->
+        <div class="compare-stat-card">
+          <span class="compare-stat-header">SUBSCRIBERS</span>
+          <div class="compare-stat-scores">
+            <span class="compare-stat-val-a ${aSubs >= bSubs ? 'text-success' : ''}">${formatViews(aSubs)}</span>
+            <span style="color: var(--text-muted); font-size: 0.8rem;">vs</span>
+            <span class="compare-stat-val-b ${bSubs > aSubs ? 'text-success' : ''}">${formatViews(bSubs)}</span>
+          </div>
+          <span class="compare-diff-pill ${subsDiff >= 0 ? 'pill-green' : 'pill-blue'}">
+            ${subsDiff >= 0 ? a.title : b.title}: ${subsDiffText}
+          </span>
+        </div>
+
+        <!-- 30-Day Views Box -->
+        <div class="compare-stat-card">
+          <span class="compare-stat-header">30-DAY VIEW VELOCITY</span>
+          <div class="compare-stat-scores">
+            <span class="compare-stat-val-a ${aViews30 >= bViews30 ? 'text-success' : ''}">${formatViews(aViews30)}</span>
+            <span style="color: var(--text-muted); font-size: 0.8rem;">vs</span>
+            <span class="compare-stat-val-b ${bViews30 > aViews30 ? 'text-success' : ''}">${formatViews(bViews30)}</span>
+          </div>
+          <span class="compare-diff-pill ${views30Diff >= 0 ? 'pill-green' : 'pill-blue'}">
+            ${views30Diff >= 0 ? a.title : b.title}: ${viewsDiffText}
+          </span>
+        </div>
+
+        <!-- Monthly Estimated Revenue Box -->
+        <div class="compare-stat-card">
+          <span class="compare-stat-header">EST. MONTHLY EARNINGS</span>
+          <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+              <span style="color: #ff5252; font-weight: 700;">${a.title}:</span>
+              <span style="font-weight: 800; color: #10b981;">${formatMoneyRange(aMonthlyMin, aMonthlyMax)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+              <span style="color: #60a5fa; font-weight: 700;">${b.title}:</span>
+              <span style="font-weight: 800; color: #10b981;">${formatMoneyRange(bMonthlyMin, bMonthlyMax)}</span>
+            </div>
+          </div>
+          <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">At $0.25 – $4.00 CPM benchmark</span>
+        </div>
+
+        <!-- Lifetime Views Box -->
+        <div class="compare-stat-card">
+          <span class="compare-stat-header">LIFETIME YOUTUBE VIEWS</span>
+          <div class="compare-stat-scores">
+            <span class="compare-stat-val-a ${aTotalViews >= bTotalViews ? 'text-success' : ''}">${formatViews(aTotalViews)}</span>
+            <span style="color: var(--text-muted); font-size: 0.8rem;">vs</span>
+            <span class="compare-stat-val-b ${bTotalViews > aTotalViews ? 'text-success' : ''}">${formatViews(bTotalViews)}</span>
+          </div>
+          <span class="compare-diff-pill ${totalViewsDiff >= 0 ? 'pill-green' : 'pill-blue'}">
+            ${totalViewsDiff >= 0 ? a.title : b.title}: ${totalViewsDiffText}
+          </span>
+        </div>
+      </div>
+
+      <!-- 4. Detailed Side-by-Side Comparison Matrix Table -->
+      <div class="compare-matrix-section">
+        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin-bottom: 14px;">Detailed Metric-by-Metric Matrix</h3>
+        <div style="overflow-x: auto;">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th style="width: 30%;">Metric / Benchmark</th>
+                <th style="width: 35%; color: #ff5252;">${a.title} (${a.handle || ''})</th>
+                <th style="width: 35%; color: #60a5fa;">${b.title} (${b.handle || ''})</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="compare-metric-name">SocialBlade Grade</td>
+                <td class="compare-val-cell ${aGradeScore >= bGradeScore ? 'winner' : ''}">Grade ${aGrade} ${aGradeScore >= bGradeScore ? '👑' : ''}</td>
+                <td class="compare-val-cell ${bGradeScore > aGradeScore ? 'winner' : ''}">Grade ${bGrade} ${bGradeScore > aGradeScore ? '👑' : ''}</td>
+              </tr>
+              <tr>
+                <td class="compare-metric-name">Subscribers Volume</td>
+                <td class="compare-val-cell ${aSubs >= bSubs ? 'winner' : ''}">${a.subscribers_text || formatViews(aSubs)} ${aSubs >= bSubs ? '👑' : ''}</td>
+                <td class="compare-val-cell ${bSubs > aSubs ? 'winner' : ''}">${b.subscribers_text || formatViews(bSubs)} ${bSubs > aSubs ? '👑' : ''}</td>
+              </tr>
+              <tr>
+                <td class="compare-metric-name">30-Day Views Velocity</td>
+                <td class="compare-val-cell ${aViews30 >= bViews30 ? 'winner' : ''}">${formatViews(aViews30)} views ${aViews30 >= bViews30 ? '👑' : ''}</td>
+                <td class="compare-val-cell ${bViews30 > aViews30 ? 'winner' : ''}">${formatViews(bViews30)} views ${bViews30 > aViews30 ? '👑' : ''}</td>
+              </tr>
+              <tr>
+                <td class="compare-metric-name">30-Day Subscriber Growth</td>
+                <td class="compare-val-cell ${((a.thirty_day_stats?.subs || 0) >= (b.thirty_day_stats?.subs || 0)) ? 'winner' : ''}">+${formatViews(a.thirty_day_stats?.subs || 0)}</td>
+                <td class="compare-val-cell ${((b.thirty_day_stats?.subs || 0) > (a.thirty_day_stats?.subs || 0)) ? 'winner' : ''}">+${formatViews(b.thirty_day_stats?.subs || 0)}</td>
+              </tr>
+              <tr>
+                <td class="compare-metric-name">Est. Monthly AdSense Revenue</td>
+                <td class="compare-val-cell ${aMonthlyMax >= bMonthlyMax ? 'winner' : ''}">${formatMoneyRange(aMonthlyMin, aMonthlyMax)} ${aMonthlyMax >= bMonthlyMax ? '👑' : ''}</td>
+                <td class="compare-val-cell ${bMonthlyMax > aMonthlyMax ? 'winner' : ''}">${formatMoneyRange(bMonthlyMin, bMonthlyMax)} ${bMonthlyMax > aMonthlyMax ? '👑' : ''}</td>
+              </tr>
+              <tr>
+                <td class="compare-metric-name">Est. Annual Revenue Projection</td>
+                <td class="compare-val-cell ${aYearlyMax >= bYearlyMax ? 'winner' : ''}">${formatMoneyRange(aYearlyMin, aYearlyMax)} ${aYearlyMax >= bYearlyMax ? '👑' : ''}</td>
+                <td class="compare-val-cell ${bYearlyMax > aYearlyMax ? 'winner' : ''}">${formatMoneyRange(bYearlyMin, bYearlyMax)} ${bYearlyMax > aYearlyMax ? '👑' : ''}</td>
+              </tr>
+              <tr>
+                <td class="compare-metric-name">Lifetime Total Views</td>
+                <td class="compare-val-cell ${aTotalViews >= bTotalViews ? 'winner' : ''}">${a.total_views_text || aTotalViews.toLocaleString()} ${aTotalViews >= bTotalViews ? '👑' : ''}</td>
+                <td class="compare-val-cell ${bTotalViews > aTotalViews ? 'winner' : ''}">${b.total_views_text || bTotalViews.toLocaleString()} ${bTotalViews > aTotalViews ? '👑' : ''}</td>
+              </tr>
+              <tr>
+                <td class="compare-metric-name">Uploaded Video / Stream Count</td>
+                <td class="compare-val-cell">${a.videos_text || (a.videos_count ? a.videos_count.toLocaleString() : '--')}</td>
+                <td class="compare-val-cell">${b.videos_text || (b.videos_count ? b.videos_count.toLocaleString() : '--')}</td>
+              </tr>
+              <tr>
+                <td class="compare-metric-name">Country &amp; Category</td>
+                <td class="compare-val-cell">${a.country || 'Global'} · ${a.category || 'General'}</td>
+                <td class="compare-val-cell">${b.country || 'Global'} · ${b.category || 'General'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    // Wire button events inside the rendered comparison card
+    const btnCopy = document.getElementById('btnCopyCompareLink');
+    if (btnCopy) {
+      btnCopy.addEventListener('click', () => {
+        const link = `https://tubemetrix.net/revenue?compare=${encodeURIComponent(a.handle || a.title)},${encodeURIComponent(b.handle || b.title)}`;
+        navigator.clipboard.writeText(link).then(() => {
+          showToast('📋 Comparison link copied to clipboard!');
+        }).catch(() => {
+          showToast('Could not access clipboard.');
+        });
+      });
+    }
+
+    const btnAuditA = document.getElementById('btnAuditFromCompareA');
+    if (btnAuditA) {
+      btnAuditA.addEventListener('click', () => {
+        switchMode('single');
+        if (el.channelSearchInput) el.channelSearchInput.value = a.handle || a.title;
+        analyzeChannel(a.handle || a.title);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    const btnAuditB = document.getElementById('btnAuditFromCompareB');
+    if (btnAuditB) {
+      btnAuditB.addEventListener('click', () => {
+        switchMode('single');
+        if (el.channelSearchInput) el.channelSearchInput.value = b.handle || b.title;
+        analyzeChannel(b.handle || b.title);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
   }
 
   // ─────────────────────────────────────────────
@@ -922,6 +1434,84 @@
         });
       });
     }
+
+    // Mode Switcher Listeners
+    if (el.tabModeSingle) {
+      el.tabModeSingle.addEventListener('click', () => switchMode('single'));
+    }
+    if (el.tabModeCompare) {
+      el.tabModeCompare.addEventListener('click', () => switchMode('compare'));
+    }
+
+    // Compare Inputs & Clear Buttons
+    if (el.compareInputA) {
+      el.compareInputA.addEventListener('input', () => {
+        if (el.clearCompareABtn) {
+          el.clearCompareABtn.style.display = el.compareInputA.value ? 'block' : 'none';
+        }
+      });
+      el.compareInputA.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          if (el.compareInputB && !el.compareInputB.value) {
+            el.compareInputB.focus();
+          } else {
+            runChannelComparison(el.compareInputA.value, el.compareInputB.value);
+          }
+        }
+      });
+    }
+
+    if (el.clearCompareABtn) {
+      el.clearCompareABtn.addEventListener('click', () => {
+        el.compareInputA.value = '';
+        el.clearCompareABtn.style.display = 'none';
+        el.compareInputA.focus();
+      });
+    }
+
+    if (el.compareInputB) {
+      el.compareInputB.addEventListener('input', () => {
+        if (el.clearCompareBBtn) {
+          el.clearCompareBBtn.style.display = el.compareInputB.value ? 'block' : 'none';
+        }
+      });
+      el.compareInputB.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          runChannelComparison(el.compareInputA.value, el.compareInputB.value);
+        }
+      });
+    }
+
+    if (el.clearCompareBBtn) {
+      el.clearCompareBBtn.addEventListener('click', () => {
+        el.compareInputB.value = '';
+        el.clearCompareBBtn.style.display = 'none';
+        el.compareInputB.focus();
+      });
+    }
+
+    // Start Compare Button
+    if (el.btnStartCompare) {
+      el.btnStartCompare.addEventListener('click', () => {
+        runChannelComparison(el.compareInputA.value, el.compareInputB.value);
+      });
+    }
+
+    // Compare Rivalry Presets
+    if (el.comparePresets) {
+      el.comparePresets.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const ch1 = btn.dataset.ch1;
+          const ch2 = btn.dataset.ch2;
+          if (el.compareInputA) el.compareInputA.value = ch1;
+          if (el.compareInputB) el.compareInputB.value = ch2;
+          if (el.clearCompareABtn) el.clearCompareABtn.style.display = 'block';
+          if (el.clearCompareBBtn) el.clearCompareBBtn.style.display = 'block';
+          switchMode('compare');
+          runChannelComparison(ch1, ch2);
+        });
+      });
+    }
   }
 
   // ─────────────────────────────────────────────
@@ -929,14 +1519,41 @@
   // ─────────────────────────────────────────────
 
   document.addEventListener('DOMContentLoaded', () => {
-  initMobileScrollHints();
+    initMobileScrollHints();
     initTheme();
     initForexSync();
     initCurrency();
     initSearch();
     bindEvents();
+    renderLeaderboard();
 
-    // Waiting for user search (no channel pre-analyzed)
+    // Check URL Search Parameters for auto-auditing or comparison
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const singleParam = urlParams.get('channel') || urlParams.get('ch');
+      const compareParam = urlParams.get('compare') || urlParams.get('vs');
+
+      if (compareParam) {
+        const parts = compareParam.split(',');
+        if (parts.length >= 2 && parts[0].trim() && parts[1].trim()) {
+          const p1 = decodeURIComponent(parts[0].trim());
+          const p2 = decodeURIComponent(parts[1].trim());
+          switchMode('compare');
+          if (el.compareInputA) el.compareInputA.value = p1;
+          if (el.compareInputB) el.compareInputB.value = p2;
+          if (el.clearCompareABtn) el.clearCompareABtn.style.display = 'block';
+          if (el.clearCompareBBtn) el.clearCompareBBtn.style.display = 'block';
+          runChannelComparison(p1, p2);
+        }
+      } else if (singleParam) {
+        const ch = decodeURIComponent(singleParam.trim());
+        switchMode('single');
+        if (el.channelSearchInput) el.channelSearchInput.value = ch;
+        analyzeChannel(ch);
+      }
+    } catch (e) {
+      console.warn('URL params parsing error:', e);
+    }
   });
 
 })();
