@@ -145,7 +145,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=7.3">
   <style>
-    /* Free tool styles: no guest quota limitations or standalone login gating */
+    /* Free tool styles */
     .auth-guest-group .guest-quota-pill {
       display: none !important;
     }
@@ -212,12 +212,45 @@
       border-color: #ff0033;
       background: #fff5f5;
     }
+
+    /* Preset chip styles */
+    .jewel-preset-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .jewel-preset-chip:hover {
+      border-color: var(--accent-red, #ff0033);
+      color: var(--text-primary);
+    }
+    .jewel-preset-chip.active {
+      background: rgba(255, 0, 51, 0.1);
+      border-color: var(--accent-red, #ff0033);
+      color: var(--accent-red, #ff0033);
+      font-weight: 700;
+    }
+
+    /* Gift card hover */
+    .gift-preset-card {
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .gift-preset-card:hover {
+      border-color: var(--accent-red, #ff0033) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
-  <!-- Top Navigation Bar (Fully unified with TubeMetrix design system) -->
+  <!-- Top Navigation Bar -->
   <header class="top-nav">
     <div class="nav-container">
       <a href="/" class="logo" title="TubeMetrix Home">
@@ -305,35 +338,32 @@
   </header>
 
   <main class="main-content">
-    <!-- Hero Header -->
-    <section class="hero-section">
-      <div class="hero-badge">
+    <!-- Hero Header: Ultra clean & punchy -->
+    <section class="hero-section" style="max-width: 760px; margin: 0 auto 28px auto; text-align: center;">
+      <div class="hero-badge" style="margin-bottom: 10px;">
         <span class="pulse-dot"></span>
-        <span>OFFICIAL 2 JEWELS = 1 RUBY FORMULA</span>
+        <span>2 JEWELS = 1 RUBY</span>
       </div>
-      <h1 class="hero-title">YouTube Jewels to INR &amp; Rubies Calculator</h1>
-      <p class="hero-subtitle">
-        Audit any YouTube Live Stream URL to count virtual gifts and calculate exact creator earnings in INR (₹) &amp; USD ($).
-        Understand YouTube unit economics with the official 2 Jewels = 1 Ruby formula.
+      <h1 class="hero-title" style="margin-bottom: 8px;">YouTube Jewels &amp; Gifts Calculator</h1>
+      <p class="hero-subtitle" style="font-size: 0.98rem; color: var(--text-secondary); max-width: 580px; margin: 0 auto; line-height: 1.5;">
+        Audit any live stream link to calculate gifts, Jewels, Rubies, and net creator payout.
       </p>
     </section>
 
-    <!-- 1. Real Live Stream URL Jewels & Rubies Auditor (Hero Tool) -->
-    <section class="config-card" id="streamAuditorCard" style="max-width: 960px; margin: 0 auto 36px auto;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-        <div style="flex: 1; min-width: 280px;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff0033; box-shadow: 0 0 10px rgba(255, 0, 51, 0.5);"></span>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin: 0;">
-              Audit Real YouTube Stream Jewels &amp; Gifts
-            </h2>
-          </div>
-          <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0; line-height: 1.5;">
-            Paste any YouTube Live Stream or VOD link. TubeMetrix automatically fetches the chat replay, counts every virtual gift comboed, and calculates total Jewels, Rubies &amp; creator payout.
+    <!-- 1. Live Stream Auditor Card -->
+    <section class="config-card" id="streamAuditorCard" style="max-width: 860px; margin: 0 auto 32px auto; padding: 26px 28px; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.04);">
+      <!-- Header row: Clean & straight -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+            <span>⚡</span> Audit Live Stream Gifts
+          </h2>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">
+            Paste any live stream URL to scan gifts, total Jewels, and creator earnings.
           </p>
         </div>
-        <span class="pill-badge pill-green" style="font-weight: 700; font-size: 0.8rem; padding: 6px 14px; white-space: nowrap; align-self: flex-start;">
-          🟢 100% Free • No Sign-In
+        <span class="pill-badge pill-green" style="font-weight: 700; font-size: 0.76rem; padding: 5px 12px; border-radius: 9999px;">
+          100% Free
         </span>
       </div>
 
@@ -344,113 +374,112 @@
             <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
             <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
           </svg>
-          <input type="text" id="auditStreamUrlInput" placeholder="Paste YouTube Live Stream or Shorts link (e.g. https://www.youtube.com/watch?v=... or live/...)"
-            autocomplete="off" style="font-size: 0.96rem;">
-          <button class="btn-paste" id="pasteAuditUrlBtn" type="button">Paste</button>
+          <input type="text" id="auditStreamUrlInput"
+            placeholder="Paste YouTube live stream URL (e.g. https://www.youtube.com/live/...)"
+            autocomplete="off" spellcheck="false"
+            style="font-size: 0.95rem;">
+          <button type="button" class="input-paste-btn" id="pasteAuditUrlBtn" title="Paste link from clipboard">Paste</button>
         </div>
-
-        <button class="btn-primary" id="startJewelsAuditBtn" type="button" style="min-width: 210px;">
-          <span id="auditBtnLabel">⚡ Fetch &amp; Calculate Jewels</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 16px; height: 16px;">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
+        <button type="button" class="btn-primary" id="startJewelsAuditBtn" style="white-space: nowrap; padding: 12px 24px; font-weight: 700; font-size: 0.92rem; border-radius: 10px;">
+          <span>Calculate Jewels</span> ➔
         </button>
       </div>
 
-      <!-- Quick Action Utilities -->
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 0.85rem; color: var(--text-secondary); margin-top: 10px;">
-        <span style="display: flex; align-items: center; gap: 6px;">
-          <span>💡</span> Supports Vertical Shorts livestreams, horizontal streams &amp; chat replay archives.
-        </span>
-        <button type="button" id="loadSampleStreamBtn" class="btn-demo-pill">
-          <span>✨</span> <span>Try Demo Stream</span>
+      <!-- Quick helper and demo button -->
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; gap: 8px;">
+        <div>
+          <span>💡 Supports vertical Shorts live &amp; past stream archives.</span>
+        </div>
+        <button type="button" class="btn-demo-pill" id="loadSampleStreamBtn" title="Test with a sample vertical live stream">
+          <span>✨ Try Demo Stream</span>
         </button>
       </div>
 
-      <!-- Loading State -->
-      <div id="auditLoadingState" style="display: none; padding: 28px 20px; text-align: center; background: var(--bg-subtle); border-radius: 12px; border: 1px dashed var(--border-color); margin-top: 18px;">
-        <div class="jewels-spinner"></div>
-        <div id="auditStatusTicker" style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Connecting to YouTube Live Replay...</div>
-        <div style="font-size: 0.82rem; color: var(--text-secondary);">Direct InnerTube scanner • Detecting giftMessageViewModel &amp; combo multipliers</div>
-      </div>
-
-      <!-- Error State Banner -->
-      <div id="auditErrorState" style="display: none; padding: 16px 20px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 12px; margin-top: 18px;">
-        <div style="display: flex; align-items: flex-start; gap: 12px;">
-          <span style="font-size: 1.4rem;">⚠️</span>
-          <div style="flex: 1;">
-            <div id="auditErrorTitle" style="font-weight: 700; color: #ef4444; font-size: 0.95rem; margin-bottom: 4px;">Live Chat Replay Unavailable</div>
-            <div id="auditErrorMsg" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Live chat replay was not found or is disabled for this stream. (YouTube requires chat replay to be enabled to audit gifts).</div>
-          </div>
-          <button type="button" id="dismissErrorBtn" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary);" title="Dismiss">✕</button>
+      <!-- Live Scan Progress Ticker -->
+      <div id="auditStatusTicker" style="display: none; margin-top: 18px; background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span id="auditStatusMsg" style="font-size: 0.88rem; font-weight: 600; color: var(--text-primary);">Scanning chat replay...</span>
+          <span id="auditStatusPct" style="font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; color: var(--text-muted);">0%</span>
+        </div>
+        <div style="height: 5px; width: 100%; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+          <div id="auditProgressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #ff0033, #00f2fe); border-radius: 4px; transition: width 0.25s ease;"></div>
         </div>
       </div>
 
-      <!-- Live Stream Results Container -->
-      <div id="auditResultsContainer" style="display: none; margin-top: 26px; border-top: 1px solid var(--border-color); padding-top: 24px;">
-        <!-- Stream Overview Header Bar -->
-        <div style="display: flex; gap: 18px; align-items: center; background: var(--bg-card); padding: 16px 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 22px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-          <img id="resStreamThumb" src="" alt="Live Stream Thumbnail" style="width: 140px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); background: #000; flex-shrink: 0;">
-          <div style="flex: 1; min-width: 260px;">
-            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px; flex-wrap: wrap;">
-              <span class="pill-badge pill-red" id="resLiveBadge">🔴 Chat Replay Audited</span>
-              <span class="pill-badge pill-purple" id="resFormatBadge" style="display: none;">Vertical Stream</span>
+      <!-- Error Message Banner -->
+      <div id="auditErrorBanner" style="display: none; margin-top: 16px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; padding: 12px 16px; align-items: center; justify-content: space-between; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span>⚠️</span>
+          <span id="auditErrorMessage" style="color: #ef4444; font-size: 0.88rem; font-weight: 600;"></span>
+        </div>
+        <button type="button" id="dismissErrorBtn" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.1rem;">&times;</button>
+      </div>
+
+      <!-- Audit Results Container -->
+      <div id="auditResultsContainer" style="display: none; margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--border-color);">
+        <!-- Stream Overview Strip -->
+        <div style="display: flex; gap: 16px; align-items: center; background: var(--bg-card); padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 20px; flex-wrap: wrap;">
+          <img id="resStreamThumb" src="" alt="Live Stream Thumbnail" style="width: 130px; height: 74px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); background: #000; flex-shrink: 0;">
+          <div style="flex: 1; min-width: 240px;">
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px; flex-wrap: wrap;">
+              <span class="pill-badge pill-red" id="resLiveBadge">Chat Replay</span>
+              <span class="pill-badge pill-purple" id="resFormatBadge" style="display: none;">Vertical</span>
               <span id="resStreamId" style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-muted);"></span>
             </div>
-            <h3 id="resStreamTitle" style="font-size: 1.12rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; line-height: 1.35;"></h3>
-            <div style="display: flex; gap: 16px; align-items: center; font-size: 0.85rem; color: var(--text-secondary); flex-wrap: wrap;">
+            <h3 id="resStreamTitle" style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0; line-height: 1.35;"></h3>
+            <div style="display: flex; gap: 14px; align-items: center; font-size: 0.84rem; color: var(--text-secondary); flex-wrap: wrap;">
               <span id="resStreamChannel" style="font-weight: 700; color: var(--text-primary);"></span>
-              <a id="resStreamLink" href="#" target="_blank" rel="noopener" style="color: var(--accent-red, #ff0033); font-weight: 600; text-decoration: none;">Watch on YouTube ↗</a>
+              <a id="resStreamLink" href="#" target="_blank" rel="noopener" style="color: var(--accent-red, #ff0033); font-weight: 600; text-decoration: none;">Watch Stream ↗</a>
             </div>
           </div>
         </div>
 
         <!-- KPI Metric Cards Banner -->
-        <div class="kpi-banner" id="resKpiBanner" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 22px;">
+        <div class="kpi-banner" id="resKpiBanner" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
           <!-- Dynamically populated -->
         </div>
 
-        <!-- Horizontal Stream Detected (Superchats Found) Banner -->
-        <div id="resHorizontalNotice" style="display: none; background: rgba(16, 185, 129, 0.08); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 18px 22px; margin-bottom: 24px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 260px;">
-              <h4 id="resHorizontalTitle" style="font-size: 1.05rem; font-weight: 800; color: #10b981; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
-                <span>💬</span> Super Chats &amp; Memberships Detected in Chat Replay!
+        <!-- Horizontal Stream Detected Notice -->
+        <div id="resHorizontalNotice" style="display: none; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 240px;">
+              <h4 id="resHorizontalTitle" style="font-size: 1rem; font-weight: 800; color: #10b981; margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+                <span>💬</span> Super Chats &amp; Memberships Found
               </h4>
-              <p id="resHorizontalDesc" style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
-                YouTube virtual gifts &amp; Jewels are enabled exclusively on vertical mobile streams (Shorts feed). In this horizontal stream, viewers donated via Super Chats &amp; Memberships instead!
+              <p id="resHorizontalDesc" style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.45; margin: 0;">
+                Jewels are enabled on vertical streams. In this horizontal stream, viewers donated via Super Chats &amp; Memberships.
               </p>
             </div>
-            <a id="resHorizontalAuditBtn" href="#" class="btn-primary" style="padding: 10px 20px; font-size: 0.88rem; text-decoration: none; white-space: nowrap;">
-              <span>View Full Super Chat Audit</span> ➔
+            <a id="resHorizontalAuditBtn" href="#" class="btn-primary" style="padding: 9px 18px; font-size: 0.86rem; text-decoration: none; white-space: nowrap; border-radius: 8px;">
+              <span>View Super Chat Audit</span> ➔
             </a>
           </div>
         </div>
 
-        <!-- Zero Donations Banner (if stream has no jewels and no superchats) -->
-        <div id="resZeroAllNotice" style="display: none; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px;">
-          <div style="font-weight: 700; color: #f59e0b; font-size: 1rem; margin-bottom: 6px;">ℹ️ 0 Jewels or Super Chats Sent in this Broadcast</div>
-          <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
-            The live chat replay was successfully scanned, but no virtual gifts, Jewels, or Super Chats were sent during this broadcast.
+        <!-- Zero Donations Banner -->
+        <div id="resZeroAllNotice" style="display: none; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 16px 18px; margin-bottom: 20px;">
+          <div style="font-weight: 700; color: #f59e0b; font-size: 0.95rem; margin-bottom: 4px;">ℹ️ 0 Gifts or Super Chats Sent</div>
+          <p style="font-size: 0.86rem; color: var(--text-secondary); margin: 0;">
+            The chat replay was scanned, but no gifts or Super Chats were sent during this broadcast.
           </p>
         </div>
 
         <!-- Itemized Gifts Breakdown Table -->
-        <div id="resGiftsTableSection" style="margin-bottom: 24px;">
-          <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <span>🎁</span> Itemized Virtual Gifts Breakdown
+        <div id="resGiftsTableSection" style="margin-bottom: 20px;">
+          <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <span>🎁</span> Gifts Breakdown
           </h4>
           <div class="table-card">
             <div class="table-responsive">
               <table class="data-table" id="resGiftsTable">
                 <thead>
                   <tr>
-                    <th>Gift Item</th>
-                    <th>Times Sent (Combos)</th>
-                    <th>Jewels / Unit</th>
+                    <th>Gift</th>
+                    <th>Count</th>
+                    <th>Jewels/Unit</th>
                     <th>Total Jewels</th>
-                    <th>Est. Viewer Spend</th>
-                    <th>Net Creator Payout</th>
+                    <th>Viewer Spend</th>
+                    <th>Creator Payout</th>
                   </tr>
                 </thead>
                 <tbody id="resGiftsTableBody">
@@ -462,20 +491,20 @@
         </div>
 
         <!-- Top Gifters Leaderboard -->
-        <div id="resLeaderboardSection" style="margin-bottom: 24px;">
-          <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-            <span>🏆</span> Top Jewels Supporters Leaderboard
+        <div id="resLeaderboardSection" style="margin-bottom: 20px;">
+          <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <span>🏆</span> Top Supporters
           </h4>
           <div class="table-card">
             <div class="table-responsive">
               <table class="data-table" id="resLeaderboardTable">
                 <thead>
                   <tr>
-                    <th style="width: 70px;">Rank</th>
-                    <th>Supporter Name</th>
-                    <th>Total Jewels Sent</th>
-                    <th>Gifts Count</th>
-                    <th>Est. Net Creator Support</th>
+                    <th style="width: 60px;">Rank</th>
+                    <th>Supporter</th>
+                    <th>Jewels</th>
+                    <th>Gifts</th>
+                    <th>Creator Support</th>
                   </tr>
                 </thead>
                 <tbody id="resLeaderboardBody">
@@ -487,7 +516,7 @@
         </div>
 
         <!-- Action Toolbar -->
-        <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+        <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
           <button type="button" class="btn-action-tool" id="copyAuditSummaryBtn">
             <span>📋</span> <span id="copySummaryBtnText">Copy Summary</span>
           </button>
@@ -495,301 +524,273 @@
             <span>📥</span> <span>Download CSV</span>
           </button>
           <button type="button" class="btn-action-tool" id="resetAuditBtn">
-            <span>🔄</span> <span>Clear / Audit Another</span>
+            <span>🔄</span> <span>Clear</span>
           </button>
         </div>
       </div>
     </section>
 
-    <!-- 2. Interactive Live Jewels Calculator Card (Manual What-If Converter) -->
-    <section class="config-card" style="max-width: 960px; margin: 0 auto 32px auto;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+    <!-- 2. Manual Jewels Converter Card -->
+    <section class="config-card" style="max-width: 860px; margin: 0 auto 32px auto; padding: 26px 28px; border-radius: 18px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
         <div>
-          <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
-            💎 Instant Jewels &amp; Rubies Value Converter (What-If Math)
+          <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">
+            💎 Quick Jewels Converter
           </h2>
-          <p style="color: var(--text-secondary); font-size: 0.9rem;">
-            Type any quantity of Jewels or tap a popular gift preset below.
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">
+            Enter any Jewels quantity or select a preset to see the exact payout.
           </p>
         </div>
-        <span class="pill-badge pill-green" id="forexRateBadge">Live Forex: $1 USD = ₹86.85 INR</span>
+        <span class="pill-badge pill-green" id="forexRateBadge" style="font-size: 0.76rem; padding: 5px 12px; border-radius: 9999px;">$1 USD = ₹86.85 INR</span>
       </div>
 
       <!-- Quick Preset Chips -->
-      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
-        <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); align-self: center; margin-right: 4px;">Presets:</span>
-        <button type="button" class="jewel-preset-chip" data-jewels="500">500 Jewels</button>
-        <button type="button" class="jewel-preset-chip active" data-jewels="1000">1,000 Jewels</button>
-        <button type="button" class="jewel-preset-chip" data-jewels="2000">2,000 Jewels</button>
-        <button type="button" class="jewel-preset-chip" data-jewels="5000">5,000 Jewels</button>
-        <button type="button" class="jewel-preset-chip" data-jewels="10000">10,000 Jewels</button>
-        <button type="button" class="jewel-preset-chip" data-jewels="50000">50,000 Jewels</button>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+        <button type="button" class="jewel-preset-chip" data-jewels="500">500</button>
+        <button type="button" class="jewel-preset-chip active" data-jewels="1000">1,000</button>
+        <button type="button" class="jewel-preset-chip" data-jewels="2000">2,000</button>
+        <button type="button" class="jewel-preset-chip" data-jewels="5000">5,000</button>
+        <button type="button" class="jewel-preset-chip" data-jewels="10000">10,000</button>
+        <button type="button" class="jewel-preset-chip" data-jewels="50000">50,000</button>
       </div>
 
       <!-- Main Input Box -->
-      <div class="input-row" style="margin-bottom: 24px;">
+      <div class="input-row" style="margin-bottom: 20px;">
         <div class="input-wrapper" style="flex: 1;">
           <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polygon points="6 3 18 3 22 9 12 22 2 9 6 3"></polygon>
           </svg>
-          <input type="text" id="calcJewelsInput" value="1000" placeholder="Enter number of Jewels (e.g. 1000, 5000)"
-            autocomplete="off" style="font-size: 1.1rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;">
+          <input type="text" id="calcJewelsInput" value="1000" placeholder="Enter Jewels (e.g. 1000)"
+            autocomplete="off" style="font-size: 1.05rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;">
         </div>
       </div>
 
-      <!-- Live KPI Results Grid -->
-      <div class="kpi-banner" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 16px;">
+      <!-- 3 Real-time Value Calculation Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 14px;">
         <div class="kpi-card highlight">
-          <span class="kpi-badge">Net Creator Take</span>
-          <div class="kpi-amount" id="resInr" style="color: #10b981;">₹434</div>
-          <span class="kpi-sub" id="resUsd">approx. $5.00 USD</span>
+          <span class="kpi-badge">Rubies Earned</span>
+          <div class="kpi-amount" id="calcRubiesVal" style="color: #ff0033;">500</div>
+          <span class="kpi-sub">1 Ruby per 2 Jewels (2:1 Ratio)</span>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-top">
-            <span class="kpi-title">Rubies Earned</span>
-            <span class="pill-badge pill-red">2:1 Ratio</span>
-          </div>
-          <div class="kpi-value" id="resRubies">500</div>
-          <span class="kpi-note">$0.01 USD payout per Ruby</span>
+          <span class="kpi-badge">Net Creator Take (USD)</span>
+          <div class="kpi-amount" id="calcUsdVal" style="color: #10b981;">$5.00</div>
+          <span class="kpi-sub">$0.01 USD per Ruby</span>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-top">
-            <span class="kpi-title">Gross Viewer Spend</span>
-            <span class="pill-badge pill-amber">Retail Bundle</span>
-          </div>
-          <div class="kpi-value" id="resViewerGross">₹1,200</div>
-          <span class="kpi-note">Calculated at ~₹1.20/Jewel retail</span>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-top">
-            <span class="kpi-title">Total Jewels</span>
-            <span class="pill-badge pill-purple">Gifts</span>
-          </div>
-          <div class="kpi-value" id="resJewels">1,000</div>
-          <span class="kpi-note">~35% creator net take-home</span>
+          <span class="kpi-badge">Net Creator Take (INR)</span>
+          <div class="kpi-amount" id="calcInrVal" style="color: #10b981;">₹434.25</div>
+          <span class="kpi-sub" id="calcInrSub">~₹0.43 net per Jewel</span>
         </div>
       </div>
 
-      <div style="background: var(--bg-subtle); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
-        <span id="resFormulaNote">Formula: 1,000 Jewels ÷ 2 = 500 Rubies × $0.01 = $5.00 USD (at ₹86.85/USD)</span>
+      <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">
+        Formula: <strong>1,000 Jewels ÷ 2 = 500 Rubies × $0.01 = $5.00 USD</strong>
       </div>
     </section>
 
-    <!-- Popular Virtual Gifts Quick Grid -->
-    <section class="config-card" style="max-width: 960px; margin: 0 auto 32px auto;">
-      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
-        🎁 Popular Indian Live Stream Gifts Price Guide
-      </h3>
-      <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 16px;">
-        Click any gift to load its exact Jewels, Rubies &amp; creator payout values into the calculator above.
-      </p>
+    <!-- 3. Popular Gifts Catalog -->
+    <section class="info-section" style="max-width: 860px; margin: 0 auto 32px auto; padding: 0 16px;">
+      <div style="text-align: center; margin-bottom: 18px;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">
+          Popular Stream Gifts
+        </h2>
+        <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">
+          Click any gift to calculate creator payout.
+        </p>
+      </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+      <!-- 8 Gift Cards Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px;">
         <div class="gift-preset-card" data-jewels="10"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: transform 0.15s, border-color 0.15s;">
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 1.5rem;">🍲</span>
             <span class="pill-badge pill-amber">10 Jewels</span>
           </div>
           <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Panipuri</div>
-          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Creator Take: ~₹4.20</div>
+          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹4.20</div>
         </div>
 
         <div class="gift-preset-card" data-jewels="25"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: transform 0.15s, border-color 0.15s;">
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 1.5rem;">🥟</span>
             <span class="pill-badge pill-amber">25 Jewels</span>
           </div>
           <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Samosa</div>
-          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Creator Take: ~₹10.50</div>
+          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹10.50</div>
         </div>
 
         <div class="gift-preset-card" data-jewels="50"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: transform 0.15s, border-color 0.15s;">
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 1.5rem;">☕</span>
             <span class="pill-badge pill-amber">50 Jewels</span>
           </div>
           <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Masala Chai</div>
-          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Creator Take: ~₹21.00</div>
+          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹21.00</div>
         </div>
 
         <div class="gift-preset-card" data-jewels="100"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: transform 0.15s, border-color 0.15s;">
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 1.5rem;">🎤</span>
             <span class="pill-badge pill-amber">100 Jewels</span>
           </div>
           <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Mic Drop</div>
-          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Creator Take: ~₹42.00</div>
+          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹42.00</div>
         </div>
 
         <div class="gift-preset-card" data-jewels="250"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: transform 0.15s, border-color 0.15s;">
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 1.5rem;">💖</span>
             <span class="pill-badge pill-amber">250 Jewels</span>
           </div>
           <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Heart Fireworks</div>
-          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Creator Take: ~₹105.00</div>
+          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹105.00</div>
         </div>
 
         <div class="gift-preset-card" data-jewels="1000"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: transform 0.15s, border-color 0.15s;">
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 1.5rem;">👑</span>
             <span class="pill-badge pill-amber">1,000 Jewels</span>
           </div>
           <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Royal Crown</div>
-          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Creator Take: ~₹420.00</div>
+          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹420.00</div>
         </div>
 
         <div class="gift-preset-card" data-jewels="5000"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: transform 0.15s, border-color 0.15s;">
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 1.5rem;">🏰</span>
             <span class="pill-badge pill-amber">5,000 Jewels</span>
           </div>
           <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Golden Castle</div>
-          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Creator Take: ~₹2,100.00</div>
+          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹2,100.00</div>
         </div>
 
         <div class="gift-preset-card" data-jewels="25000"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: transform 0.15s, border-color 0.15s;">
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 1.5rem;">🌌</span>
             <span class="pill-badge pill-amber">25,000 Jewels</span>
           </div>
           <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Super Galaxy</div>
-          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Creator Take: ~₹10,500.00</div>
+          <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹10,500.00</div>
         </div>
       </div>
     </section>
 
-    <!-- Authoritative Reference Matrix Section -->
-    <section class="info-section" style="max-width: 960px; margin: 0 auto 40px auto; padding: 0 16px;">
-      <div style="text-align: center; margin-bottom: 28px;">
-        <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">
-          How YouTube Jewels &amp; Rubies Work: Official Economics
+    <!-- 4. Monetization Comparison Matrix -->
+    <section class="info-section" style="max-width: 860px; margin: 0 auto 32px auto; padding: 0 16px;">
+      <div style="text-align: center; margin-bottom: 16px;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">
+          Jewels vs. Super Chat vs. Memberships
         </h2>
-        <p style="color: var(--text-secondary); font-size: 0.95rem; max-width: 760px; margin: 0 auto; line-height: 1.6;">
-          In 2024–2026, YouTube rolled out virtual gifting on vertical live streams. Unlike Super Chats where viewers donate direct monetary amounts, YouTube Gifts operate on a two-tier virtual currency system: <strong>Jewels</strong> (purchased by viewers) and <strong>Rubies</strong> (earned by creators).
+        <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">
+          Revenue split breakdown across YouTube creator monetization.
         </p>
       </div>
 
-      <!-- Comparison Matrix Table -->
-      <div style="margin-bottom: 32px;">
-        <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-          <span>⚖️</span> YouTube Jewels vs. Super Chat vs. Memberships
-        </h3>
-        <div class="table-card">
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Monetization Format</th>
-                  <th>Viewer Currency</th>
-                  <th>Creator Payout Mechanism</th>
-                  <th>Effective Creator Share</th>
-                  <th>Supported Formats</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>YouTube Jewels</strong></td>
-                  <td>Virtual Jewels Bundles</td>
-                  <td><strong style="color: #10b981;">2 Jewels = 1 Ruby = $0.01 USD (~₹0.42/Jewel)</strong></td>
-                  <td>~35% of Retail Bundle</td>
-                  <td>Vertical Live Streams (Mobile)</td>
-                </tr>
-                <tr>
-                  <td><strong>Super Chat &amp; Stickers</strong></td>
-                  <td>Direct Fiat (INR, USD, etc.)</td>
-                  <td><strong style="color: #10b981;">70% Net Creator Split</strong></td>
-                  <td>70% (30% YouTube Cut)</td>
-                  <td>Horizontal &amp; Vertical Streams</td>
-                </tr>
-                <tr>
-                  <td><strong>Channel Memberships</strong></td>
-                  <td>Monthly Recurring Fee</td>
-                  <td><strong style="color: #10b981;">70% Net Creator Split</strong></td>
-                  <td>70% (30% YouTube Cut)</td>
-                  <td>All Channel Formats</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+      <div class="table-card">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Format</th>
+                <th>Viewer Currency</th>
+                <th>Creator Rate</th>
+                <th>Creator Share</th>
+                <th>Platform</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>YouTube Jewels</strong></td>
+                <td>Virtual Bundles</td>
+                <td><strong style="color: #10b981;">2 Jewels = 1 Ruby = $0.01 USD (~₹0.43)</strong></td>
+                <td>~35% of Retail</td>
+                <td>Vertical Live (Shorts)</td>
+              </tr>
+              <tr>
+                <td><strong>Super Chat &amp; Stickers</strong></td>
+                <td>Direct Cash (INR, USD)</td>
+                <td><strong style="color: #10b981;">70% Net Creator Split</strong></td>
+                <td>70% (30% YouTube)</td>
+                <td>All Live Streams</td>
+              </tr>
+              <tr>
+                <td><strong>Memberships</strong></td>
+                <td>Monthly Fee</td>
+                <td><strong style="color: #10b981;">70% Net Creator Split</strong></td>
+                <td>70% (30% YouTube)</td>
+                <td>All Formats</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
 
-    <!-- Product Interface Preview Diagram (Issue #4 SEO Optimization) -->
-    <figure class="product-preview-figure" style="max-width: 960px; margin: 32px auto;">
-      <img src="/preview-jewels-converter.svg" alt="YouTube Jewels to Rubies and Money Calculator Interface Preview" class="product-preview-img" width="1200" height="675" loading="lazy">
-      <figcaption class="product-preview-caption">TubeMetrix YouTube Jewels &amp; Rubies Converter: Dual real-time conversion at the official 2 Jewels = 1 Ruby formula with instant INR / USD take-home calculations.</figcaption>
-    </figure>
+    <!-- 5. Frequently Asked Questions -->
+    <section class="info-section" style="max-width: 860px; margin: 0 auto 40px auto; padding: 0 16px;">
+      <div style="text-align: center; margin-bottom: 18px;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">
+          Frequently Asked Questions
+        </h2>
+        <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">
+          Quick answers about YouTube Jewels, Rubies, and payouts.
+        </p>
+      </div>
 
-    <!-- FAQ Section -->
-    <section class="info-section" style="max-width: 860px; margin: 0 auto 60px auto; padding: 0 16px;">
-      <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; text-align: center;">
-        Frequently Asked Questions: YouTube Jewels &amp; Rubies
-      </h2>
-      <div class="faq-accordion">
+      <div>
         <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px;">
-          <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
-            What is the official conversion formula from YouTube Jewels to Rubies? <span class="faq-icon">+</span>
+          <summary style="font-weight: 700; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-size: 0.92rem;">
+            How much is 1 YouTube Jewel worth to creators? <span class="faq-icon">+</span>
           </summary>
-          <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-            Under YouTube's official partner policy, <strong>2 Jewels = 1 Ruby</strong>. When a viewer sends a virtual gift costing 100 Jewels, the creator receives exactly 50 Rubies in their creator analytics studio.
+          <p style="margin: 8px 0 0 0; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">
+            YouTube uses a fixed 2:1 ratio: 2 Jewels = 1 Ruby = $0.01 USD (~₹0.43 INR net to creator). Viewers purchase retail Jewels bundles at ~₹1.20 per Jewel.
           </p>
         </details>
 
         <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px;">
-          <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
-            How much does YouTube pay creators for 1 Ruby in INR and USD? <span class="faq-icon">+</span>
+          <summary style="font-weight: 700; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-size: 0.92rem;">
+            When and how does YouTube pay creators for Jewels? <span class="faq-icon">+</span>
           </summary>
-          <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-            YouTube pays creators a fixed rate of <strong>$0.01 USD per Ruby</strong>. In Indian Rupees (INR), 1 Ruby converts to approximately <strong>₹0.84 to ₹0.87 INR</strong> based on real-time forex rates. This means each Jewel earned yields approximately <strong>₹0.42 INR ($0.005 USD)</strong> net take-home for the creator.
+          <p style="margin: 8px 0 0 0; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">
+            Rubies earnings are disbursed monthly via your linked Google AdSense account between the 21st and 26th, subject to the standard AdSense threshold ($100 USD or ₹7,000 INR).
           </p>
         </details>
 
         <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px;">
-          <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
-            How much do viewers spend to buy Jewels bundles in India? <span class="faq-icon">+</span>
-          </summary>
-          <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-            Viewers purchase Jewels bundles through Google Play in-app purchases. In India, retail pricing is approximately <strong>₹1.20 INR per Jewel</strong> (for instance, ~₹12 for 10 Jewels, ~₹120 for 100 Jewels). In the United States, popular bundles start at $9.99 for 700 Jewels.
-          </p>
-        </details>
-
-        <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px;">
-          <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
-            When and how do creators receive payments for Rubies? <span class="faq-icon">+</span>
-          </summary>
-          <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-            Rubies earnings are added to your YouTube Creator Studio monthly revenue pool and paid out via your linked <strong>Google AdSense account between the 21st and 26th of each month</strong>, provided your total earnings meet the AdSense minimum payout threshold ($100 USD or ₹7,000 INR).
-          </p>
-        </details>
-
-        <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px;">
-          <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+          <summary style="font-weight: 700; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-size: 0.92rem;">
             Are YouTube Jewels available on horizontal live streams? <span class="faq-icon">+</span>
           </summary>
-          <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-            Virtual gifts and Jewels are optimized specifically for vertical livestreams appearing in the YouTube Shorts feed on mobile devices. Standard horizontal streams use Super Chats and Super Stickers.
+          <p style="margin: 8px 0 0 0; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">
+            No, Jewels and virtual gifts are exclusive to vertical mobile live streams (Shorts feed). Horizontal streams use Super Chats and Super Stickers.
+          </p>
+        </details>
+
+        <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px;">
+          <summary style="font-weight: 700; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-size: 0.92rem;">
+            Can TubeMetrix track Jewels sent during past live stream archives? <span class="faq-icon">+</span>
+          </summary>
+          <p style="margin: 8px 0 0 0; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">
+            Yes! Paste any public stream URL to scan the chat replay, itemize every gift, and calculate total Jewels and net creator payout.
           </p>
         </details>
 
         <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
-          <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
-            Can TubeMetrix track Jewels sent during past live stream archives? <span class="faq-icon">+</span>
+          <summary style="font-weight: 700; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; font-size: 0.92rem;">
+            Do I need to sign in or pay to use this calculator? <span class="faq-icon">+</span>
           </summary>
-          <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-            Yes! TubeMetrix audits all public livestream archives, extracting every single virtual gift event, identifying the gifting viewer, the gift type (Panipuri, Castle, etc.), and converting the total Jewels to Rubies and your preferred currency automatically.
+          <p style="margin: 8px 0 0 0; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">
+            No. The calculator and stream gift auditor are 100% free with unlimited audits and zero sign-in required.
           </p>
         </details>
       </div>
@@ -837,8 +838,7 @@
   </footer>
 
   <script src="auth.js?v=3.9"></script>
-  <script src="jewels-calc.js?v=2.1"></script>
+  <script src="jewels-calc.js?v=2.2"></script>
 </body>
 
 </html>
-
