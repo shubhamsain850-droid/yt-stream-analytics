@@ -97,6 +97,7 @@
           if (rateBadge) {
             rateBadge.textContent = `Live Forex: $1 USD = ₹${usdToInrRate.toFixed(2)} INR`;
           }
+          updateGiftCatalogRates();
           recalcInteractive();
           if (currentAuditData) {
             renderAuditResults(currentAuditData);
@@ -108,6 +109,20 @@
     }
   }
 
+  function updateGiftCatalogRates() {
+    document.querySelectorAll('.gift-preset-card').forEach(card => {
+      const jewels = parseInt(card.dataset.jewels, 10);
+      if (!isNaN(jewels)) {
+        const rubies = jewels / 2;
+        const takeInr = rubies * 0.01 * usdToInrRate;
+        const label = card.querySelector('.gift-take-label');
+        if (label) {
+          label.textContent = `Take: ~₹${takeInr >= 100 ? Math.round(takeInr).toLocaleString() : takeInr.toFixed(2)}`;
+        }
+      }
+    });
+  }
+
   // ─────────────────────────────────────────────
   // 3. Interactive Instant Calculator (What-If Math)
   // ─────────────────────────────────────────────
@@ -115,7 +130,17 @@
     const input = document.getElementById('calcJewelsInput');
     if (!input) return;
 
-    input.addEventListener('input', recalcInteractive);
+    input.addEventListener('input', () => {
+      const val = parseInt(input.value.replace(/[^0-9]/g, ''), 10);
+      document.querySelectorAll('.jewel-preset-chip').forEach(c => {
+        if (parseInt(c.dataset.jewels, 10) === val) {
+          c.classList.add('active');
+        } else {
+          c.classList.remove('active');
+        }
+      });
+      recalcInteractive();
+    });
 
     // Preset chips
     document.querySelectorAll('.jewel-preset-chip').forEach(chip => {
@@ -136,13 +161,20 @@
         const count = parseInt(card.dataset.jewels, 10);
         if (!isNaN(count)) {
           input.value = count;
-          document.querySelectorAll('.jewel-preset-chip').forEach(c => c.classList.remove('active'));
+          document.querySelectorAll('.jewel-preset-chip').forEach(c => {
+            if (parseInt(c.dataset.jewels, 10) === count) {
+              c.classList.add('active');
+            } else {
+              c.classList.remove('active');
+            }
+          });
           recalcInteractive();
           input.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       });
     });
 
+    updateGiftCatalogRates();
     recalcInteractive();
   }
 
@@ -159,14 +191,24 @@
     const rubies = jewels / 2;
     const creatorUsd = rubies * 0.01;
     const creatorInr = creatorUsd * usdToInrRate;
-    const viewerInr = jewels * INR_PER_JEWEL_VIEWER;
+    const inrPerJewel = jewels > 0 ? (creatorInr / jewels).toFixed(2) : (0.5 * 0.01 * usdToInrRate).toFixed(2);
 
+    // Update main UI elements in calculator card
+    setElText('calcRubiesVal', rubies.toLocaleString(undefined, { maximumFractionDigits: 1 }));
+    setElText('calcUsdVal', `$${creatorUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+    setElText('calcInrVal', `₹${(creatorInr >= 100 ? Math.round(creatorInr) : creatorInr.toFixed(2)).toLocaleString()}`);
+    setElText('calcInrSub', `~₹${inrPerJewel} net per Jewel`);
+
+    const formulaEl = document.getElementById('calcFormulaNote');
+    if (formulaEl) {
+      formulaEl.innerHTML = `Formula: <strong>${jewels.toLocaleString()} Jewels ÷ 2 = ${rubies.toLocaleString()} Rubies × $0.01 = $${creatorUsd.toFixed(2)} USD (≈ ₹${Math.round(creatorInr).toLocaleString()})</strong>`;
+    }
+
+    // Legacy fallbacks
     setElText('resJewels', jewels.toLocaleString());
     setElText('resRubies', rubies.toLocaleString(undefined, { maximumFractionDigits: 1 }));
-    setElText('resUsd', `approx. $${creatorUsd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`);
+    setElText('resUsd', `$${creatorUsd.toFixed(2)} USD`);
     setElText('resInr', `₹${Math.round(creatorInr).toLocaleString()}`);
-    setElText('resViewerGross', `₹${Math.round(viewerInr).toLocaleString()}`);
-    setElText('resFormulaNote', `Formula: ${jewels.toLocaleString()} Jewels ÷ 2 = ${rubies.toLocaleString()} Rubies × $0.01 = $${creatorUsd.toFixed(2)} USD (at ₹${usdToInrRate.toFixed(2)}/USD)`);
   }
 
   // ─────────────────────────────────────────────
@@ -215,6 +257,7 @@
 
     if (dismissErrBtn) {
       dismissErrBtn.addEventListener('click', () => {
+        hideEl('auditErrorBanner');
         hideEl('auditErrorState');
       });
     }
@@ -232,7 +275,9 @@
         if (input) input.value = '';
         currentAuditData = null;
         hideEl('auditResultsContainer');
+        hideEl('auditErrorBanner');
         hideEl('auditErrorState');
+        hideEl('auditStatusTicker');
         hideEl('auditLoadingState');
       });
     }
@@ -251,26 +296,38 @@
       return;
     }
 
+    hideEl('auditErrorBanner');
     hideEl('auditErrorState');
     hideEl('auditResultsContainer');
-    showEl('auditLoadingState');
+
+    const ticker = document.getElementById('auditStatusTicker');
+    const statusMsg = document.getElementById('auditStatusMsg');
+    const statusPct = document.getElementById('auditStatusPct');
+    const progressBar = document.getElementById('auditProgressBar');
+
+    if (ticker) ticker.style.display = 'block';
+    if (statusMsg) statusMsg.textContent = 'Connecting to YouTube Live Replay...';
+    if (statusPct) statusPct.textContent = '20%';
+    if (progressBar) progressBar.style.width = '20%';
 
     const auditBtn = document.getElementById('startJewelsAuditBtn');
     if (auditBtn) auditBtn.disabled = true;
 
     // Loading status animation ticker
-    const ticker = document.getElementById('auditStatusTicker');
     const tickerMsgs = [
-      'Connecting to YouTube Live Replay...',
-      'Streaming live chat chunks from InnerTube...',
-      'Extracting giftMessageViewModel events...',
-      'Calculating Jewels, Rubies & Net Payout...'
+      { msg: 'Streaming live chat chunks from InnerTube...', pct: '45%' },
+      { msg: 'Extracting giftMessageViewModel events...', pct: '70%' },
+      { msg: 'Calculating Jewels, Rubies & Net Payout...', pct: '90%' }
     ];
     let tickerIdx = 0;
     const tickerInterval = setInterval(() => {
-      tickerIdx = (tickerIdx + 1) % tickerMsgs.length;
-      if (ticker) ticker.textContent = tickerMsgs[tickerIdx];
-    }, 1400);
+      if (tickerIdx < tickerMsgs.length) {
+        if (statusMsg) statusMsg.textContent = tickerMsgs[tickerIdx].msg;
+        if (statusPct) statusPct.textContent = tickerMsgs[tickerIdx].pct;
+        if (progressBar) progressBar.style.width = tickerMsgs[tickerIdx].pct;
+        tickerIdx++;
+      }
+    }, 1200);
 
     try {
       const resp = await fetch(API_ENDPOINT, {
@@ -280,6 +337,7 @@
       });
 
       clearInterval(tickerInterval);
+      if (ticker) ticker.style.display = 'none';
       hideEl('auditLoadingState');
       if (auditBtn) auditBtn.disabled = false;
 
@@ -325,6 +383,7 @@
 
     } catch (err) {
       clearInterval(tickerInterval);
+      if (ticker) ticker.style.display = 'none';
       hideEl('auditLoadingState');
       if (auditBtn) auditBtn.disabled = false;
       showError('Connection Error', 'Could not communicate with the stream audit service. Please verify your internet connection.');
@@ -680,14 +739,21 @@
     const input = document.getElementById('auditStreamUrlInput');
     if (input) input.value = 'https://www.youtube.com/watch?v=demo_vertical_stream';
 
+    hideEl('auditErrorBanner');
     hideEl('auditErrorState');
     hideEl('auditResultsContainer');
-    showEl('auditLoadingState');
 
     const ticker = document.getElementById('auditStatusTicker');
-    if (ticker) ticker.textContent = 'Loading realistic YouTube vertical stream sample data...';
+    const statusMsg = document.getElementById('auditStatusMsg');
+    const statusPct = document.getElementById('auditStatusPct');
+    const progressBar = document.getElementById('auditProgressBar');
+    if (ticker) ticker.style.display = 'block';
+    if (statusMsg) statusMsg.textContent = 'Loading realistic YouTube vertical stream sample data...';
+    if (statusPct) statusPct.textContent = '85%';
+    if (progressBar) progressBar.style.width = '85%';
 
     setTimeout(() => {
+      if (ticker) ticker.style.display = 'none';
       hideEl('auditLoadingState');
 
       currentAuditData = {
@@ -882,6 +948,11 @@
   }
 
   function showError(title, msg) {
+    const banner = document.getElementById('auditErrorBanner');
+    const msgEl = document.getElementById('auditErrorMessage');
+    if (msgEl) msgEl.textContent = msg ? `${title}: ${msg}` : title;
+    if (banner) banner.style.display = 'flex';
+
     setElText('auditErrorTitle', title);
     setElText('auditErrorMsg', msg);
     showEl('auditErrorState');
