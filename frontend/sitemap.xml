@@ -20,14 +20,6 @@
     <priority>0.9</priority>
   </url>
 
-  <!-- Page 3: YouTube Comments Downloader (Video & Shorts) -->
-  <url>
-    <loc>https://tubemetrix.net/youtube-comments-downloader</loc>
-    <lastmod>2026-11-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
   <!-- Page 4: YouTube Jewels & Rubies Calculator -->
   <url>
     <loc>https://tubemetrix.net/youtube-jewels-calculator</loc>
