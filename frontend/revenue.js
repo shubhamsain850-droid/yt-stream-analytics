@@ -943,7 +943,11 @@
       <!-- 4. Detailed Side-by-Side Comparison Matrix Table -->
       <div class="compare-matrix-section">
         <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin-bottom: 14px;">Detailed Metric-by-Metric Matrix</h3>
-        <div style="overflow-x: auto;">
+        <div class="mobile-table-hint-bar" aria-hidden="true">
+          <span class="hint-hand">👉</span>
+          <span class="hint-text">Swipe horizontally to compare full metric matrix</span>
+        </div>
+        <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
           <table class="compare-table">
             <thead>
               <tr>
