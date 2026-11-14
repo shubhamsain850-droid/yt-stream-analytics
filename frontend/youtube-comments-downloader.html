@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Comments Downloader: Export Video &amp; Shorts Comments to Excel Free — TubeMetrix</title>
+  <meta name="description"
+    content="Download and export YouTube comments, nested replies, likes &amp; usernames to Excel (.xls), CSV, or JSON. Free tool supporting long-form YouTube videos and Shorts.">
+  <meta name="keywords"
+    content="youtube comments downloader, export youtube comments to excel, download youtube shorts comments, youtube comment exporter csv, download youtube comments free, export comments from youtube, youtube comment scraper">
+  <meta name="author" content="TubeMetrix">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://tubemetrix.net/youtube-comments-downloader">
+  <script>
+    if (window.location.hostname.endsWith('.pages.dev')) {
+      window.location.replace('https://tubemetrix.net' + window.location.pathname + window.location.search + window.location.hash);
+    }
+  </script>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=5.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta property="og:image" content="https://tubemetrix.net/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:image" content="https://tubemetrix.net/og-image.png">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tubemetrix.net/youtube-comments-downloader">
+  <meta property="og:title" content="YouTube Comments Downloader — Export Video &amp; Shorts Comments to Excel Free">
+  <meta property="og:description"
+    content="Export complete YouTube video and Shorts comments with author handles, timestamps, likes, and replies to Excel, CSV, or JSON.">
+  <meta property="og:site_name" content="TubeMetrix">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="YouTube Comments Downloader — TubeMetrix">
+  <meta name="twitter:description"
+    content="Free online tool to download and export YouTube video and Shorts comments to Excel, CSV, and JSON. Online inspection with zero installation.">
+
+  <!-- Schema Markup -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://tubemetrix.net/#organization",
+        "name": "TubeMetrix",
+        "alternateName": ["TubeMetrix Official", "TubeMetrix.net"],
+        "url": "https://tubemetrix.net/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://tubemetrix.net/icon-512.png",
+          "width": 512,
+          "height": 512
+        },
+        "description": "Official TubeMetrix creator intelligence suite: YouTube live stream earnings auditor, live chat & comments downloader, and channel statistics analytics.",
+        "email": "support@tubemetrix.net"
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://tubemetrix.net/#website",
+        "url": "https://tubemetrix.net/",
+        "name": "TubeMetrix",
+        "publisher": {
+          "@id": "https://tubemetrix.net/#organization"
+        }
+      },
+      {
+        "@type": "WebApplication",
+        "name": "YouTube Comments Downloader",
+        "url": "https://tubemetrix.net/youtube-comments-downloader",
+        "description": "Download and export YouTube video comments, nested replies, author usernames, and like counts to Excel, CSV, and JSON.",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "Export comments to Excel (.xls)",
+          "Export comments to CSV and JSON",
+          "Supports Long-Form Videos and YouTube Shorts",
+          "Includes nested replies and author channel IDs",
+          "Instant online preview modal with text and username search",
+          "Sort comments by likes or newest date"
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Can I export comments from YouTube Shorts as well as regular videos?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes! TubeMetrix fully supports both long-form YouTube videos (youtube.com/watch?v=...) and YouTube Shorts (youtube.com/shorts/...). Simply paste either URL into the input field to extract all comments."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What file formats can I export YouTube comments to?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "You can export YouTube comments to Microsoft Excel (.xls), CSV (compatible with Google Sheets), JSON (for developers and data analysts), and formatted plain text (.txt)."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do exported comments include nested replies?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. TubeMetrix extracts both top-level comments and nested comment thread replies, along with reply timestamps, parent IDs, and author usernames."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is there a limit to how many comments I can download?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "You can download up to 1,000 comments completely free. For massive high-volume videos with tens of thousands of comments, prepaid credit packs allow extracting up to 50,000+ comments per video without browser throttling."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do I need to install a Chrome extension or software?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. TubeMetrix is 100% web-based and runs entirely in your browser. You do not need to install browser extensions, grant account permissions, or download executable software."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I inspect and search through comments online before downloading?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes! TubeMetrix provides an interactive Online Inspection Window where you can search comments by username, filter by keyword, sort by like count, and read replies directly in your browser."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=7.3">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <div class="nav-container">
+      <a href="/" class="logo" title="TubeMetrix Home">
+        <div class="logo-icon" title="TubeMetrix">
+          <svg viewBox="0 0 100 100" fill="none" style="width: 100%; height: 100%;">
+            <defs>
+              <linearGradient id="navTmRed" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff1744" />
+                <stop offset="50%" stop-color="#ff0033" />
+                <stop offset="100%" stop-color="#c40026" />
+              </linearGradient>
+              <linearGradient id="navCyanArrow" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#00f2fe" />
+                <stop offset="100%" stop-color="#4facfe" />
+              </linearGradient>
+              <linearGradient id="navSheen" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.28" />
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="96" height="96" rx="26" fill="url(#navTmRed)" />
+            <path d="M 4 28 C 4 14, 14 4, 28 4 L 72 4 C 86 4, 96 14, 96 28 C 96 36, 62 42, 4 36 Z"
+              fill="url(#navSheen)" />
+            <rect x="18" y="22" width="64" height="15" rx="7.5" fill="#ffffff" />
+            <rect x="33.5" y="48" width="9" height="28" rx="4.5" fill="#ffffff" opacity="0.82" />
+            <rect x="45.5" y="40" width="9" height="36" rx="4.5" fill="#ffffff" opacity="0.96" />
+            <rect x="57.5" y="32" width="9" height="44" rx="4.5" fill="url(#navCyanArrow)" />
+            <path d="M 22 74 L 75 24" stroke="url(#navCyanArrow)" stroke-width="5.5" stroke-linecap="round" />
+            <path d="M 57 24 L 75 24 L 75 42" fill="none" stroke="url(#navCyanArrow)" stroke-width="5.5"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div class="logo-text">Tube<span>Metrix</span></div>
+      </a>
+
+      <div class="nav-links">
+        <a href="/" class="nav-link">Live Stream Earnings</a>
+        <a href="/chats" class="nav-link">Live Chat Replay</a>
+        <a href="/youtube-comments-downloader" class="nav-link active">Comments Exporter</a>
+        <a href="/youtube-jewels-calculator" class="nav-link">Jewels &amp; Rubies</a>
+        <a href="/revenue" class="nav-link">Channel Stats</a>
+      </div>
+
+      <div class="nav-right">
+        <button class="theme-toggle" id="themeToggleBtn" type="button" aria-label="Toggle visual theme"
+          title="Toggle Dark / Light Theme">
+          <span class="theme-icon" id="themeIcon">☀️</span>
+          <span class="theme-text" id="themeText">Light</span>
+        </button>
+
+        <div class="auth-slot" id="authNavSlot">
+          <button class="btn-nav-signin" id="navSignInBtn" type="button"
+            onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.openAuthModal('Sign in with Google to download comments and manage credits')">
+            <svg class="g-icon" viewBox="0 0 24 24" width="16" height="16">
+              <path
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                fill="#4285F4" />
+              <path
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                fill="#34A853" />
+              <path
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                fill="#FBBC05" />
+              <path
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                fill="#EA4335" />
+            </svg>
+            <span>Sign In</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Hero Header -->
+    <div class="hero-section">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>VIDEOS &amp; YOUTUBE SHORTS SUPPORTED</span>
+      </div>
+      <h1 class="hero-title">YouTube Comments Downloader — Export to Excel &amp; CSV</h1>
+      <p class="hero-subtitle">
+        Extract complete viewer comments, nested replies, author usernames, like counts, and timestamps from any YouTube
+        video or Short. Export to formatted Excel (.xls), CSV, or JSON in one click.
+      </p>
+
+      <div class="tm-suite-nav" style="margin-top: 14px;">
+        <span class="tm-suite-label">TubeMetrix Tools:</span>
+        <a href="/" class="tm-suite-pill">Live Stream Earnings</a>
+        <a href="/chats" class="tm-suite-pill">Live Chat Downloader</a>
+        <span class="tm-suite-pill active">Comments Downloader ➔</span>
+        <a href="/youtube-jewels-calculator" class="tm-suite-pill">Jewels &amp; Rubies</a>
+        <a href="/revenue" class="tm-suite-pill">Channel Statistics</a>
+      </div>
+    </div>
+
+    <!-- Mode D: Video Comments Tool Card -->
+    <div class="config-card" style="max-width: 960px; margin: 0 auto 32px auto;">
+      <div class="mode-panel active" id="panel-comments">
+        <div class="panel-banner-hint">
+          <span class="hint-icon">💬</span>
+          <span class="hint-text"><strong>Video &amp; Shorts Comments Downloader:</strong> Download viewer comments from uploaded videos or YouTube Shorts with likes, replies, and author channels.</span>
+        </div>
+
+        <label class="input-label" for="commentsUrlInput">Paste YouTube Video or Shorts URL (or Video ID)</label>
+        <div class="input-row">
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z">
+              </path>
+              <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+            </svg>
+            <input type="text" id="commentsUrlInput" placeholder="https://www.youtube.com/watch?v=... or https://youtube.com/shorts/..." autocomplete="off">
+            <button class="btn-paste" id="pasteCommentsBtn" type="button">Paste</button>
+          </div>
+
+          <div class="limit-select-wrapper">
+            <label for="commentsLimitSelect" class="limit-label">Limit:</label>
+            <select id="commentsLimitSelect" class="limit-select">
+              <option value="100">100 Comments (Free / 1 Cr)</option>
+              <option value="300">300 Comments (Free / 1 Cr)</option>
+              <option value="500">500 Comments (Free / 1 Cr)</option>
+              <option value="1000" selected>1,000 Comments (Free / 1 Cr)</option>
+              <option value="2000">2,000 Comments (Up to 2 CR)</option>
+              <option value="5000">5,000 Comments (Up to 5 CR)</option>
+              <option value="10000">10,000 Comments (Up to 10 CR)</option>
+              <option value="25000">25,000 Comments (Up to 25 CR)</option>
+              <option value="50000">50,000 Comments (Up to 50 CR)</option>
+            </select>
+          </div>
+
+          <button class="btn-primary" id="startCommentsBtn">
+            <span>Download Comments</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <div class="tm-preflight-cost-bar" id="commentsCostPreviewBar" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Processing / Extraction Progress Card -->
+    <div class="processing-card" id="processingCard" style="display: none; max-width: 960px; margin: 0 auto 32px auto;">
+      <div class="status-header">
+        <div class="status-title-group">
+          <div class="spinner-dot"></div>
+          <div class="status-title" id="statusTitle">Extracting Comments...</div>
+        </div>
+        <div class="status-header-right">
+          <span class="tm-elapsed-pill" id="processingElapsedBadge" style="display: none;">⏱ 0:00</span>
+        </div>
+      </div>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progressBarFill" style="width: 0%"></div>
+      </div>
+
+      <div class="progress-meta">
+        <span class="progress-text" id="progressText">Connecting to YouTube InnerTube API...</span>
+        <span class="progress-percent" id="progressPercent">0%</span>
+      </div>
+
+      <div class="progress-actions" id="progressActions" style="display: none;">
+        <button class="btn-quick-view" id="quickViewBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span>View Online</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Results Section: Video Comments -->
+    <section class="results-section" id="resultsCommentsSection" style="display: none; max-width: 960px; margin: 0 auto 40px auto;">
+      <div class="tm-limit-banner" id="commentsCreditLimitBanner" style="display: none;"></div>
+      <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 14px;">YouTube Video Comments &amp; Viewer Engagement Summary</h2>
+      <div class="kpi-banner">
+        <div class="kpi-card highlight">
+          <span class="kpi-badge">Total Comments Extracted</span>
+          <div class="kpi-amount" id="kpiCommTotal">0</div>
+          <span class="kpi-sub" id="kpiCommVideoTitle">YouTube Video</span>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-title">Unique Commenters</span>
+            <span class="pill-badge pill-blue">Audience</span>
+          </div>
+          <div class="kpi-value" id="kpiCommUnique">0</div>
+          <span class="kpi-note">Individual viewer voices</span>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-title">Total Comment Likes</span>
+            <span class="pill-badge pill-amber">Engagement</span>
+          </div>
+          <div class="kpi-value" id="kpiCommTotalLikes">0</div>
+          <span class="kpi-note">Viewer upvotes recorded</span>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-title">Top Comment Likes</span>
+            <span class="pill-badge pill-green">Top Voice</span>
+          </div>
+          <div class="kpi-value" id="kpiCommTopLikes">0</div>
+          <span class="kpi-note" id="kpiCommTopAuthor">Highest engagement</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div class="results-actions-bar" style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn-action-primary" id="openCommViewModalBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span>View &amp; Filter Online</span>
+        </button>
+        <button class="btn-action-secondary" id="exportCommExcelBtn" type="button">📊 Export to Excel (.xls)</button>
+        <button class="btn-action-secondary" id="exportCommCsvBtn" type="button">📄 Export to CSV</button>
+        <button class="btn-action-secondary" id="exportCommJsonBtn" type="button">💻 Export JSON</button>
+        <button class="btn-action-secondary" id="exportCommTxtBtn" type="button">📝 Export TXT</button>
+      </div>
+
+      <!-- In-Page Comments Table Container -->
+      <div class="table-card" style="margin-top: 24px;">
+        <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">Extracted Comments Table</h3>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="commSearchInput" placeholder="Search comments or author..."
+              style="padding: 6px 12px; background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.85rem;">
+            <select id="commSortSelect"
+              style="padding: 6px 12px; background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.85rem;">
+              <option value="likes">Sort by Likes</option>
+              <option value="newest">Sort by Newest</option>
+              <option value="replies">Sort by Replies</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Author</th>
+                <th>Comment</th>
+                <th>Likes</th>
+                <th>Replies</th>
+                <th>Published</th>
+              </tr>
+            </thead>
+            <tbody id="commentsTableBody">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- In-Depth SEO Educational Content Section -->
+    <section class="info-section" style="max-width: 960px; margin: 40px auto; padding: 0 16px;">
+      <div style="text-align: center; margin-bottom: 32px;">
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">
+          How to Download YouTube &amp; Shorts Comments to Excel
+        </h2>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; max-width: 760px; margin: 0 auto; line-height: 1.6;">
+          Exporting comments helps YouTube creators, social media marketers, and academic researchers analyze community
+          feedback, run sentiment analysis, and archive audience engagement.
+        </p>
+      </div>
+
+      <!-- 3-Step Guide Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 36px;">
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); color: #ef4444; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">1</div>
+          <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Paste Video or Shorts URL</h3>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">Copy the URL of any uploaded YouTube video or YouTube Shorts clip from your browser address bar or mobile share sheet and paste it above.</p>
+        </div>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">2</div>
+          <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Select Download Limit</h3>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">Choose how many comments to fetch — from 100 to 1,000 comments free, or up to 50,000+ for massive viral videos with prepaid credits.</p>
+        </div>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">3</div>
+          <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Export to Excel, CSV or JSON</h3>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">Download fully structured data with 1-click. View comments online, search usernames, and open cleanly in Microsoft Excel or Google Sheets.</p>
+        </div>
+      </div>
+
+      <!-- Exported Schema Table -->
+      <div style="margin-bottom: 36px;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <span>📋</span> Supported Data Fields in Exported Excel &amp; CSV Files
+        </h3>
+        <div class="table-card">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Field Column</th>
+                  <th>Data Type</th>
+                  <th>Description</th>
+                  <th>Example Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Author Name</strong></td>
+                  <td>Text</td>
+                  <td>Display name of the YouTube commenter</td>
+                  <td>TechReviewerOfficial</td>
+                </tr>
+                <tr>
+                  <td><strong>Author Channel ID</strong></td>
+                  <td>String (UC...)</td>
+                  <td>Permanent YouTube channel identifier</td>
+                  <td>UCX6OQ3DkcsbYNE6H8uQQuVA</td>
+                </tr>
+                <tr>
+                  <td><strong>Comment Text</strong></td>
+                  <td>Plain Text / UTF-8</td>
+                  <td>Full comment text with emojis preserved</td>
+                  <td>This tutorial saved me hours! 🔥</td>
+                </tr>
+                <tr>
+                  <td><strong>Like Count</strong></td>
+                  <td>Integer</td>
+                  <td>Total upvotes received by the comment</td>
+                  <td>1,429</td>
+                </tr>
+                <tr>
+                  <td><strong>Reply Count</strong></td>
+                  <td>Integer</td>
+                  <td>Number of sub-replies in the comment thread</td>
+                  <td>34</td>
+                </tr>
+                <tr>
+                  <td><strong>Published Date</strong></td>
+                  <td>ISO 8601 Timestamp</td>
+                  <td>Exact date and time when comment was posted</td>
+                  <td>2026-03-14T08:22:15Z</td>
+                </tr>
+                <tr>
+                  <td><strong>Is Pinned</strong></td>
+                  <td>Boolean (TRUE / FALSE)</td>
+                  <td>Indicates if creator pinned this comment</td>
+                  <td>TRUE</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="info-section" style="max-width: 860px; margin: 0 auto 60px auto; padding: 0 16px;">
+      <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; text-align: center;">
+        Frequently Asked Questions: YouTube Comments Downloader
+      </h2>
+      <div class="faq-accordion">
+        <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px;">
+          <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+            Can I export comments from YouTube Shorts as well as regular videos? <span class="faq-icon">+</span>
+          </summary>
+          <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+            Yes! TubeMetrix fully supports both long-form YouTube videos (youtube.com/watch?v=...) and YouTube Shorts (youtube.com/shorts/...). Paste either URL into the input field above and the tool will automatically resolve the video ID and extract all comments.
+          </p>
+        </details>
+
+        <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px;">
+          <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+            What file formats can I export YouTube comments to? <span class="faq-icon">+</span>
+          </summary>
+          <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+            TubeMetrix supports four flexible export formats: Microsoft Excel (.xls), CSV (ideal for Google Sheets and data science), JSON (for developers building custom ML models or dashboards), and formatted Notepad text (.txt).
+          </p>
+        </details>
+
+        <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px;">
+          <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+            Do exported comments include nested replies? <span class="faq-icon">+</span>
+          </summary>
+          <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+            Yes! TubeMetrix extracts both top-level comments and nested replies, preserving thread hierarchy, author names, reply timestamps, and like counts.
+          </p>
+        </details>
+
+        <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px;">
+          <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+            Is there a limit to how many comments I can download? <span class="faq-icon">+</span>
+          </summary>
+          <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+            You can download up to 1,000 comments completely free. For high-volume viral videos with 5,000 to 50,000+ comments, pay-as-you-go credits allow bulk downloads with zero recurring subscriptions.
+          </p>
+        </details>
+
+        <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 10px;">
+          <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+            Do I need to install any Chrome extension? <span class="faq-icon">+</span>
+          </summary>
+          <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+            No. TubeMetrix runs 100% on cloud edge workers and in your browser. You never need to install untrusted third-party browser extensions or give access to your Google account.
+          </p>
+        </details>
+
+        <details style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+          <summary style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+            Can I search and filter comments online without downloading? <span class="faq-icon">+</span>
+          </summary>
+          <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+            Yes! Click the "View &amp; Filter Online" button after extraction to inspect comments in our interactive modal window. You can search by username, filter by keyword, and sort by highest likes immediately.
+          </p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <!-- Interactive View Results Modal -->
+  <div class="view-modal-backdrop" id="viewResultsModal" style="display: none;">
+    <div class="view-modal-overlay" id="viewModalOverlay"></div>
+    <div class="view-modal-window" role="dialog" aria-modal="true" aria-labelledby="vmTitle">
+      <div class="vm-header">
+        <div class="vm-header-left">
+          <span class="vm-badge" id="vmTypeBadge">💭 Video Comments</span>
+          <h2 class="vm-title" id="vmTitle">Video &amp; Shorts Comments Viewer</h2>
+          <span class="vm-counter" id="vmCounter">0 Comments</span>
+        </div>
+        <div class="vm-header-actions">
+          <button class="btn-vm-close" id="vmCloseBtn" type="button" aria-label="Close" title="Close Window (Esc)">✕</button>
+        </div>
+      </div>
+
+      <div class="vm-toolbar-clean">
+        <div class="vm-search-box-clean">
+          <svg class="vm-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="vmSearchInput" placeholder="Search by username or comment text..." autocomplete="off">
+          <button class="vm-search-clear" id="vmSearchClearBtn" type="button" title="Clear search" style="display: none;">✕</button>
+        </div>
+
+        <div class="vm-pills-bar" id="vmQuickBar">
+          <div class="vm-pills">
+            <button class="vm-pill active" data-event-filter="all">All (<span id="vmPillAll">0</span>)</button>
+            <button class="vm-pill" data-event-filter="sc" style="display: none;">Super Chats (<span id="vmPillSc">0</span>)</button>
+            <button class="vm-pill" data-event-filter="membership" style="display: none;">Memberships (<span id="vmPillMem">0</span>)</button>
+            <button class="vm-pill" data-event-filter="jewels" style="display: none;">Jewels (<span id="vmPillJewels">0</span>)</button>
+            <button class="vm-pill" data-event-filter="normal">Regular (<span id="vmPillNormal">0</span>)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="vm-content-body">
+        <div class="vm-table-container" id="vmTableContainer">
+          <table class="vm-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Author</th>
+                <th>Comment</th>
+                <th>Likes</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="vmTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="vm-footer">
+        <div class="vm-footer-status" id="vmFooterStatus">Showing all comments</div>
+        <div class="vm-footer-actions">
+          <button class="btn-vm-action" id="vmExportExcelBtn" type="button">📊 Export Excel</button>
+          <button class="btn-vm-action" id="vmExportCsvBtn" type="button">📄 Export CSV</button>
+          <button class="btn-vm-action" id="vmExportTxtBtn" type="button">📝 Export TXT</button>
+          <button class="btn-vm-close-alt" id="vmCloseFooterBtn" type="button">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand-col">
+        <div class="logo-text" style="font-size: 1.15rem; font-weight: 800;">Tube<span
+            style="color: var(--accent-red, #ff0033);">Metrix</span></div>
+        <p class="footer-desc">Professional YouTube creator analytics, live stream Super Chat auditor, comments
+          downloader &amp; channel revenue intelligence.</p>
+      </div>
+      <div class="footer-links-group">
+        <div class="footer-link-col">
+          <span class="footer-col-title">Tools &amp; Calculators</span>
+          <a href="/" class="footer-link">Live Stream Earnings Calculator</a>
+          <a href="/chats" class="footer-link">Live Chat Replay Downloader</a>
+          <a href="/youtube-comments-downloader" class="footer-link">YouTube Comments Downloader</a>
+          <a href="/youtube-jewels-calculator" class="footer-link">YouTube Jewels &amp; Rubies Calculator</a>
+          <a href="/revenue" class="footer-link">Channel Statistics &amp; Analytics</a>
+        </div>
+        <div class="footer-link-col">
+          <span class="footer-col-title">Resources</span>
+          <a href="/sitemap.xml" class="footer-link">XML Sitemap</a>
+          <a href="/privacy" class="footer-link">Privacy Policy</a>
+          <a href="/terms" class="footer-link">Terms &amp; No-Refund Policy</a>
+          <a href="mailto:support@tubemetrix.net" class="footer-link">Contact Support</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom-bar">
+      <p>© 2026 TubeMetrix. All YouTube data sourced publicly. Made for Creators, MCNs &amp; Channel Managers.</p>
+    </div>
+  </footer>
+
+  <script src="auth.js?v=3.9"></script>
+  <script src="cloud-backup.js?v=1.0"></script>
+  <script src="chats.js?v=7.1"></script>
+</body>
+
+</html>
+

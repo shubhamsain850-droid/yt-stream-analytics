@@ -7,23 +7,39 @@
   <!-- Page 1: YouTube Live Stream Earnings & Super Chat Auditor -->
   <url>
     <loc>https://tubemetrix.net/</loc>
-    <lastmod>2026-11-12</lastmod>
+    <lastmod>2026-11-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
-  <!-- Page 2: YouTube Live Chat & Comments Downloader -->
+  <!-- Page 2: YouTube Live Chat Replay Downloader -->
   <url>
     <loc>https://tubemetrix.net/chats</loc>
-    <lastmod>2026-11-12</lastmod>
+    <lastmod>2026-11-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
-  <!-- Page 3: YouTube Channel Statistics & Analytics -->
+  <!-- Page 3: YouTube Comments Downloader (Video & Shorts) -->
+  <url>
+    <loc>https://tubemetrix.net/youtube-comments-downloader</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Page 4: YouTube Jewels & Rubies Calculator -->
+  <url>
+    <loc>https://tubemetrix.net/youtube-jewels-calculator</loc>
+    <lastmod>2026-11-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Page 5: YouTube Channel Statistics & Analytics -->
   <url>
     <loc>https://tubemetrix.net/revenue</loc>
-    <lastmod>2026-11-12</lastmod>
+    <lastmod>2026-11-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -31,14 +47,14 @@
   <!-- Legal Pages -->
   <url>
     <loc>https://tubemetrix.net/privacy</loc>
-    <lastmod>2026-11-12</lastmod>
+    <lastmod>2026-11-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
 
   <url>
     <loc>https://tubemetrix.net/terms</loc>
-    <lastmod>2026-11-12</lastmod>
+    <lastmod>2026-11-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
