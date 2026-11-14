@@ -222,15 +222,15 @@
     try {
       const saved = localStorage.getItem(CURRENCY_REGION_KEY);
       if (saved === 'INR' || saved === 'USD') return saved;
-    } catch {}
+    } catch { }
     try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
       if (tz === 'Asia/Kolkata' || tz === 'Asia/Calcutta') return 'INR';
-    } catch {}
+    } catch { }
     try {
       const lang = (navigator.language || '').toLowerCase();
       if (lang.endsWith('-in') || lang === 'hi' || lang.startsWith('hi-')) return 'INR';
-    } catch {}
+    } catch { }
     return 'USD';
   }
 
@@ -238,7 +238,7 @@
   let userOverrodeRegion = false;
   try {
     userOverrodeRegion = Boolean(localStorage.getItem(CURRENCY_REGION_KEY));
-  } catch {}
+  } catch { }
 
   let currentPackTier = 'volume';
   let userOverrodeTier = false;
@@ -395,7 +395,7 @@
     }
     try {
       localStorage.setItem(CURRENCY_REGION_KEY, currentPricingRegion);
-    } catch {}
+    } catch { }
     applyRegionPricing(document);
   }
 
@@ -404,7 +404,7 @@
     userOverrodeTier = true;
     try {
       localStorage.setItem(PACK_TIER_KEY, currentPackTier);
-    } catch {}
+    } catch { }
     applyRegionPricing(document);
   }
 
@@ -436,7 +436,7 @@
   function purgeLegacyStorage() {
     try {
       LEGACY_KEYS.forEach((k) => localStorage.removeItem(k));
-    } catch {}
+    } catch { }
   }
 
   function escapeHtml(str) {
@@ -510,7 +510,7 @@
           },
         })
       );
-    } catch {}
+    } catch { }
   }
 
   async function syncFromServer() {
@@ -563,7 +563,7 @@
           );
           return;
         }
-      } catch {}
+      } catch { }
       await new Promise((r) => setTimeout(r, 1800));
     }
 
@@ -629,7 +629,7 @@
       });
 
       if (!currentUser && GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.startsWith('YOUR_GOOGLE')) {
-        google.accounts.id.prompt(() => {});
+        google.accounts.id.prompt(() => { });
       }
     } catch (err) {
       console.warn('Google Identity Init Notice:', err);
@@ -807,7 +807,7 @@
         applyServerState(res.data);
         return;
       }
-    } catch {}
+    } catch { }
     currentUser = null;
     applyServerState({ user: null });
   }
@@ -1316,7 +1316,7 @@
         applyServerState({ user: res.data.user, quota: res.data.quota });
         return res.data;
       }
-    } catch {}
+    } catch { }
     return null;
   }
 
@@ -1434,7 +1434,7 @@
       if (ok) {
         try {
           localStorage.removeItem(CKPT_LS_PREFIX + key);
-        } catch {}
+        } catch { }
         return true;
       }
     }
@@ -1445,7 +1445,7 @@
         localStorage.setItem(CKPT_LS_PREFIX + key, jsonStr);
         return true;
       }
-    } catch {}
+    } catch { }
     return false;
   }
 
@@ -1474,7 +1474,7 @@
       try {
         const raw = localStorage.getItem(CKPT_LS_PREFIX + key);
         if (raw) record = JSON.parse(raw);
-      } catch {}
+      } catch { }
     }
 
     if (!record || typeof record !== 'object') return null;
@@ -1504,7 +1504,7 @@
     if (!key) return;
     try {
       localStorage.removeItem(CKPT_LS_PREFIX + key);
-    } catch {}
+    } catch { }
     const db = await openCheckpointDb();
     if (db) {
       await new Promise((resolve) => {
@@ -1528,7 +1528,7 @@
         if (k && k.startsWith(CKPT_LS_PREFIX)) keysToRemove.push(k);
       }
       keysToRemove.forEach((k) => localStorage.removeItem(k));
-    } catch {}
+    } catch { }
     const db = await openCheckpointDb();
     if (db) {
       await new Promise((resolve) => {
@@ -1544,7 +1544,7 @@
     }
   }
 
-  function incrementUsage() {}
+  function incrementUsage() { }
 
   // ── Feature Locks for Channel Date Range & Batch Tabs ──
   function updateFeatureLocks() {
@@ -1616,7 +1616,7 @@
     if (typeof window.refreshMultiBatchUI === 'function') {
       try {
         window.refreshMultiBatchUI();
-      } catch {}
+      } catch { }
     }
   }
 
