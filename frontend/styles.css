@@ -10418,6 +10418,19 @@ body.light-mode .btn-dropdown-backups {
   position: relative;
 }
 
+#compareColA:focus-within,
+#compareColB:focus-within {
+  z-index: 10001;
+}
+
+#compareColA {
+  z-index: 1000;
+}
+
+#compareColB {
+  z-index: 999;
+}
+
 .compare-col-badge {
   font-size: 0.72rem;
   font-weight: 700;

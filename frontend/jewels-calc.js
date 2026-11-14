@@ -1,6 +1,6 @@
 /**
  * TubeMetrix — YouTube Jewels & Rubies Calculator & Live Stream Auditor
- * 1. Automatic Live Stream Chat Replay Auditor (Direct InnerTube API via Hugging Face Backend)
+ * 1. Automatic Live Stream Chat Replay Auditor (Direct YouTube Public API via Hugging Face Backend)
  * 2. Instant Client-Side Unit Economics Calculator (Official 2 Jewels = 1 Ruby formula)
  * 3. 100% Free & Frictionless: Zero sign-in or credits required.
  */
@@ -315,7 +315,7 @@
 
     // Loading status animation ticker
     const tickerMsgs = [
-      { msg: 'Streaming live chat chunks from InnerTube...', pct: '45%' },
+      { msg: 'Streaming public live chat replay...', pct: '45%' },
       { msg: 'Extracting giftMessageViewModel events...', pct: '70%' },
       { msg: 'Calculating Jewels, Rubies & Net Payout...', pct: '90%' }
     ];

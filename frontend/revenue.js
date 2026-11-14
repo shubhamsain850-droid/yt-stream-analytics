@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TubeMetrix — YouTube Channel Statistics & SocialBlade-Grade Intelligence Engine
  * Fast, accurate, real-time creator analytics, subscriber rankings, 30-day growth, and daily metrics.
  */
@@ -465,7 +465,8 @@
 
   async function fetchSearchSuggestions(query) {
     const cleanQ = query.trim();
-    if (cleanQ.length < 2) {
+    const searchTarget = cleanQ.replace(/^@/, '').trim();
+    if (searchTarget.length < 2) {
       closeDropdown();
       return;
     }
@@ -490,13 +491,20 @@
       const resp = await fetch(`${API_BASE}/search-channels`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: cleanQ, max_results: 12 })
+        body: JSON.stringify({ query: searchTarget, max_results: 12 })
       });
 
       if (resp.ok) {
         const res = await resp.json();
         if (res.success && Array.isArray(res.channels)) {
-          channels = res.channels;
+          // Sort genuine channels first, Topic channels last
+          channels = [...res.channels].sort((a, b) => {
+            const aTopic = (a.title && a.title.includes('Topic')) || (a.handle && a.handle.includes('subscribers'));
+            const bTopic = (b.title && b.title.includes('Topic')) || (b.handle && b.handle.includes('subscribers'));
+            if (aTopic && !bTopic) return 1;
+            if (!aTopic && bTopic) return -1;
+            return 0;
+          });
         }
       }
 
@@ -594,7 +602,8 @@
 
   async function fetchCompareSuggestions(query, col) {
     const cleanQ = query.trim();
-    if (cleanQ.length < 2) {
+    const searchTarget = cleanQ.replace(/^@/, '').trim();
+    if (searchTarget.length < 2) {
       closeCompareDropdown(col);
       return;
     }
@@ -621,13 +630,20 @@
       const resp = await fetch(`${API_BASE}/search-channels`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: cleanQ, max_results: 10 })
+        body: JSON.stringify({ query: searchTarget, max_results: 12 })
       });
 
       if (resp.ok) {
         const res = await resp.json();
         if (res.success && Array.isArray(res.channels)) {
-          channels = res.channels;
+          // Sort genuine channels first, Topic channels last
+          channels = [...res.channels].sort((a, b) => {
+            const aTopic = (a.title && a.title.includes('Topic')) || (a.handle && a.handle.includes('subscribers'));
+            const bTopic = (b.title && b.title.includes('Topic')) || (b.handle && b.handle.includes('subscribers'));
+            if (aTopic && !bTopic) return 1;
+            if (!aTopic && bTopic) return -1;
+            return 0;
+          });
         }
       }
 
@@ -1237,7 +1253,7 @@
             </thead>
             <tbody>
               <tr>
-                <td class="compare-metric-name">SocialBlade Grade</td>
+                <td class="compare-metric-name">TubeMetrix Grade</td>
                 <td class="compare-val-cell ${aGradeScore >= bGradeScore ? 'winner' : ''}">Grade ${aGrade} ${aGradeScore >= bGradeScore ? '👑' : ''}</td>
                 <td class="compare-val-cell ${bGradeScore > aGradeScore ? 'winner' : ''}">Grade ${bGrade} ${bGradeScore > aGradeScore ? '👑' : ''}</td>
               </tr>
@@ -1611,7 +1627,7 @@
         const r = d.ranks || {};
         const report = `📊 **TubeMetrix Channel Statistics: ${d.title}** (${d.handle})\n` +
           `• **Subscribers:** ${formatViews(d.subscribers_count)} | **Total Views:** ${d.total_views_text}\n` +
-          `• **SocialBlade Grade:** ${r.grade} | **Global SB Rank:** #${r.sb_rank?.toLocaleString()}\n` +
+          `• **TubeMetrix Grade:** ${r.grade} | **Global Rank:** #${r.sb_rank?.toLocaleString()}\n` +
           `• **30-Day Views:** ${formatViews(st.views)} | **30-Day Subs:** +${formatViews(st.subs)}\n` +
           `• **Estimated Monthly Earnings:** ${formatMoneyRange(st.monthly_earnings_min, st.monthly_earnings_max)}\n` +
           `• **Estimated Yearly Earnings:** ${formatMoneyRange(st.yearly_earnings_min, st.yearly_earnings_max)}\n` +
@@ -1738,6 +1754,13 @@
           closeCompareDropdown('A');
         }
       });
+
+      el.compareInputA.addEventListener('focus', () => {
+        const val = (el.compareInputA.value || '').trim();
+        if (val.length >= 2 && !val.includes('youtube.com')) {
+          fetchCompareSuggestions(val, 'A');
+        }
+      });
     }
 
     if (el.pasteCompareABtn) {
@@ -1796,6 +1819,13 @@
           }
         } else if (e.key === 'Escape') {
           closeCompareDropdown('B');
+        }
+      });
+
+      el.compareInputB.addEventListener('focus', () => {
+        const val = (el.compareInputB.value || '').trim();
+        if (val.length >= 2 && !val.includes('youtube.com')) {
+          fetchCompareSuggestions(val, 'B');
         }
       });
     }

@@ -1600,7 +1600,7 @@
     updateChatLiveCreditBar(false);
     if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
     if (el.labelExtracted) el.labelExtracted.textContent = 'Extracted Messages';
-    setProgress(15, `Connecting to Stream [${vid}]...`, 'Connecting to YouTube InnerTube streaming engine...');
+    setProgress(15, `Connecting to Stream [${vid}]...`, 'Connecting to YouTube live stream chat engine...');
 
     try {
       setProgress(25, `Extracting Live Chat Replay...`, 'Streaming in-memory chat replay chunks...');
@@ -2257,7 +2257,7 @@
     renderChatCloudBadge('comments', 'idle');
     if (el.resultsCommentsSection) el.resultsCommentsSection.style.display = 'none';
     if (el.labelExtracted) el.labelExtracted.textContent = 'Comments Downloaded';
-    setProgress(20, `Fetching Video Comments [${vid}]...`, 'Connecting to YouTube InnerTube comments engine...');
+    setProgress(20, `Fetching Video Comments [${vid}]...`, 'Connecting to YouTube video comments engine...');
 
     try {
       setProgress(25, `Streaming Comments (Target: ${affordableLimit.toLocaleString()})...`, 'Extracting comments, author handles, likes & replies...');
