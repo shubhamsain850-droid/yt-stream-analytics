@@ -44,6 +44,8 @@
     activeChannelData: null,
     activeComparisonData: null,
     searchDebounceTimer: null,
+    compareDebounceTimerA: null,
+    compareDebounceTimerB: null,
     activeChartTab: 'views', // 'views' | 'subs'
     daysFilter: 14
   };
@@ -80,8 +82,14 @@
     // Dual Compare Controls
     compareInputA: document.getElementById('compareInputA'),
     compareInputB: document.getElementById('compareInputB'),
+    pasteCompareABtn: document.getElementById('pasteCompareABtn'),
+    pasteCompareBBtn: document.getElementById('pasteCompareBBtn'),
     clearCompareABtn: document.getElementById('clearCompareABtn'),
     clearCompareBBtn: document.getElementById('clearCompareBBtn'),
+    compareDropdownA: document.getElementById('compareDropdownA'),
+    compareDropdownB: document.getElementById('compareDropdownB'),
+    compareDropdownListA: document.getElementById('compareDropdownListA'),
+    compareDropdownListB: document.getElementById('compareDropdownListB'),
     btnStartCompare: document.getElementById('btnStartCompare'),
     comparePresets: document.querySelectorAll('.compare-preset-pill'),
     compareResultsCard: document.getElementById('compareResultsCard'),
@@ -262,7 +270,7 @@
     try {
       const savedRates = localStorage.getItem('TubeMetrix_fx_rates');
       if (savedRates) applyInrRatesToCurrencyMap(JSON.parse(savedRates));
-    } catch (e) {}
+    } catch (e) { }
 
     const lastUpdated = localStorage.getItem('TubeMetrix_fx_updated');
     const twelveHours = 12 * 60 * 60 * 1000;
@@ -284,7 +292,7 @@
         try {
           const rawFx = localStorage.getItem('TubeMetrix_fx_rates');
           if (rawFx) existingFx = JSON.parse(rawFx) || {};
-        } catch (e) {}
+        } catch (e) { }
         const syncedFx = { ...existingFx, INR: 1.0 };
         const allCodes = new Set([...Object.keys(CURRENCY_MAP), ...Object.keys(existingFx), 'NZD', 'HKD', 'TWD']);
         allCodes.forEach(code => {
@@ -351,6 +359,9 @@
       if (el.clearSearchBtn) {
         el.clearSearchBtn.style.display = q ? 'block' : 'none';
       }
+      if (el.pasteSearchBtn) {
+        el.pasteSearchBtn.style.display = q ? 'none' : 'block';
+      }
 
       clearTimeout(state.searchDebounceTimer);
       if (q.length < 2) {
@@ -390,6 +401,7 @@
           if (text) {
             el.channelSearchInput.value = text.trim();
             if (el.clearSearchBtn) el.clearSearchBtn.style.display = 'block';
+            if (el.pasteSearchBtn) el.pasteSearchBtn.style.display = 'none';
             analyzeChannel(text.trim());
           }
         } catch {
@@ -403,6 +415,7 @@
       el.clearSearchBtn.addEventListener('click', () => {
         el.channelSearchInput.value = '';
         el.clearSearchBtn.style.display = 'none';
+        if (el.pasteSearchBtn) el.pasteSearchBtn.style.display = 'block';
         closeDropdown();
         el.channelSearchInput.focus();
       });
@@ -412,6 +425,12 @@
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.channel-search-bar-wrapper')) {
         closeDropdown();
+      }
+      if (!e.target.closest('#compareColA')) {
+        closeCompareDropdown('A');
+      }
+      if (!e.target.closest('#compareColB')) {
+        closeCompareDropdown('B');
       }
     });
 
@@ -512,7 +531,7 @@
       channels.forEach(ch => {
         const item = document.createElement('div');
         item.className = 'dropdown-item';
-        
+
         const avatarHtml = ch.avatar
           ? `<img src="${ch.avatar}" class="dropdown-avatar" alt="${ch.title}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%2364748b\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 1 0-16 0\\'/></svg>'">`
           : `<div class="dropdown-avatar-placeholder">👤</div>`;
@@ -550,6 +569,169 @@
     el.dropdownList.appendChild(footer);
 
     el.searchDropdown.style.display = 'block';
+  }
+
+  // ─────────────────────────────────────────────
+  // AUTO-SUGGEST DROPDOWNS FOR DUAL COMPARISON
+  // ─────────────────────────────────────────────
+
+  function closeCompareDropdown(col) {
+    if (col === 'A' && el.compareDropdownA) el.compareDropdownA.style.display = 'none';
+    if (col === 'B' && el.compareDropdownB) el.compareDropdownB.style.display = 'none';
+  }
+
+  function updateCompareButtonsVisibility(col) {
+    if (col === 'A') {
+      const hasVal = Boolean(el.compareInputA && el.compareInputA.value.trim());
+      if (el.clearCompareABtn) el.clearCompareABtn.style.display = hasVal ? 'block' : 'none';
+      if (el.pasteCompareABtn) el.pasteCompareABtn.style.display = hasVal ? 'none' : 'block';
+    } else if (col === 'B') {
+      const hasVal = Boolean(el.compareInputB && el.compareInputB.value.trim());
+      if (el.clearCompareBBtn) el.clearCompareBBtn.style.display = hasVal ? 'block' : 'none';
+      if (el.pasteCompareBBtn) el.pasteCompareBBtn.style.display = hasVal ? 'none' : 'block';
+    }
+  }
+
+  async function fetchCompareSuggestions(query, col) {
+    const cleanQ = query.trim();
+    if (cleanQ.length < 2) {
+      closeCompareDropdown(col);
+      return;
+    }
+
+    const dropdown = col === 'A' ? el.compareDropdownA : el.compareDropdownB;
+    const list = col === 'A' ? el.compareDropdownListA : el.compareDropdownListB;
+
+    if (!dropdown || !list) return;
+
+    list.innerHTML = `
+      <div class="dropdown-header">
+        <span>SEARCHING YOUTUBE CREATORS</span>
+        <span class="dropdown-hint">Connecting live...</span>
+      </div>
+      <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 13px;">
+        <span class="spinner-dot" style="display:inline-block; vertical-align:middle; margin-right:8px;"></span>
+        Searching live YouTube channels for "${cleanQ}"...
+      </div>
+    `;
+    dropdown.style.display = 'block';
+
+    try {
+      let channels = [];
+      const resp = await fetch(`${API_BASE}/search-channels`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: cleanQ, max_results: 10 })
+      });
+
+      if (resp.ok) {
+        const res = await resp.json();
+        if (res.success && Array.isArray(res.channels)) {
+          channels = res.channels;
+        }
+      }
+
+      renderCompareDropdown(channels, cleanQ, col);
+    } catch (err) {
+      console.warn('Backend search error:', err);
+      renderCompareDropdown([], cleanQ, col);
+    }
+  }
+
+  function renderCompareDropdown(channels, query, col) {
+    const dropdown = col === 'A' ? el.compareDropdownA : el.compareDropdownB;
+    const list = col === 'A' ? el.compareDropdownListA : el.compareDropdownListB;
+    const input = col === 'A' ? el.compareInputA : el.compareInputB;
+
+    if (!dropdown || !list || !input) return;
+    list.innerHTML = '';
+
+    const header = document.createElement('div');
+    header.className = 'dropdown-header';
+    header.innerHTML = `
+      <span>RESULTS (${channels.length})</span>
+      <span class="dropdown-hint">Click channel to select</span>
+    `;
+    list.appendChild(header);
+
+    if (!channels || channels.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.padding = '14px 16px';
+      empty.style.color = '#94a3b8';
+      empty.style.fontSize = '12.5px';
+      empty.textContent = `No channels found matching "${query}". Press Enter to search exact URL or @handle.`;
+      list.appendChild(empty);
+    } else {
+      channels.forEach(ch => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+
+        const avatarHtml = ch.avatar
+          ? `<img src="${ch.avatar}" class="dropdown-avatar" alt="${ch.title}" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%2364748b\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 1 0-16 0\\'/></svg>'">`
+          : `<div class="dropdown-avatar-placeholder">👤</div>`;
+
+        item.innerHTML = `
+          ${avatarHtml}
+          <div class="dropdown-item-info">
+            <div class="dropdown-item-title">${ch.title}</div>
+            <div class="dropdown-item-meta">
+              <span>${ch.handle || ''}</span>
+              ${ch.subscribers ? `<span class="dot-sep">&bull;</span><span>${ch.subscribers}</span>` : ''}
+            </div>
+          </div>
+          <span class="dropdown-item-arrow">&rarr;</span>
+        `;
+
+        item.addEventListener('click', () => {
+          input.value = ch.handle || ch.title;
+          updateCompareButtonsVisibility(col);
+          closeCompareDropdown(col);
+
+          if (col === 'A') {
+            if (el.compareInputB && !el.compareInputB.value.trim()) {
+              el.compareInputB.focus();
+            } else if (el.compareInputB && el.compareInputB.value.trim()) {
+              runChannelComparison(input.value, el.compareInputB.value);
+            }
+          } else {
+            if (el.compareInputA && el.compareInputA.value.trim()) {
+              runChannelComparison(el.compareInputA.value, input.value);
+            } else if (el.compareInputA && !el.compareInputA.value.trim()) {
+              el.compareInputA.focus();
+            }
+          }
+        });
+
+        list.appendChild(item);
+      });
+    }
+
+    // Bottom "Use query as channel" row
+    const footer = document.createElement('div');
+    footer.className = 'dropdown-footer-item';
+    footer.innerHTML = `<span>Select "<strong>${query}</strong>" for Channel ${col}</span> <kbd>Enter</kbd>`;
+    footer.addEventListener('click', () => {
+      input.value = query;
+      updateCompareButtonsVisibility(col);
+      closeCompareDropdown(col);
+
+      if (col === 'A') {
+        if (el.compareInputB && !el.compareInputB.value.trim()) {
+          el.compareInputB.focus();
+        } else if (el.compareInputB && el.compareInputB.value.trim()) {
+          runChannelComparison(input.value, el.compareInputB.value);
+        }
+      } else {
+        if (el.compareInputA && el.compareInputA.value.trim()) {
+          runChannelComparison(el.compareInputA.value, input.value);
+        } else if (el.compareInputA && !el.compareInputA.value.trim()) {
+          el.compareInputA.focus();
+        }
+      }
+    });
+    list.appendChild(footer);
+
+    dropdown.style.display = 'block';
   }
 
   // ─────────────────────────────────────────────
@@ -637,6 +819,8 @@
   function switchMode(mode) {
     state.activeMode = mode;
     if (mode === 'compare') {
+      updateCompareButtonsVisibility('A');
+      updateCompareButtonsVisibility('B');
       if (el.tabModeSingle) {
         el.tabModeSingle.classList.remove('active');
         el.tabModeSingle.setAttribute('aria-selected', 'false');
@@ -658,6 +842,9 @@
         if (el.emptySearchState) el.emptySearchState.style.display = 'block';
       }
     } else {
+      const hasVal = Boolean(el.channelSearchInput && el.channelSearchInput.value.trim());
+      if (el.clearSearchBtn) el.clearSearchBtn.style.display = hasVal ? 'block' : 'none';
+      if (el.pasteSearchBtn) el.pasteSearchBtn.style.display = hasVal ? 'none' : 'block';
       if (el.tabModeSingle) {
         el.tabModeSingle.classList.add('active');
         el.tabModeSingle.setAttribute('aria-selected', 'true');
@@ -703,27 +890,119 @@
     return 'grade-c';
   }
 
+  async function parseChannelQuery(raw) {
+    if (!raw) return '';
+    let q = String(raw).trim();
+
+    try {
+      if (q.includes('youtube.com') || q.includes('youtu.be')) {
+        const u = new URL(q.startsWith('http') ? q : `https://${q}`);
+        const path = u.pathname.replace(/\/+$/, '');
+
+        // Video URL check: /watch, /live, /shorts or youtu.be/VID
+        const isVideo = path.includes('/watch') || path.includes('/live/') || path.includes('/shorts/') || u.hostname.includes('youtu.be');
+        if (isVideo) {
+          try {
+            const oe = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(q)}`);
+            if (oe.ok) {
+              const oeData = await oe.json();
+              if (oeData.author_url) {
+                const m = oeData.author_url.match(/@([A-Za-z0-9_\-\.]+)/);
+                if (m) return `@${m[1]}`;
+              }
+              if (oeData.author_name) return oeData.author_name;
+            }
+          } catch (e) {
+            // ignore noembed failure
+          }
+        }
+
+        const handleMatch = path.match(/\/(@[A-Za-z0-9_\-\.]+)/);
+        if (handleMatch) return handleMatch[1];
+
+        const channelMatch = path.match(/\/channel\/(UC[A-Za-z0-9_\-]{22})/);
+        if (channelMatch) return channelMatch[1];
+
+        const cMatch = path.match(/\/(?:c|user)\/([A-Za-z0-9_\-\.]+)/);
+        if (cMatch) return cMatch[1];
+
+        if (path.length > 1) {
+          const parts = path.split('/').filter(Boolean);
+          if (parts.length === 1 && !['watch', 'live', 'shorts', 'feed', 'results'].includes(parts[0])) {
+            return parts[0].startsWith('@') ? parts[0] : `@${parts[0]}`;
+          }
+        }
+      }
+    } catch (e) {
+      // ignore URL parsing error
+    }
+
+    return q;
+  }
+
   async function fetchChannelData(query) {
     if (!query || !query.trim()) {
-      throw new Error('Please enter a valid channel name or @handle.');
+      throw new Error('Please enter a valid channel name, @handle, or URL.');
     }
-    const cleanQ = query.trim();
-    const resp = await fetch(`${API_BASE}/channel-analytics`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ channel: cleanQ })
-    });
+    const cleanQ = await parseChannelQuery(query.trim());
 
-    if (!resp.ok) {
-      const errJson = await resp.json().catch(() => ({}));
-      throw new Error(errJson.detail || errJson.error || `Channel "${cleanQ}" could not be found.`);
+    // Step 1: Direct lookup
+    try {
+      const resp = await fetch(`${API_BASE}/channel-analytics`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channel: cleanQ })
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.success) {
+          return data;
+        }
+      }
+    } catch (e) {
+      // proceed to fallback
     }
 
-    const data = await resp.json();
-    if (!data || !data.success) {
-      throw new Error(data?.error || `Could not find YouTube channel "${cleanQ}".`);
+    // Step 2: Fallback search if direct lookup fails (e.g. plain creator names like "MortaL")
+    try {
+      const searchResp = await fetch(`${API_BASE}/search-channels`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: cleanQ.replace(/^@/, ''), max_results: 8 })
+      });
+
+      if (searchResp.ok) {
+        const searchData = await searchResp.json();
+        if (searchData.success && Array.isArray(searchData.channels)) {
+          const valid = searchData.channels.filter(ch => {
+            return ch.handle && ch.handle.startsWith('@') && !ch.handle.includes('subscribers') && ch.handle.length > 2;
+          });
+
+          if (valid.length > 0) {
+            const exact = valid.find(ch => ch.title && ch.title.toLowerCase() === cleanQ.toLowerCase());
+            const target = exact ? exact.handle : valid[0].handle;
+
+            const retryResp = await fetch(`${API_BASE}/channel-analytics`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ channel: target })
+            });
+
+            if (retryResp.ok) {
+              const retryData = await retryResp.json();
+              if (retryData && retryData.success) {
+                return retryData;
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // fallback failed
     }
-    return data;
+
+    throw new Error(`Could not find YouTube channel "${query}". Please check the channel URL, @handle, or name.`);
   }
 
   // ─────────────────────────────────────────────
@@ -1064,29 +1343,11 @@
       });
     }
 
-    showLoading(true, `Analyzing @${query.replace(/^@/, '')}...`);
+    showLoading(true, `Analyzing ${query}...`);
     hideError();
 
     try {
-      let data = null;
-
-      // Fetch live channel statistics from backend API
-      const resp = await fetch(`${API_BASE}/channel-analytics`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channel: query })
-      });
-
-      if (resp.ok) {
-        data = await resp.json();
-      } else {
-        const errJson = await resp.json().catch(() => ({}));
-        throw new Error(errJson.detail || errJson.error || `Channel "${query}" could not be found on YouTube.`);
-      }
-
-      if (!data || !data.success) {
-        throw new Error(data?.error || `Could not find YouTube channel "${query}".`);
-      }
+      const data = await fetchChannelData(query);
 
       state.activeChannelData = data;
       renderChannelStats(data);
@@ -1142,7 +1403,7 @@
       } else {
         el.chAvatarImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2364748b"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>';
       }
-      el.chAvatarImg.onerror = function() {
+      el.chAvatarImg.onerror = function () {
         this.onerror = null;
         this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2364748b"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>';
       };
@@ -1447,20 +1708,54 @@
       el.tabModeCompare.addEventListener('click', () => switchMode('compare'));
     }
 
-    // Compare Inputs & Clear Buttons
+    // Compare Inputs, Auto-Suggest & Action Buttons
     if (el.compareInputA) {
       el.compareInputA.addEventListener('input', () => {
-        if (el.clearCompareABtn) {
-          el.clearCompareABtn.style.display = el.compareInputA.value ? 'block' : 'none';
+        const val = (el.compareInputA.value || '').trim();
+        updateCompareButtonsVisibility('A');
+
+        clearTimeout(state.compareDebounceTimerA);
+        if (val.length < 2 || val.includes('youtube.com') || val.includes('youtu.be')) {
+          closeCompareDropdown('A');
+          return;
         }
+
+        state.compareDebounceTimerA = setTimeout(() => {
+          fetchCompareSuggestions(val, 'A');
+        }, 250);
       });
+
       el.compareInputA.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-          if (el.compareInputB && !el.compareInputB.value) {
+          e.preventDefault();
+          closeCompareDropdown('A');
+          if (el.compareInputB && !el.compareInputB.value.trim()) {
             el.compareInputB.focus();
           } else {
             runChannelComparison(el.compareInputA.value, el.compareInputB.value);
           }
+        } else if (e.key === 'Escape') {
+          closeCompareDropdown('A');
+        }
+      });
+    }
+
+    if (el.pasteCompareABtn) {
+      el.pasteCompareABtn.addEventListener('click', async () => {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            el.compareInputA.value = text.trim();
+            updateCompareButtonsVisibility('A');
+            closeCompareDropdown('A');
+            if (el.compareInputB && !el.compareInputB.value.trim()) {
+              el.compareInputB.focus();
+            } else if (el.compareInputB && el.compareInputB.value.trim()) {
+              runChannelComparison(el.compareInputA.value, el.compareInputB.value);
+            }
+          }
+        } catch {
+          showToast('Clipboard access denied. Please paste manually (Ctrl+V).');
         }
       });
     }
@@ -1468,20 +1763,59 @@
     if (el.clearCompareABtn) {
       el.clearCompareABtn.addEventListener('click', () => {
         el.compareInputA.value = '';
-        el.clearCompareABtn.style.display = 'none';
+        updateCompareButtonsVisibility('A');
+        closeCompareDropdown('A');
         el.compareInputA.focus();
       });
     }
 
     if (el.compareInputB) {
       el.compareInputB.addEventListener('input', () => {
-        if (el.clearCompareBBtn) {
-          el.clearCompareBBtn.style.display = el.compareInputB.value ? 'block' : 'none';
+        const val = (el.compareInputB.value || '').trim();
+        updateCompareButtonsVisibility('B');
+
+        clearTimeout(state.compareDebounceTimerB);
+        if (val.length < 2 || val.includes('youtube.com') || val.includes('youtu.be')) {
+          closeCompareDropdown('B');
+          return;
         }
+
+        state.compareDebounceTimerB = setTimeout(() => {
+          fetchCompareSuggestions(val, 'B');
+        }, 250);
       });
+
       el.compareInputB.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-          runChannelComparison(el.compareInputA.value, el.compareInputB.value);
+          e.preventDefault();
+          closeCompareDropdown('B');
+          if (el.compareInputA && !el.compareInputA.value.trim()) {
+            el.compareInputA.focus();
+          } else {
+            runChannelComparison(el.compareInputA.value, el.compareInputB.value);
+          }
+        } else if (e.key === 'Escape') {
+          closeCompareDropdown('B');
+        }
+      });
+    }
+
+    if (el.pasteCompareBBtn) {
+      el.pasteCompareBBtn.addEventListener('click', async () => {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            el.compareInputB.value = text.trim();
+            updateCompareButtonsVisibility('B');
+            closeCompareDropdown('B');
+            if (el.compareInputA && el.compareInputA.value.trim()) {
+              runChannelComparison(el.compareInputA.value, el.compareInputB.value);
+            } else if (el.compareInputA && !el.compareInputA.value.trim()) {
+              el.compareInputA.focus();
+            }
+          }
+        } catch {
+          showToast('Clipboard access denied. Please paste manually (Ctrl+V).');
         }
       });
     }
@@ -1489,7 +1823,8 @@
     if (el.clearCompareBBtn) {
       el.clearCompareBBtn.addEventListener('click', () => {
         el.compareInputB.value = '';
-        el.clearCompareBBtn.style.display = 'none';
+        updateCompareButtonsVisibility('B');
+        closeCompareDropdown('B');
         el.compareInputB.focus();
       });
     }
@@ -1497,6 +1832,8 @@
     // Start Compare Button
     if (el.btnStartCompare) {
       el.btnStartCompare.addEventListener('click', () => {
+        closeCompareDropdown('A');
+        closeCompareDropdown('B');
         runChannelComparison(el.compareInputA.value, el.compareInputB.value);
       });
     }
@@ -1509,8 +1846,10 @@
           const ch2 = btn.dataset.ch2;
           if (el.compareInputA) el.compareInputA.value = ch1;
           if (el.compareInputB) el.compareInputB.value = ch2;
-          if (el.clearCompareABtn) el.clearCompareABtn.style.display = 'block';
-          if (el.clearCompareBBtn) el.clearCompareBBtn.style.display = 'block';
+          updateCompareButtonsVisibility('A');
+          updateCompareButtonsVisibility('B');
+          closeCompareDropdown('A');
+          closeCompareDropdown('B');
           switchMode('compare');
           runChannelComparison(ch1, ch2);
         });
@@ -1545,14 +1884,16 @@
           switchMode('compare');
           if (el.compareInputA) el.compareInputA.value = p1;
           if (el.compareInputB) el.compareInputB.value = p2;
-          if (el.clearCompareABtn) el.clearCompareABtn.style.display = 'block';
-          if (el.clearCompareBBtn) el.clearCompareBBtn.style.display = 'block';
+          updateCompareButtonsVisibility('A');
+          updateCompareButtonsVisibility('B');
           runChannelComparison(p1, p2);
         }
       } else if (singleParam) {
         const ch = decodeURIComponent(singleParam.trim());
         switchMode('single');
         if (el.channelSearchInput) el.channelSearchInput.value = ch;
+        if (el.clearSearchBtn) el.clearSearchBtn.style.display = 'block';
+        if (el.pasteSearchBtn) el.pasteSearchBtn.style.display = 'none';
         analyzeChannel(ch);
       }
     } catch (e) {

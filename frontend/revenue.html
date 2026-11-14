@@ -397,33 +397,43 @@
         </div>
 
         <div class="compare-inputs-grid">
-          <div class="compare-col">
+          <div class="compare-col" id="compareColA" style="position: relative;">
             <span class="compare-col-badge">Channel A</span>
             <div class="input-wrapper search-input-wrapper">
               <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              <input type="text" id="compareInputA" placeholder="e.g. @CarryisLive or link" autocomplete="off"
+              <input type="text" id="compareInputA" placeholder="e.g. @CarryisLive, URL or name" autocomplete="off"
                 spellcheck="false">
+              <button class="btn-paste" id="pasteCompareABtn" type="button" title="Paste from clipboard">Paste</button>
               <button class="btn-clear-search" id="clearCompareABtn" type="button"
                 style="display:none;">&times;</button>
+            </div>
+            <!-- Live Auto-Suggest Dropdown for Channel A -->
+            <div class="search-dropdown-menu" id="compareDropdownA" style="display:none;">
+              <div class="dropdown-list" id="compareDropdownListA"></div>
             </div>
           </div>
 
           <div class="compare-vs-badge" title="Versus">VS</div>
 
-          <div class="compare-col">
+          <div class="compare-col" id="compareColB" style="position: relative;">
             <span class="compare-col-badge">Channel B</span>
             <div class="input-wrapper search-input-wrapper">
               <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              <input type="text" id="compareInputB" placeholder="e.g. @MortaLyt or link" autocomplete="off"
+              <input type="text" id="compareInputB" placeholder="e.g. @MortaLyt, URL or name" autocomplete="off"
                 spellcheck="false">
+              <button class="btn-paste" id="pasteCompareBBtn" type="button" title="Paste from clipboard">Paste</button>
               <button class="btn-clear-search" id="clearCompareBBtn" type="button"
                 style="display:none;">&times;</button>
+            </div>
+            <!-- Live Auto-Suggest Dropdown for Channel B -->
+            <div class="search-dropdown-menu" id="compareDropdownB" style="display:none;">
+              <div class="dropdown-list" id="compareDropdownListB"></div>
             </div>
           </div>
 
