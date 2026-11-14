@@ -149,15 +149,6 @@
     .auth-guest-group .guest-quota-pill {
       display: none !important;
     }
-    .jewels-audit-hero {
-      border: 1.5px solid rgba(255, 0, 51, 0.25);
-      background: radial-gradient(circle at 85% 15%, rgba(255, 0, 51, 0.04) 0%, var(--bg-card) 60%);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    }
-    [data-theme="light"] .jewels-audit-hero {
-      background: radial-gradient(circle at 85% 15%, rgba(255, 0, 51, 0.03) 0%, #ffffff 60%);
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
-    }
     .rank-medal-badge {
       display: inline-flex;
       align-items: center;
@@ -172,6 +163,7 @@
     .rank-medal-2 { background: rgba(156, 163, 175, 0.18); color: #9ca3af; border: 1px solid rgba(156, 163, 175, 0.4); }
     .rank-medal-3 { background: rgba(180, 83, 9, 0.18); color: #b45309; border: 1px solid rgba(180, 83, 9, 0.4); }
     .rank-medal-other { background: var(--bg-subtle); color: var(--text-muted); border: 1px solid var(--border-color); font-size: 0.75rem; }
+    
     .btn-action-tool {
       display: inline-flex;
       align-items: center;
@@ -190,12 +182,42 @@
       background: var(--bg-subtle);
       border-color: var(--text-secondary);
     }
+
+    .btn-demo-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .btn-demo-pill:hover {
+      border-color: var(--accent-red, #ff0033);
+      color: var(--accent-red, #ff0033);
+      background: rgba(255, 0, 51, 0.06);
+      transform: translateY(-1px);
+    }
+    [data-theme="light"] .btn-demo-pill {
+      background: #ffffff;
+      border-color: #d1d5db;
+    }
+    [data-theme="light"] .btn-demo-pill:hover {
+      border-color: #ff0033;
+      background: #fff5f5;
+    }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
 <body>
-  <!-- Top Navigation Bar -->
+  <!-- Top Navigation Bar (Fully unified with TubeMetrix design system) -->
   <header class="top-nav">
     <div class="nav-container">
       <a href="/" class="logo" title="TubeMetrix Home">
@@ -228,65 +250,91 @@
               stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </div>
-        <div class="logo-text">Tube<span>Metrix</span></div>
+        <span class="logo-text">Tube<span>Metrix</span></span>
       </a>
 
-      <div class="nav-links">
-        <a href="/" class="nav-link">Live Stream Earnings</a>
-        <a href="/chats" class="nav-link">Live Chat Replay</a>
-        <a href="/youtube-comments-downloader" class="nav-link">Comments Exporter</a>
-        <a href="/youtube-jewels-calculator" class="nav-link active">Jewels &amp; Rubies</a>
-        <a href="/revenue" class="nav-link">Channel Stats</a>
+      <!-- Main Page Switcher -->
+      <div class="page-nav-wrapper">
+        <nav class="page-nav" id="mainPageNav">
+          <a href="/" class="nav-tab-link">
+            <span class="nav-tab-icon">💰</span>
+            <span class="nav-text-full">Stream Earnings</span>
+            <span class="nav-text-short">Earnings</span>
+          </a>
+          <a href="/chats" class="nav-tab-link">
+            <span class="nav-tab-icon">💬</span>
+            <span class="nav-text-full">Live Chat</span>
+            <span class="nav-text-short">Live Chat</span>
+          </a>
+          <a href="/youtube-comments-downloader" class="nav-tab-link">
+            <span class="nav-tab-icon">💭</span>
+            <span class="nav-text-full">Comments Exporter</span>
+            <span class="nav-text-short">Comments</span>
+          </a>
+          <a href="/youtube-jewels-calculator" class="nav-tab-link active">
+            <span class="nav-tab-icon">💎</span>
+            <span class="nav-text-full">Jewels &amp; Rubies</span>
+            <span class="nav-text-short">Jewels</span>
+          </a>
+          <a href="/revenue" class="nav-tab-link">
+            <span class="nav-tab-icon">📊</span>
+            <span class="nav-text-full">Channel Analytics</span>
+            <span class="nav-text-short">Analytics</span>
+          </a>
+        </nav>
+        <div class="scroll-edge-hint" id="pageNavHint" title="Slide for more options" role="button"
+          aria-label="Slide for more options">
+          <div class="glass-cue-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round" class="cue-chevron">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
       </div>
 
-      <div class="nav-right">
-        <button class="theme-toggle" id="themeToggleBtn" type="button" aria-label="Toggle visual theme"
-          title="Toggle Dark / Light Theme">
+      <div class="nav-actions">
+        <!-- Google Auth & Profile Widget -->
+        <div id="authNavContainer"></div>
+        <button class="theme-toggle-btn" id="themeToggleBtn" type="button" title="Switch Theme (Light / Dark)">
           <span class="theme-icon" id="themeIcon">☀️</span>
           <span class="theme-text" id="themeText">Light</span>
         </button>
-
-        <!-- TubeMetrix Global Auth Container (Zero standalone login gating for Jewels tool) -->
-        <div id="authNavContainer"></div>
       </div>
     </div>
   </header>
 
   <main class="main-content">
     <!-- Hero Header -->
-    <div class="hero-section">
+    <section class="hero-section">
       <div class="hero-badge">
-        <span class="badge-dot"></span>
+        <span class="pulse-dot"></span>
         <span>OFFICIAL 2 JEWELS = 1 RUBY FORMULA</span>
       </div>
       <h1 class="hero-title">YouTube Jewels to INR &amp; Rubies Calculator</h1>
       <p class="hero-subtitle">
-        Convert live stream Jewels and Rubies to Indian Rupees (₹) and US Dollars ($). Understand official YouTube unit
-        economics, gift prices, and calculate exact net creator take-home earnings.
+        Audit any YouTube Live Stream URL to count virtual gifts and calculate exact creator earnings in INR (₹) &amp; USD ($).
+        Understand YouTube unit economics with the official 2 Jewels = 1 Ruby formula.
       </p>
-
-      <div class="tm-suite-nav" style="margin-top: 14px;">
-        <span class="tm-suite-label">TubeMetrix Tools:</span>
-        <a href="/" class="tm-suite-pill">Live Stream Earnings</a>
-        <a href="/chats" class="tm-suite-pill">Live Chat Downloader</a>
-        <a href="/youtube-comments-downloader" class="tm-suite-pill">Comments Downloader</a>
-        <span class="tm-suite-pill active">Jewels &amp; Rubies ➔</span>
-        <a href="/revenue" class="tm-suite-pill">Channel Statistics</a>
-      </div>
-    </div>
+    </section>
 
     <!-- 1. Real Live Stream URL Jewels & Rubies Auditor (Hero Tool) -->
-    <section class="config-card jewels-audit-hero" id="streamAuditorCard" style="max-width: 960px; margin: 0 auto 32px auto;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-        <div>
-          <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
-            <span>🔴</span> Audit Real YouTube Stream Jewels &amp; Gifts
-          </h2>
-          <p style="color: var(--text-secondary); font-size: 0.9rem;">
-            Paste any YouTube Live Stream or VOD URL. TubeMetrix automatically fetches the live chat replay, counts every virtual gift comboed, and calculates total Jewels, Rubies &amp; net creator payout.
+    <section class="config-card" id="streamAuditorCard" style="max-width: 960px; margin: 0 auto 36px auto;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+        <div style="flex: 1; min-width: 280px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff0033; box-shadow: 0 0 10px rgba(255, 0, 51, 0.5);"></span>
+            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin: 0;">
+              Audit Real YouTube Stream Jewels &amp; Gifts
+            </h2>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0; line-height: 1.5;">
+            Paste any YouTube Live Stream or VOD link. TubeMetrix automatically fetches the chat replay, counts every virtual gift comboed, and calculates total Jewels, Rubies &amp; creator payout.
           </p>
         </div>
-        <span class="pill-badge pill-green" style="font-weight: 700; font-size: 0.78rem;">🟢 100% Free • No Sign-In Required</span>
+        <span class="pill-badge pill-green" style="font-weight: 700; font-size: 0.8rem; padding: 6px 14px; white-space: nowrap; align-self: flex-start;">
+          🟢 100% Free • No Sign-In
+        </span>
       </div>
 
       <!-- Main Input Box & Action Buttons -->
@@ -310,10 +358,12 @@
       </div>
 
       <!-- Quick Action Utilities -->
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px;">
-        <span>Supports Vertical Shorts livestreams, horizontal streams &amp; chat replay archives.</span>
-        <button type="button" id="loadSampleStreamBtn" style="background: none; border: 1px dashed var(--accent-red, #ff0033); color: var(--accent-red, #ff0033); padding: 5px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-          ✨ Try Demo Stream
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 0.85rem; color: var(--text-secondary); margin-top: 10px;">
+        <span style="display: flex; align-items: center; gap: 6px;">
+          <span>💡</span> Supports Vertical Shorts livestreams, horizontal streams &amp; chat replay archives.
+        </span>
+        <button type="button" id="loadSampleStreamBtn" class="btn-demo-pill">
+          <span>✨</span> <span>Try Demo Stream</span>
         </button>
       </div>
 
@@ -337,68 +387,52 @@
       </div>
 
       <!-- Live Stream Results Container -->
-      <div id="auditResultsContainer" style="display: none; margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 24px;">
+      <div id="auditResultsContainer" style="display: none; margin-top: 26px; border-top: 1px solid var(--border-color); padding-top: 24px;">
         <!-- Stream Overview Header Bar -->
-        <div style="display: flex; gap: 16px; align-items: center; background: var(--bg-subtle); padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 20px; flex-wrap: wrap;">
-          <img id="resStreamThumb" src="" alt="Live Stream Thumbnail" style="width: 130px; height: 74px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); background: #000;">
-          <div style="flex: 1; min-width: 240px;">
-            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px; flex-wrap: wrap;">
-              <span class="pill-badge pill-red" id="resLiveBadge">🔴 Stream Chat Audited</span>
+        <div style="display: flex; gap: 18px; align-items: center; background: var(--bg-card); padding: 16px 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 22px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          <img id="resStreamThumb" src="" alt="Live Stream Thumbnail" style="width: 140px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); background: #000; flex-shrink: 0;">
+          <div style="flex: 1; min-width: 260px;">
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px; flex-wrap: wrap;">
+              <span class="pill-badge pill-red" id="resLiveBadge">🔴 Chat Replay Audited</span>
+              <span class="pill-badge pill-purple" id="resFormatBadge" style="display: none;">Vertical Stream</span>
               <span id="resStreamId" style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-muted);"></span>
             </div>
-            <h3 id="resStreamTitle" style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; line-height: 1.35;"></h3>
-            <div style="display: flex; gap: 16px; align-items: center; font-size: 0.82rem; color: var(--text-secondary); flex-wrap: wrap;">
-              <span id="resStreamChannel" style="font-weight: 600;"></span>
+            <h3 id="resStreamTitle" style="font-size: 1.12rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; line-height: 1.35;"></h3>
+            <div style="display: flex; gap: 16px; align-items: center; font-size: 0.85rem; color: var(--text-secondary); flex-wrap: wrap;">
+              <span id="resStreamChannel" style="font-weight: 700; color: var(--text-primary);"></span>
               <a id="resStreamLink" href="#" target="_blank" rel="noopener" style="color: var(--accent-red, #ff0033); font-weight: 600; text-decoration: none;">Watch on YouTube ↗</a>
             </div>
           </div>
         </div>
 
-        <!-- 4 Hero KPI Metric Cards -->
-        <div class="kpi-banner" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
-          <div class="kpi-card highlight">
-            <span class="kpi-badge">Net Creator Earnings</span>
-            <div class="kpi-amount" id="resStreamNetInr" style="color: #10b981;">₹0</div>
-            <span class="kpi-sub" id="resStreamNetUsd">approx. $0.00 USD</span>
-          </div>
+        <!-- KPI Metric Cards Banner -->
+        <div class="kpi-banner" id="resKpiBanner" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 22px;">
+          <!-- Dynamically populated -->
+        </div>
 
-          <div class="kpi-card">
-            <div class="kpi-top">
-              <span class="kpi-title">Total Jewels</span>
-              <span class="pill-badge pill-purple">Gifts</span>
+        <!-- Horizontal Stream Detected (Superchats Found) Banner -->
+        <div id="resHorizontalNotice" style="display: none; background: rgba(16, 185, 129, 0.08); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 18px 22px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 260px;">
+              <h4 id="resHorizontalTitle" style="font-size: 1.05rem; font-weight: 800; color: #10b981; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                <span>💬</span> Super Chats &amp; Memberships Detected in Chat Replay!
+              </h4>
+              <p id="resHorizontalDesc" style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+                YouTube virtual gifts &amp; Jewels are enabled exclusively on vertical mobile streams (Shorts feed). In this horizontal stream, viewers donated via Super Chats &amp; Memberships instead!
+              </p>
             </div>
-            <div class="kpi-value" id="resStreamJewels">0</div>
-            <span class="kpi-note" id="resStreamJewelsSub">virtual gifts received</span>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-top">
-              <span class="kpi-title">Rubies Earned</span>
-              <span class="pill-badge pill-red">2:1 Ratio</span>
-            </div>
-            <div class="kpi-value" id="resStreamRubies">0</div>
-            <span class="kpi-note">$0.01 USD payout per Ruby</span>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-top">
-              <span class="kpi-title">Gifts &amp; Supporters</span>
-              <span class="pill-badge pill-amber">Backers</span>
-            </div>
-            <div class="kpi-value" id="resStreamGiftsCount">0</div>
-            <span class="kpi-note" id="resStreamDonorsCount">from 0 supporters</span>
+            <a id="resHorizontalAuditBtn" href="#" class="btn-primary" style="padding: 10px 20px; font-size: 0.88rem; text-decoration: none; white-space: nowrap;">
+              <span>View Full Super Chat Audit</span> ➔
+            </a>
           </div>
         </div>
 
-        <!-- 0 Jewels Detected Box (shown only if chat replay had no gifts) -->
-        <div id="resZeroJewelsCard" style="display: none; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px;">
-          <div style="font-weight: 700; color: #f59e0b; font-size: 1rem; margin-bottom: 6px;">ℹ️ 0 YouTube Jewels Detected in this Stream</div>
-          <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
-            The live chat replay was successfully scanned, but no virtual gifts or Jewels were sent during this broadcast. Note that YouTube Jewels are primarily featured on vertical live streams (Shorts feed). If this was a horizontal broadcast, viewers may have supported the creator with Super Chats or Memberships.
+        <!-- Zero Donations Banner (if stream has no jewels and no superchats) -->
+        <div id="resZeroAllNotice" style="display: none; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px;">
+          <div style="font-weight: 700; color: #f59e0b; font-size: 1rem; margin-bottom: 6px;">ℹ️ 0 Jewels or Super Chats Sent in this Broadcast</div>
+          <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; margin: 0;">
+            The live chat replay was successfully scanned, but no virtual gifts, Jewels, or Super Chats were sent during this broadcast.
           </p>
-          <a href="/" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; padding: 6px 14px; text-decoration: none;">
-            <span>Audit Super Chats &amp; Memberships on TubeMetrix</span> ➔
-          </a>
         </div>
 
         <!-- Itemized Gifts Breakdown Table -->
@@ -803,7 +837,7 @@
   </footer>
 
   <script src="auth.js?v=3.9"></script>
-  <script src="jewels-calc.js?v=2.0"></script>
+  <script src="jewels-calc.js?v=2.1"></script>
 </body>
 
 </html>
