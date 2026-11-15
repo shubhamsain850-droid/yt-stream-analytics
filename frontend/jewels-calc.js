@@ -18,6 +18,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     initTheme();
+    initCurrency();
     initMobileScrollHints();
     initForex();
     initInteractiveCalculator();
@@ -50,6 +51,37 @@
     const txt = document.getElementById('themeText');
     if (icon) icon.textContent = t === 'light' ? '🌙' : '☀️';
     if (txt) txt.textContent = t === 'light' ? 'Dark' : 'Light';
+  }
+
+  // Currency Switcher Sync
+  function initCurrency() {
+    const saved = localStorage.getItem('TubeMetrix_currency') || 'INR';
+    const currBtns = document.querySelectorAll('.currency-switch .curr-btn[data-curr]');
+    const moreSelect = document.getElementById('moreCurrencySelect');
+
+    function setCurr(c) {
+      localStorage.setItem('TubeMetrix_currency', c);
+      currBtns.forEach(b => {
+        if (b.dataset.curr === c) b.classList.add('active');
+        else b.classList.remove('active');
+      });
+      if (moreSelect) {
+        if (!['INR', 'USD', 'EUR'].includes(c)) moreSelect.value = c;
+        else moreSelect.selectedIndex = 0;
+      }
+    }
+
+    currBtns.forEach(b => {
+      b.addEventListener('click', () => setCurr(b.dataset.curr));
+    });
+
+    if (moreSelect) {
+      moreSelect.addEventListener('change', (e) => {
+        if (e.target.value) setCurr(e.target.value);
+      });
+    }
+
+    setCurr(saved);
   }
 
   // Mobile horizontal nav scroll cue

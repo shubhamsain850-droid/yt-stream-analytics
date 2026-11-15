@@ -154,7 +154,8 @@ body {
   border: 1px solid var(--border-color);
 }
 
-.nav-actions {
+.nav-actions,
+.nav-right {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -7512,17 +7513,11 @@ body.light-mode .logo-icon,
   border: 1px solid rgba(255, 255, 255, 0.16) !important;
   white-space: nowrap !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  flex-shrink: 0 !important;
 }
 
 .currency-label {
-  font-size: 0.76rem !important;
-  font-weight: 600 !important;
-  color: #94a3b8 !important;
-  padding: 0 4px 0 8px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  white-space: nowrap !important;
-  user-select: none !important;
+  display: none !important;
 }
 
 .curr-btn {
@@ -7691,10 +7686,11 @@ body.light-mode .curr-select option {
    STREAMLINED HEADER SPACING & OVERFLOW PREVENTION
    ───────────────────────────────────────────────────────── */
 .nav-container {
-  max-width: 1260px !important;
+  max-width: 1440px !important;
   width: 100% !important;
   margin: 0 auto !important;
-  padding: 0 4px !important;
+  padding: 0 16px !important;
+  box-sizing: border-box !important;
 }
 
 .nav-actions {
@@ -7862,6 +7858,49 @@ body.light-mode .glass-cue-btn {
 
 .nav-text-full {
   display: inline;
+}
+
+/* Responsive Navbar Adaptations: Ensures zero overflow on laptops & tablets */
+@media (max-width: 1440px) {
+  .nav-text-short {
+    display: inline !important;
+  }
+  .nav-text-full {
+    display: none !important;
+  }
+  .nav-tab-link {
+    padding: 6px 11px !important;
+    gap: 5px !important;
+  }
+  .page-nav {
+    gap: 4px !important;
+  }
+  .nav-actions,
+  .nav-right {
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+  }
+}
+
+@media (max-width: 1250px) {
+  .theme-text {
+    display: none !important;
+  }
+  .theme-toggle-btn {
+    padding: 0 10px !important;
+  }
+  .currency-switch {
+    gap: 2px !important;
+    padding: 2px 4px !important;
+  }
+  .curr-btn {
+    padding: 0 7px !important;
+    font-size: 0.74rem !important;
+  }
+  .curr-select {
+    padding: 0 6px !important;
+    font-size: 0.74rem !important;
+  }
 }
 
 @media (max-width: 640px) {
@@ -9245,7 +9284,7 @@ body {
   .curr-select {
     padding: 0 5px !important;
     font-size: 0.72rem !important;
-    max-width: 78px !important;
+    min-width: 68px !important;
   }
 }
 
@@ -9307,7 +9346,7 @@ body {
   .curr-select {
     padding: 0 4px !important;
     font-size: 0.7rem !important;
-    max-width: 72px !important;
+    min-width: 66px !important;
   }
 }
 
