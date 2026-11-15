@@ -519,6 +519,7 @@
     }
     if (payload) {
       closeBackupsModal();
+      await new Promise(r => setTimeout(r, 40));
       await window.__tmRestoreCloudBackup({ action, backup, payload });
     }
   }
@@ -711,7 +712,8 @@
             btn.textContent = '⏳...';
             await downloadZip(id, target.title);
           } else if (act === 'resume' || act === 'open') {
-            btn.textContent = '⏳...';
+            btn.textContent = '⏳ Loading...';
+            await new Promise(r => setTimeout(r, 20));
             await triggerBackupAction(target, act);
           } else if (act === 'delete') {
             await deleteBackup(id);

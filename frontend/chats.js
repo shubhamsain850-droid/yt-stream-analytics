@@ -68,7 +68,11 @@
     activeChatSort: 'time-asc',
     commentsData: null,
     filteredComments: [],
-    activeCommSort: 'likes-desc',
+    activeCommSort: 'likes-desc',
+    chatCurrentPage: 1,
+    chatPageSize: 100,
+    commCurrentPage: 1,
+    commPageSize: 100,
     theme: localStorage.getItem('TubeMetrix_theme') || localStorage.getItem('theme') || 'dark',
 
     lastExtractionType: 'chats',
@@ -226,7 +230,8 @@
     badgeModsOnly: document.getElementById('badgeModsOnly'),
     chatSearchInput: document.getElementById('chatSearchInput'),
     chatSortSelect: document.getElementById('chatSortSelect'),
-    chatFeedTableBody: document.getElementById('chatFeedTableBody'),
+    chatFeedTableBody: document.getElementById('chatFeedTableBody'),
+    chatFeedPagination: document.getElementById('chatFeedPagination'),
 
     exportChatExcelBtn: document.getElementById('exportChatExcelBtn'),
     exportChatTxtBtn: document.getElementById('exportChatTxtBtn'),
@@ -244,7 +249,8 @@
 
     commSearchInput: document.getElementById('commSearchInput'),
     commSortSelect: document.getElementById('commSortSelect'),
-    commentsTableBody: document.getElementById('commentsTableBody'),
+    commentsTableBody: document.getElementById('commentsTableBody'),
+    commentsPagination: document.getElementById('commentsPagination'),
 
     exportCommExcelBtn: document.getElementById('exportCommExcelBtn'),
     exportCommTxtBtn: document.getElementById('exportCommTxtBtn'),
@@ -351,7 +357,13 @@
           el.chatToDateInput.value = formatDate(today);
         }
       });
-    });
+    });
+
+    const clearPresetActive = () => {
+      document.querySelectorAll('#panel-channel .preset-chip').forEach(c => c.classList.remove('active'));
+    };
+    if (el.chatFromDateInput) el.chatFromDateInput.addEventListener('input', clearPresetActive);
+    if (el.chatToDateInput) el.chatToDateInput.addEventListener('input', clearPresetActive);
 
     // Paste Buttons
     if (el.pasteChatSingleBtn && el.chatSingleUrlInput) {
@@ -1864,8 +1876,15 @@
       return;
     }
 
-    const fromDate = el.chatFromDateInput.value;
-    const toDate = el.chatToDateInput.value;
+    let fromDate = el.chatFromDateInput.value;
+    let toDate = el.chatToDateInput.value;
+    if (fromDate && toDate && fromDate > toDate) {
+      const tmp = fromDate;
+      fromDate = toDate;
+      toDate = tmp;
+      el.chatFromDateInput.value = fromDate;
+      el.chatToDateInput.value = toDate;
+    }
 
     el.startChatChannelBtn.disabled = true;
     renderChatCloudBadge('chats', 'idle');
@@ -2876,7 +2895,11 @@
       return;
     }
 
-    el.vmTableBody.innerHTML = messages.map(m => {
+    const maxItems = 200;
+    const isTruncated = messages.length > maxItems;
+    const slice = isTruncated ? messages.slice(0, maxItems) : messages;
+
+    el.vmTableBody.innerHTML = slice.map(m => {
       let rowClass = '';
       let eventPill = `<span class="event-badge badge-chat">💬 Chat</span>`;
 
@@ -2951,7 +2974,11 @@
       return;
     }
 
-    el.vmFeedStream.innerHTML = messages.map(m => {
+    const maxFeed = 100;
+    const isFeedTruncated = messages.length > maxFeed;
+    const feedSlice = isFeedTruncated ? messages.slice(0, maxFeed) : messages;
+
+    el.vmFeedStream.innerHTML = feedSlice.map(m => {
       let badgesHtml = '';
       if (m.badges && m.badges.length > 0) {
         if (m.badges.includes('OWNER')) badgesHtml += `<span title="Streamer">👑</span>`;
@@ -3132,78 +3159,116 @@
       filtered.sort((a, b) => isEv(b) - isEv(a) || a.idx - b.idx);
     }
 
+    state.chatCurrentPage = 1;
     state.filteredMessages = filtered;
     renderChatFeedTable(filtered);
   }
 
-  function renderChatFeedTable(messages) {
-    if (!el.chatFeedTableBody) return;
-
-    if (messages.length === 0) {
-      el.chatFeedTableBody.innerHTML = `
-        <tr>
-          <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
-            No chat messages found matching your active filter.
-          </td>
-        </tr>
-      `;
-      return;
-    }
-
-    el.chatFeedTableBody.innerHTML = messages.map(m => {
-      let rowClass = '';
-      let eventPill = `<span class="event-badge badge-chat">Chat</span>`;
-
-      if (m.event_type === 'SUPERCHAT' || m.event_type === 'STICKER') {
-        rowClass = 'row-superchat';
-        eventPill = `<span class="event-badge badge-superchat">⭐ ${escapeHtml(m.badge_label || 'Super Chat')}</span>`;
-      } else if (m.event_type === 'MEMBERSHIP' || m.event_type === 'GIFT') {
-        rowClass = 'row-membership';
-        eventPill = `<span class="event-badge badge-membership">💎 ${escapeHtml(m.badge_label || 'Membership')}</span>`;
-      } else if (m.event_type === 'JEWELS') {
-        rowClass = 'row-jewels';
-        eventPill = `<span class="event-badge badge-jewels">🎁 Jewels</span>`;
-      }
-
-      let authorBadgesHtml = '';
-      if (m.badges && m.badges.length > 0) {
-        if (m.badges.includes('OWNER')) authorBadgesHtml += `<span class="author-badge-icon badge-owner" title="Streamer / Channel Owner">👑</span>`;
-        if (m.badges.includes('MODERATOR')) authorBadgesHtml += `<span class="author-badge-icon badge-mod" title="Chat Moderator">🛡️</span>`;
-        if (m.badges.includes('MEMBER')) authorBadgesHtml += `<span class="author-badge-icon badge-member" title="Channel Member">💎</span>`;
-        if (m.badges.includes('VERIFIED')) authorBadgesHtml += `<span class="author-badge-icon badge-verified" title="Verified">✓</span>`;
-      }
-
-      const secs = parseTimestampToSeconds(m.time);
-      const timeHtml = (secs !== null && m.stream_id) ? `
-        <a href="https://www.youtube.com/watch?v=${m.stream_id}&t=${secs}s" target="_blank" class="timestamp-badge" title="Jump to ${m.time} in Video">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-          <span>${m.time || '0:00'}</span>
-        </a>
-      ` : `<span class="timestamp-badge">${m.time || '0:00'}</span>`;
-
-      return `
-        <tr class="${rowClass}">
-          <td class="cell-num">#${m.idx}</td>
-          <td>${timeHtml}</td>
-          <td>
-            <div class="author-cell">
-              <span class="author-name" title="${escapeHtml(m.author)}">${escapeHtml(m.author)}</span>
-              ${authorBadgesHtml}
-            </div>
-          </td>
-          <td>${eventPill}</td>
-          <td class="chat-msg-cell">
-            <span class="msg-text">${escapeHtml(m.message || '-')}</span>
-          </td>
-          <td>
-            <a href="https://www.youtube.com/watch?v=${m.stream_id}" target="_blank" class="stream-vid-badge" title="Open Stream">
-              ${m.stream_id || '-'} ↗
-            </a>
-          </td>
-        </tr>
-      `;
-    }).join('');
-  }
+  function renderChatFeedTable(messages) {
+    if (!el.chatFeedTableBody) return;
+
+    if (!messages || messages.length === 0) {
+      el.chatFeedTableBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+            No chat messages found matching your active filter.
+          </td>
+        </tr>
+      `;
+      if (el.chatFeedPagination) el.chatFeedPagination.style.display = 'none';
+      return;
+    }
+
+    const pageSize = state.chatPageSize || 100;
+    const totalPages = Math.ceil(messages.length / pageSize) || 1;
+    if (state.chatCurrentPage > totalPages) state.chatCurrentPage = totalPages;
+    if (state.chatCurrentPage < 1) state.chatCurrentPage = 1;
+
+    const startIdx = (state.chatCurrentPage - 1) * pageSize;
+    const pageSlice = messages.slice(startIdx, startIdx + pageSize);
+
+    el.chatFeedTableBody.innerHTML = pageSlice.map(m => {
+      let rowClass = '';
+      let eventPill = `<span class="event-badge badge-chat">Chat</span>`;
+
+      if (m.event_type === 'SUPERCHAT' || m.event_type === 'STICKER') {
+        rowClass = 'row-superchat';
+        eventPill = `<span class="event-badge badge-superchat">★ ${escapeHtml(m.badge_label || 'Super Chat')}</span>`;
+      } else if (m.event_type === 'MEMBERSHIP' || m.event_type === 'GIFT') {
+        rowClass = 'row-membership';
+        eventPill = `<span class="event-badge badge-membership">💎 ${escapeHtml(m.badge_label || 'Membership')}</span>`;
+      } else if (m.event_type === 'JEWELS') {
+        rowClass = 'row-jewels';
+        eventPill = `<span class="event-badge badge-jewels">🎁 Jewels</span>`;
+      }
+
+      let authorBadgesHtml = '';
+      if (m.badges && m.badges.length > 0) {
+        if (m.badges.includes('OWNER')) authorBadgesHtml += `<span class="author-badge-icon badge-owner" title="Streamer / Channel Owner">👑</span>`;
+        if (m.badges.includes('MODERATOR')) authorBadgesHtml += `<span class="author-badge-icon badge-mod" title="Chat Moderator">🛡️</span>`;
+        if (m.badges.includes('MEMBER')) authorBadgesHtml += `<span class="author-badge-icon badge-member" title="Channel Member">💎</span>`;
+        if (m.badges.includes('VERIFIED')) authorBadgesHtml += `<span class="author-badge-icon badge-verified" title="Verified">✓</span>`;
+      }
+
+      const secs = parseTimestampToSeconds(m.time);
+      const timeHtml = (secs !== null && m.stream_id) ? `
+        <a href="https://www.youtube.com/watch?v=${m.stream_id}&t=${secs}s" target="_blank" class="timestamp-badge" title="Jump to ${m.time} in Video">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span>${m.time || '0:00'}</span>
+        </a>
+      ` : `<span class="timestamp-badge">${m.time || '0:00'}</span>`;
+
+      return `
+        <tr class="${rowClass}">
+          <td class="cell-num">#${m.idx}</td>
+          <td>${timeHtml}</td>
+          <td>
+            <div class="author-cell">
+              <span class="author-name" title="${escapeHtml(m.author)}">${escapeHtml(m.author)}</span>
+              ${authorBadgesHtml}
+            </div>
+          </td>
+          <td>${eventPill}</td>
+          <td class="chat-msg-cell">
+            <span class="msg-text">${escapeHtml(m.message || '-')}</span>
+          </td>
+          <td>
+            <a href="https://www.youtube.com/watch?v=${m.stream_id}" target="_blank" class="stream-vid-badge" title="Open Stream">
+              ${m.stream_id || '-'} ↗
+            </a>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    if (el.chatFeedPagination) {
+      if (messages.length <= pageSize) {
+        el.chatFeedPagination.style.display = 'none';
+      } else {
+        el.chatFeedPagination.style.display = 'flex';
+        const fromItem = startIdx + 1;
+        const toItem = Math.min(messages.length, startIdx + pageSlice.length);
+        el.chatFeedPagination.innerHTML = `
+          <div class="table-pagination-info">
+            Showing <strong>${fromItem.toLocaleString()}–${toItem.toLocaleString()}</strong> of <strong>${messages.length.toLocaleString()}</strong> messages
+          </div>
+          <div class="table-pagination-btns">
+            <button type="button" class="btn-page-nav" ${state.chatCurrentPage <= 1 ? 'disabled' : ''} onclick="window.__tmGoChatPage(${state.chatCurrentPage - 1})">◀ Prev</button>
+            <span style="font-size: 0.88rem; font-weight: 600; color: var(--text-primary); padding: 0 4px;">Page ${state.chatCurrentPage} of ${totalPages}</span>
+            <button type="button" class="btn-page-nav" ${state.chatCurrentPage >= totalPages ? 'disabled' : ''} onclick="window.__tmGoChatPage(${state.chatCurrentPage + 1})">Next ▶</button>
+          </div>
+        `;
+      }
+    }
+  }
+
+  window.__tmGoChatPage = (p) => {
+    state.chatCurrentPage = p;
+    renderChatFeedTable(state.filteredMessages || []);
+    if (el.chatFeedTable) {
+      el.chatFeedTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   // ─────────────────────────────────────────────
   // 7. RENDER VIDEO COMMENTS REPORT (Tab D)
@@ -3252,54 +3317,89 @@
       filtered.sort((a, b) => b.reply_count - a.reply_count);
     }
 
+    state.commCurrentPage = 1;
     state.filteredComments = filtered;
     renderCommentsTable(filtered);
   }
 
-  function renderCommentsTable(comments) {
-    if (!el.commentsTableBody) return;
-
-    if (comments.length === 0) {
-      el.commentsTableBody.innerHTML = `
-        <tr>
-          <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
-            No comments found matching your active search.
-          </td>
-        </tr>
-      `;
-      return;
-    }
-
-    el.commentsTableBody.innerHTML = comments.map(c => {
-      const avatarHtml = c.author_avatar ? `<img src="${c.author_avatar}" class="comment-avatar" alt="${escapeHtml(c.author)}" loading="lazy">` : `<div class="comment-avatar-placeholder">👤</div>`;
-      let badges = '';
-      if (c.is_pinned) badges += `<span class="comm-badge pinned" title="Pinned by creator">📌 Pinned</span> `;
-      if (c.is_hearted) badges += `<span class="comm-badge hearted" title="Hearted by creator">❤️ Heart</span> `;
-
-      return `
-        <tr>
-          <td class="cell-num">#${c.idx}</td>
-          <td>
-            <div class="commenter-cell">
-              ${avatarHtml}
-              <div class="commenter-info">
-                <span class="commenter-name">${escapeHtml(c.author)}</span>
-              </div>
-            </div>
-          </td>
-          <td style="color: var(--text-muted); font-size: 0.85rem;">${escapeHtml(c.published_time || '-')}</td>
-          <td>
-            <span class="like-badge">❤️ ${c.likes_display || c.likes}</span>
-          </td>
-          <td>
-            <span class="reply-badge">💬 ${c.reply_count}</span>
-          </td>
-          <td class="comment-text-cell">${escapeHtml(c.text)}</td>
-          <td>${badges || '<span style="color:var(--text-muted); font-size:0.8rem;">-</span>'}</td>
-        </tr>
-      `;
-    }).join('');
-  }
+  function renderCommentsTable(comments) {
+    if (!el.commentsTableBody) return;
+
+    if (!comments || comments.length === 0) {
+      el.commentsTableBody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+            No comments found matching your active search.
+          </td>
+        </tr>
+      `;
+      if (el.commentsPagination) el.commentsPagination.style.display = 'none';
+      return;
+    }
+
+    const pageSize = state.commPageSize || 100;
+    const totalPages = Math.ceil(comments.length / pageSize) || 1;
+    if (state.commCurrentPage > totalPages) state.commCurrentPage = totalPages;
+    if (state.commCurrentPage < 1) state.commCurrentPage = 1;
+
+    const startIdx = (state.commCurrentPage - 1) * pageSize;
+    const pageSlice = comments.slice(startIdx, startIdx + pageSize);
+
+    el.commentsTableBody.innerHTML = pageSlice.map(c => {
+      const avatarHtml = c.author_avatar ? `<img src="${c.author_avatar}" class="comment-avatar" alt="${escapeHtml(c.author)}" loading="lazy">` : `<div class="comment-avatar-placeholder">👤</div>`;
+      let badges = '';
+      if (c.is_pinned) badges += `<span class="comm-badge pinned" title="Pinned by creator">📌 Pinned</span> `;
+      if (c.is_hearted) badges += `<span class="comm-badge hearted" title="Hearted by creator">❤️ Heart</span> `;
+
+      return `
+        <tr>
+          <td class="cell-num">#${c.idx}</td>
+          <td>
+            <div class="commenter-cell">
+              ${avatarHtml}
+              <div class="commenter-info">
+                <span class="commenter-name">${escapeHtml(c.author)}</span>
+              </div>
+            </div>
+          </td>
+          <td style="color: var(--text-muted); font-size: 0.85rem;">${escapeHtml(c.published_time || '-')}</td>
+          <td>
+            <span class="like-badge">❤️ ${c.likes_display || c.likes}</span>
+          </td>
+          <td>
+            <span class="reply-badge">💬 ${c.reply_count}</span>
+          </td>
+          <td class="comment-text-cell">${escapeHtml(c.text)}</td>
+          <td>${badges || '<span style="color:var(--text-muted); font-size:0.8rem;">-</span>'}</td>
+        </tr>
+      `;
+    }).join('');
+
+    if (el.commentsPagination) {
+      if (comments.length <= pageSize) {
+        el.commentsPagination.style.display = 'none';
+      } else {
+        el.commentsPagination.style.display = 'flex';
+        const fromItem = startIdx + 1;
+        const toItem = Math.min(comments.length, startIdx + pageSlice.length);
+        el.commentsPagination.innerHTML = `
+          <div class="table-pagination-info">
+            Showing <strong>${fromItem.toLocaleString()}–${toItem.toLocaleString()}</strong> of <strong>${comments.length.toLocaleString()}</strong> comments
+          </div>
+          <div class="table-pagination-btns">
+            <button type="button" class="btn-page-nav" ${state.commCurrentPage <= 1 ? 'disabled' : ''} onclick="window.__tmGoCommPage(${state.commCurrentPage - 1})">◀ Prev</button>
+            <span style="font-size: 0.88rem; font-weight: 600; color: var(--text-primary); padding: 0 4px;">Page ${state.commCurrentPage} of ${totalPages}</span>
+            <button type="button" class="btn-page-nav" ${state.commCurrentPage >= totalPages ? 'disabled' : ''} onclick="window.__tmGoCommPage(${state.commCurrentPage + 1})">Next ▶</button>
+          </div>
+        `;
+      }
+    }
+  }
+
+  window.__tmGoCommPage = (p) => {
+    state.commCurrentPage = p;
+    renderCommentsTable(state.filteredComments || []);
+  };
 
   // ─────────────────────────────────────────────
   // 8. EVENT LISTENERS FOR FILTERS & EXPORTS

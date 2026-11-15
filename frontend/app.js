@@ -794,6 +794,12 @@ function setupChannelMode() {
     });
   });
 
+  const clearPresetActive = () => {
+    elements.presetChips.forEach(c => c.classList.remove('active'));
+  };
+  if (elements.fromDateInput) elements.fromDateInput.addEventListener('input', clearPresetActive);
+  if (elements.toDateInput) elements.toDateInput.addEventListener('input', clearPresetActive);
+
   elements.startChannelBtn.addEventListener('click', async () => {
     // Server-Verified Credits Gatekeeper (Pre-flight check before scanning channel streams)
     if (window.TubeMetrixAuth) {
@@ -817,8 +823,15 @@ function setupChannelMode() {
     elements.startChannelBtn.disabled = true;
     elements.startChannelBtn.innerHTML = `<span>Fetching Channel Streams...</span>`;
 
-    const fromDate = elements.fromDateInput.value || null;
-    const toDate = elements.toDateInput.value || null;
+    let fromDate = elements.fromDateInput.value || null;
+    let toDate = elements.toDateInput.value || null;
+    if (fromDate && toDate && fromDate > toDate) {
+      const tmp = fromDate;
+      fromDate = toDate;
+      toDate = tmp;
+      elements.fromDateInput.value = fromDate;
+      elements.toDateInput.value = toDate;
+    }
 
     try {
       const resp = await fetch(`${API_BASE}/channel-streams`, {
