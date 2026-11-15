@@ -36,6 +36,8 @@
 
           body: JSON.stringify(payload),
 
+          signal: AbortSignal.timeout(35000),
+
         });
 
         if (!resp.ok) {
