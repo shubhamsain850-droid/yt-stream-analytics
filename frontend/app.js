@@ -847,7 +847,20 @@ function setupChannelMode() {
 
       const resJson = await resp.json();
       if (resJson.success && resJson.streams && resJson.streams.length > 0) {
-        let urls = resJson.streams.map(s => s.url);
+        let streams = resJson.streams;
+        if (fromDate || toDate) {
+          streams = streams.filter(s => {
+            if (!s.date || s.date === 'Recent') return true;
+            if (fromDate && s.date < fromDate) return false;
+            if (toDate && s.date > toDate) return false;
+            return true;
+          });
+        }
+        if (!streams.length) {
+          alert('No streams found matching the specified date range on this channel.');
+          return;
+        }
+        let urls = streams.map(s => s.url);
         startEarningsWithDuplicateGuard(urls, `Channel: ${channel} (${urls.length} Streams Found)`, { mode: 'channel' });
         return;
       } else {

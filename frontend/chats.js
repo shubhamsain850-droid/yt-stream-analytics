@@ -1911,7 +1911,18 @@
         throw new Error('No live streams found for this channel matching the specified date range.');
       }
 
-      const streams = cData.streams;
+      let streams = cData.streams;
+      if (fromDate || toDate) {
+        streams = streams.filter(s => {
+          if (!s.date || s.date === 'Recent') return true;
+          if (fromDate && s.date < fromDate) return false;
+          if (toDate && s.date > toDate) return false;
+          return true;
+        });
+      }
+      if (!streams.length) {
+        throw new Error('No live streams found for this channel matching the specified date range.');
+      }
       if (!options?.skipDupCheck) {
         const dupHandled = await checkChatOrCommentsDuplicate({
           videoIds: streams.map((s) => s.id),
