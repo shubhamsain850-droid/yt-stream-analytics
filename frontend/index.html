@@ -463,45 +463,88 @@
       </div>
 
       <!-- Real-Time Metrics Counters (Visible during AND after processing) -->
-      <div class="metrics-grid">
-        <div class="metric-chip total">
+      <div class="metrics-grid" id="earningsMetricsGrid">
+        <div class="metric-chip total clickable" data-filter="all" title="Click to view all streams">
           <div class="metric-icon">📊</div>
           <div class="metric-info">
             <span class="metric-value" id="countTotal">0</span>
             <span class="metric-label">Total Streams</span>
+            <span class="metric-hint">Click to inspect</span>
           </div>
         </div>
 
-        <div class="metric-chip success">
+        <div class="metric-chip success clickable" data-filter="processed" title="Click to view processed streams">
           <div class="metric-icon">✅</div>
           <div class="metric-info">
             <span class="metric-value" id="countSuccess">0</span>
             <span class="metric-label">Processed</span>
+            <span class="metric-hint">Click to inspect</span>
           </div>
         </div>
 
-        <div class="metric-chip failed">
+        <div class="metric-chip failed clickable" data-filter="failed" title="Click to view failed streams & reasons">
           <div class="metric-icon">❌</div>
           <div class="metric-info">
             <span class="metric-value" id="countFailed">0</span>
             <span class="metric-label">Failed</span>
+            <span class="metric-hint">Click to inspect</span>
           </div>
         </div>
 
-        <div class="metric-chip nochat">
+        <div class="metric-chip nochat clickable" data-filter="no_chat" title="Click to view streams with chat disabled">
           <div class="metric-icon">⚠️</div>
           <div class="metric-info">
             <span class="metric-value" id="countNoChat">0</span>
             <span class="metric-label">Chat Unavailable</span>
+            <span class="metric-hint">Click to inspect</span>
           </div>
         </div>
 
-        <div class="metric-chip membersonly">
+        <div class="metric-chip membersonly clickable" data-filter="members_only" title="Click to view Members-Only / Pvt streams">
           <div class="metric-icon">🔒</div>
           <div class="metric-info">
             <span class="metric-value" id="countMembersOnly">0</span>
             <span class="metric-label">Members / Pvt Stream</span>
+            <span class="metric-hint">Click to inspect</span>
           </div>
+        </div>
+      </div>
+
+      <!-- Interactive Stream Audit Breakdown (Lists every stream by status) -->
+      <div class="stream-audit-box" id="streamAuditBox" style="display: none;">
+        <div class="stream-audit-header">
+          <div class="stream-audit-title">
+            <span>📋 Stream Audit Breakdown</span>
+            <span class="audit-status-badge processed" id="auditCheckedBadge">0 Checked</span>
+          </div>
+          <button type="button" class="stream-audit-toggle-btn" id="toggleAuditTableBtn">
+            <span id="auditToggleLabel">Hide List</span> ▾
+          </button>
+        </div>
+
+        <div class="stream-audit-filter-pills" id="auditFilterPills">
+          <button type="button" class="audit-pill active" data-filter="all">All (<span id="pillCountAll">0</span>)</button>
+          <button type="button" class="audit-pill pill-processed" data-filter="processed">✅ Processed (<span id="pillCountProcessed">0</span>)</button>
+          <button type="button" class="audit-pill pill-members" data-filter="members_only">🔒 Members / Pvt (<span id="pillCountMembers">0</span>)</button>
+          <button type="button" class="audit-pill pill-nochat" data-filter="no_chat">⚠️ Chat Unavailable (<span id="pillCountNoChat">0</span>)</button>
+          <button type="button" class="audit-pill pill-failed" data-filter="failed">❌ Failed (<span id="pillCountFailed">0</span>)</button>
+        </div>
+
+        <div class="stream-audit-table-wrap" id="streamAuditTableWrap">
+          <table class="stream-audit-table">
+            <thead>
+              <tr>
+                <th style="width: 45px;">#</th>
+                <th>Stream Title</th>
+                <th style="width: 105px;">Date</th>
+                <th style="width: 155px;">Status</th>
+                <th style="width: 200px;">Details / Reason</th>
+              </tr>
+            </thead>
+            <tbody id="streamAuditTbody">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No streams checked yet.</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

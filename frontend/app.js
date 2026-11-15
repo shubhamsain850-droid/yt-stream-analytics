@@ -863,7 +863,7 @@ function setupChannelMode() {
           return;
         }
         let urls = streams.map(s => s.url);
-        startEarningsWithDuplicateGuard(urls, `Channel: ${channel} (${urls.length} Streams Found)`, { mode: 'channel' });
+        startEarningsWithDuplicateGuard(urls, `Channel: ${channel} (${urls.length} Streams Found)`, { mode: 'channel', streamObjects: streams });
         return;
       } else {
         alert("No streams found matching the specified date range on this channel.");
@@ -1870,6 +1870,9 @@ async function startProcessing(urls, label = null, options = {}) {
       };
   updateMetricsDisplay();
 
+  const streamObjs = options?.streamObjects || urls.map((u, i) => ({ url: u, id: extractVideoId(u) || `vid_${i+1}` }));
+  initStreamAuditSystem(streamObjs, totalPlanned);
+
   const numWorkers = Math.min(CONCURRENCY_LIMIT, urls.length);
   const startPct = Math.round((completedBeforeCount / totalPlanned) * 100);
   elements.statusTitle.textContent = totalPlanned > 1 ? `Auditing Streams: ${completedBeforeCount} of ${totalPlanned} Checked (${startPct}%)` : (label || 'Analyzing Stream...');
@@ -1996,6 +1999,15 @@ async function startProcessing(urls, label = null, options = {}) {
           scCount: p.totals.superchat_count
         });
 
+        recordStreamAuditItem({
+          vid: p.stream_id || vid,
+          url,
+          title: resData.title || `Live Stream [${vid}]`,
+          date: p.upload_date || '',
+          status: 'processed',
+          info: `Gross: ₹${Math.round(p.totals.gross_inr || 0).toLocaleString()} (${p.totals.superchat_count || 0} Superchats, ${p.totals.memberships_count || 0} Memberships)`
+        });
+
         resultsAccumulator.superchats.push(...p.superchats.map(s => ({
           author: s.author,
           amount: s.amount,
@@ -2037,20 +2049,49 @@ async function startProcessing(urls, label = null, options = {}) {
         }
       } else if (resData.error === "MEMBERS_ONLY" || resData.is_members_only || resData.error === "PRIVATE_STREAM" || resData.is_private) {
         state.metrics.membersOnly++;
-        const kindLabel = (resData.error === "PRIVATE_STREAM" || resData.is_private) ? "Private Stream" : "Members-Only Stream";
+        const isPvt = resData.error === "PRIVATE_STREAM" || resData.is_private;
+        const kindLabel = isPvt ? "Private Stream" : "Members-Only Stream";
         elements.statusTicker.textContent = `[${kindLabel.toUpperCase()}] ${resData.message || (resData.title || vid)}`;
+        recordStreamAuditItem({
+          vid,
+          url,
+          title: resData.title || `Live Stream [${vid}]`,
+          status: isPvt ? 'private' : 'members_only',
+          reason: resData.message || (isPvt ? 'Private restricted stream' : 'Channel membership required (level locked)')
+        });
       } else if (resData.error === "NO_CHAT_AVAILABLE") {
         state.metrics.noChat++;
         elements.statusTicker.textContent = `[NO CHAT] Live chat replay was disabled for: ${resData.title || vid}`;
+        recordStreamAuditItem({
+          vid,
+          url,
+          title: resData.title || `Live Stream [${vid}]`,
+          status: 'no_chat',
+          reason: 'Live chat replay was disabled by streamer'
+        });
       } else {
         state.metrics.failed++;
         failedUrls.push({ url, reason: resData.message || 'Stream unavailable' });
         elements.statusTicker.textContent = `[FAILED] ${resData.message || 'Stream unavailable'}`;
+        recordStreamAuditItem({
+          vid,
+          url,
+          title: resData.title || `Live Stream [${vid}]`,
+          status: 'failed',
+          reason: resData.message || 'Stream unavailable or restricted'
+        });
       }
     } catch (netErr) {
       state.metrics.failed++;
       failedUrls.push({ url, reason: netErr?.message || 'Network error' });
       elements.statusTicker.textContent = `[ERROR] Network error for ${vid}`;
+      recordStreamAuditItem({
+        vid,
+        url,
+        title: `Live Stream [${vid}]`,
+        status: 'failed',
+        reason: netErr?.message ? `Network error: ${netErr.message}` : 'Network timeout / server busy'
+      });
     } finally {
       activeWorkerUrls.delete(url);
       completedUrlsInOrder.push(url);
@@ -2901,3 +2942,173 @@ function initMobileScrollHints() {
     }
   });
 }
+
+
+// ──────────────────────────────────────────
+// STREAM AUDIT BREAKDOWN ENGINE (Interactive Category Inspector)
+// ──────────────────────────────────────────
+let streamAuditList = [];
+let currentAuditFilter = 'all';
+let isAuditTableExpanded = true;
+
+function initStreamAuditSystem(streamObjects, totalCount) {
+  streamAuditList = [];
+  currentAuditFilter = 'all';
+  isAuditTableExpanded = true;
+  const auditBox = document.getElementById('streamAuditBox');
+  if (auditBox) auditBox.style.display = totalCount > 1 ? 'block' : 'none';
+
+  if (Array.isArray(streamObjects) && streamObjects.length > 0) {
+    streamAuditList = streamObjects.map((s, idx) => ({
+      idx: idx + 1,
+      vid: s.id || extractVideoId(s.url || '') || `stream_${idx+1}`,
+      url: s.url || `https://www.youtube.com/watch?v=${s.id}`,
+      title: s.title || `Live Stream [${s.id || idx + 1}]`,
+      date: s.date || '',
+      status: s.is_members_only ? 'members_only' : (s.is_private ? 'private' : 'pending'),
+      reason: s.is_members_only ? 'Channel Membership Required' : (s.is_private ? 'Private Stream' : 'Waiting in audit queue...'),
+      info: ''
+    }));
+  }
+  renderStreamAuditTable();
+}
+
+function recordStreamAuditItem(item) {
+  const existingIdx = streamAuditList.findIndex(x => x.vid === item.vid || x.url === item.url);
+  if (existingIdx !== -1) {
+    streamAuditList[existingIdx] = { ...streamAuditList[existingIdx], ...item };
+  } else {
+    streamAuditList.push({
+      idx: streamAuditList.length + 1,
+      ...item
+    });
+  }
+  renderStreamAuditTable();
+}
+
+function renderStreamAuditTable() {
+  const tbody = document.getElementById('streamAuditTbody');
+  if (!tbody) return;
+
+  const total = streamAuditList.length;
+  const processed = streamAuditList.filter(x => x.status === 'processed').length;
+  const members = streamAuditList.filter(x => x.status === 'members_only' || x.status === 'private').length;
+  const nochat = streamAuditList.filter(x => x.status === 'no_chat').length;
+  const failed = streamAuditList.filter(x => x.status === 'failed').length;
+  const checkedCount = processed + members + nochat + failed;
+
+  const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setTxt('pillCountAll', checkedCount > 0 ? checkedCount : total);
+  setTxt('pillCountProcessed', processed);
+  setTxt('pillCountMembers', members);
+  setTxt('pillCountNoChat', nochat);
+  setTxt('pillCountFailed', failed);
+  setTxt('auditCheckedBadge', `${checkedCount} of ${total} Checked`);
+
+  const filtered = streamAuditList.filter(x => {
+    if (x.status === 'pending' && checkedCount > 0 && currentAuditFilter !== 'all') return false;
+    if (currentAuditFilter === 'all') return x.status !== 'pending' || checkedCount === 0;
+    if (currentAuditFilter === 'processed') return x.status === 'processed';
+    if (currentAuditFilter === 'members_only') return x.status === 'members_only' || x.status === 'private';
+    if (currentAuditFilter === 'no_chat') return x.status === 'no_chat';
+    if (currentAuditFilter === 'failed') return x.status === 'failed';
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No streams found in "${currentAuditFilter.replace('_', ' ').toUpperCase()}" category.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((item, i) => {
+    let badgeClass = 'processed';
+    let badgeLabel = '✅ Processed';
+    if (item.status === 'members_only') {
+      badgeClass = 'members_only';
+      badgeLabel = '🔒 Members-Only';
+    } else if (item.status === 'private') {
+      badgeClass = 'members_only';
+      badgeLabel = '🔒 Private';
+    } else if (item.status === 'no_chat') {
+      badgeClass = 'no_chat';
+      badgeLabel = '⚠️ Chat Disabled';
+    } else if (item.status === 'failed') {
+      badgeClass = 'failed';
+      badgeLabel = '❌ Failed';
+    } else if (item.status === 'pending') {
+      badgeClass = 'pending';
+      badgeLabel = '⏳ Pending';
+    }
+
+    const detailText = item.info || item.reason || '—';
+    const cleanUrl = item.url || `https://www.youtube.com/watch?v=${item.vid}`;
+
+    return `
+      <tr>
+        <td style="color: var(--text-muted); font-size: 0.78rem;">${item.idx || i + 1}</td>
+        <td>
+          <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="stream-title-link" title="Open on YouTube">
+            <span>${escapeHtml(item.title || item.vid)}</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          </a>
+        </td>
+        <td style="color: var(--text-muted); font-size: 0.8rem; white-space: nowrap;">${item.date || '—'}</td>
+        <td><span class="audit-status-badge ${badgeClass}">${badgeLabel}</span></td>
+        <td style="font-size: 0.82rem; color: var(--text-secondary);">${escapeHtml(detailText)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function setupAuditFilterListeners() {
+  document.querySelectorAll('#earningsMetricsGrid .metric-chip.clickable').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#earningsMetricsGrid .metric-chip.clickable').forEach(c => c.classList.remove('active-filter'));
+      chip.classList.add('active-filter');
+      currentAuditFilter = chip.dataset.filter || 'all';
+
+      document.querySelectorAll('#auditFilterPills .audit-pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.filter === currentAuditFilter);
+      });
+
+      const wrap = document.getElementById('streamAuditTableWrap');
+      const box = document.getElementById('streamAuditBox');
+      if (box) box.style.display = 'block';
+      if (wrap) wrap.style.display = 'block';
+      const label = document.getElementById('auditToggleLabel');
+      if (label) label.textContent = 'Hide List';
+      isAuditTableExpanded = true;
+
+      renderStreamAuditTable();
+    });
+  });
+
+  document.querySelectorAll('#auditFilterPills .audit-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#auditFilterPills .audit-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentAuditFilter = pill.dataset.filter || 'all';
+
+      document.querySelectorAll('#earningsMetricsGrid .metric-chip.clickable').forEach(c => {
+        c.classList.toggle('active-filter', c.dataset.filter === currentAuditFilter);
+      });
+
+      renderStreamAuditTable();
+    });
+  });
+
+  const toggleBtn = document.getElementById('toggleAuditTableBtn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      isAuditTableExpanded = !isAuditTableExpanded;
+      const wrap = document.getElementById('streamAuditTableWrap');
+      const label = document.getElementById('auditToggleLabel');
+      if (wrap) wrap.style.display = isAuditTableExpanded ? 'block' : 'none';
+      if (label) label.textContent = isAuditTableExpanded ? 'Hide List' : 'Show List';
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupAuditFilterListeners();
+});
