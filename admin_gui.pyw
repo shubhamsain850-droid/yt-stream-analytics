@@ -14,6 +14,8 @@ import threading
 import uuid
 import webbrowser
 import urllib.parse
+import html
+import re
 import tempfile
 import smtplib
 import ssl
@@ -121,6 +123,82 @@ def save_email_config(cfg: dict):
     except Exception as e:
         print(f"Error saving email config: {e}")
 
+
+
+def format_branded_email_html(subject: str, body_text: str) -> str:
+    """Wraps any text message in a clean, modern dark-themed HTML email with the official TubeMetrix logo."""
+    year = datetime.now().year
+    
+    # Split paragraphs
+    paragraphs = [p.strip() for p in body_text.strip().split("\n\n") if p.strip()]
+    html_body_parts = []
+    for p in paragraphs:
+        lines = p.split("\n")
+        escaped_lines = []
+        for l in lines:
+            line_esc = html.escape(l)
+            # Make URLs clickable
+            url_match = re.search(r'(https?://\S+)', line_esc)
+            if url_match:
+                u = url_match.group(1)
+                line_esc = line_esc.replace(u, f'<a href="{u}" target="_blank" style="color: #ef4444; font-weight: bold; text-decoration: underline;">{u}</a>')
+            escaped_lines.append(line_esc)
+        p_html = "<br>".join(escaped_lines)
+        html_body_parts.append(f'<p style="margin: 0 0 16px; font-size: 15px; line-height: 1.6; color: #cbd5e1;">{p_html}</p>')
+    
+    body_content = "".join(html_body_parts)
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{html.escape(subject)}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f1f5f9;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0b0f19; width: 100%;">
+    <tr>
+      <td align="center" style="padding: 32px 16px;">
+        <table role="presentation" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; background: linear-gradient(180deg, #131b2e 0%, #0f172a 100%); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+          <!-- Header with Official Logo -->
+          <tr>
+            <td style="padding: 28px 36px 20px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); background: radial-gradient(circle at 100% 0%, rgba(220, 38, 38, 0.18) 0%, transparent 60%);">
+              <table role="presentation" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="vertical-align: middle;">
+                    <img src="https://tubemetrix.net/icon-192.png" width="40" height="40" alt="TubeMetrix Logo" style="display: block; border-radius: 10px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);" />
+                  </td>
+                  <td style="vertical-align: middle; padding-left: 14px;">
+                    <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">Tube<span style="color: #ef4444;">Metrix</span></span>
+                    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; font-weight: 600; margin-top: 2px;">Creator Analytics & Live Super Chat Intelligence</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding: 32px 36px 20px;">
+              {body_content}
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 20px 36px; text-align: center; font-size: 12px; line-height: 1.6; color: #64748b; border-top: 1px solid rgba(255, 255, 255, 0.04);">
+              <p style="margin: 0 0 6px;">
+                TubeMetrix &bull; Empowering YouTube Streamers Everywhere &bull; <a href="https://tubemetrix.net" target="_blank" style="color: #ef4444; text-decoration: none;">tubemetrix.net</a>
+              </p>
+              <p style="margin: 0; color: #475569;">
+                &copy; {year} TubeMetrix. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
 
 class EmailComposerDialog(ctk.CTkToplevel):
     """Modern Dark-Themed Email Composer for Direct & Broadcast Messages."""
@@ -669,11 +747,15 @@ class EmailComposerDialog(ctk.CTkToplevel):
 
                 for r in self.recipients:
                     try:
-                        msg = MIMEMultipart()
+                        msg = MIMEMultipart("alternative")
                         msg["From"] = f"{from_name} <{from_email}>"
                         msg["To"] = r
                         msg["Subject"] = subject
+                        # Plain-text version
                         msg.attach(MIMEText(body, "plain", "utf-8"))
+                        # Branded HTML version with official TubeMetrix logo
+                        html_version = format_branded_email_html(subject, body)
+                        msg.attach(MIMEText(html_version, "html", "utf-8"))
                         server.send_message(msg)
                         sent_count += 1
                     except Exception as e:
@@ -731,9 +813,7 @@ def get_welcome_preview_html(name="Creator") -> str:
               <table role="presentation" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td style="vertical-align: middle;">
-                    <div style="display: inline-block; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); width: 40px; height: 40px; border-radius: 10px; text-align: center; line-height: 40px; font-size: 20px;">
-                      📈
-                    </div>
+                    <img src="https://tubemetrix.net/icon-192.png" width="40" height="40" alt="TubeMetrix Logo" style="display: block; border-radius: 10px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);" />
                   </td>
                   <td style="vertical-align: middle; padding-left: 14px;">
                     <span style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">Tube<span style="color: #ef4444;">Metrix</span></span>

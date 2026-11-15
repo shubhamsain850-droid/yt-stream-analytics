@@ -40,9 +40,7 @@ export function buildWelcomeEmailHtml({ name, givenName, email }) {
               <table role="presentation" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td style="vertical-align: middle;">
-                    <div style="display: inline-block; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); width: 40px; height: 40px; border-radius: 10px; text-align: center; line-height: 40px; font-size: 20px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);">
-                      📈
-                    </div>
+                    <img src="https://tubemetrix.net/icon-192.png" width="40" height="40" alt="TubeMetrix Logo" style="display: block; border-radius: 10px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);" />
                   </td>
                   <td style="vertical-align: middle; padding-left: 14px;">
                     <span style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">Tube<span style="color: #ef4444;">Metrix</span></span>
