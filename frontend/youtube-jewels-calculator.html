@@ -129,7 +129,7 @@
             "name": "What is the creator percentage take-home from YouTube Jewels?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Unlike Super Chats which offer a direct 70/30 split, YouTube Jewels operate on fixed unit economics: viewers pay ~₹1.20 per Jewel and creators receive ~₹0.42 net per Jewel, representing an effective creator margin of approximately 35% of the retail purchase price."
+              "text": "YouTube Jewels operate on fixed unit economics: viewers pay ~₹1.20 per Jewel and creators receive ~₹0.42 net per Jewel, representing an effective creator margin of approximately 35% of the retail purchase price."
             }
           }
         ]
@@ -434,28 +434,13 @@
           <!-- Dynamically populated -->
         </div>
 
-        <!-- Horizontal Stream Detected Notice -->
-        <div id="resHorizontalNotice" style="display: none; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 240px;">
-              <h4 id="resHorizontalTitle" style="font-size: 1rem; font-weight: 800; color: #10b981; margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
-                <span>💬</span> Super Chats &amp; Memberships Found
-              </h4>
-              <p id="resHorizontalDesc" style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.45; margin: 0;">
-                Jewels are enabled on vertical streams. In this horizontal stream, viewers donated via Super Chats &amp; Memberships.
-              </p>
-            </div>
-            <a id="resHorizontalAuditBtn" href="#" class="btn-primary" style="padding: 9px 18px; font-size: 0.86rem; text-decoration: none; white-space: nowrap; border-radius: 8px;">
-              <span>View Super Chat Audit</span> ➔
-            </a>
-          </div>
-        </div>
 
-        <!-- Zero Donations Banner -->
+
+        <!-- Zero Jewels Banner -->
         <div id="resZeroAllNotice" style="display: none; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 16px 18px; margin-bottom: 20px;">
-          <div style="font-weight: 700; color: #f59e0b; font-size: 0.95rem; margin-bottom: 4px;">ℹ️ 0 Gifts or Super Chats Sent</div>
-          <p style="font-size: 0.86rem; color: var(--text-secondary); margin: 0;">
-            The chat replay was scanned, but no gifts or Super Chats were sent during this broadcast.
+          <div style="font-weight: 700; color: #f59e0b; font-size: 0.95rem; margin-bottom: 4px;">ℹ️ 0 YouTube Jewels Sent</div>
+          <p style="font-size: 0.86rem; color: var(--text-secondary); margin: 0; line-height: 1.45;">
+            The live chat replay was scanned, but no YouTube Jewels or virtual gifts were sent during this broadcast. Note: YouTube Jewels &amp; Gifts are exclusive to vertical live streams in the YouTube mobile app / Shorts feed.
           </p>
         </div>
 
@@ -681,14 +666,14 @@
       </div>
     </section>
 
-    <!-- 4. Monetization Comparison Matrix -->
+    <!-- 4. YouTube Jewels & Rubies Economics Breakdown -->
     <section class="info-section" style="max-width: 860px; margin: 0 auto 32px auto; padding: 0 16px;">
       <div style="text-align: center; margin-bottom: 16px;">
         <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">
-          Jewels vs. Super Chat vs. Memberships
+          YouTube Jewels &amp; Rubies Unit Economics
         </h2>
         <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">
-          Revenue split breakdown across YouTube creator monetization.
+          Official revenue model, Ruby conversion ratios, and creator net payouts.
         </p>
       </div>
 
@@ -697,34 +682,41 @@
           <table class="data-table">
             <thead>
               <tr>
-                <th>Format</th>
-                <th>Viewer Currency</th>
-                <th>Creator Rate</th>
-                <th>Creator Share</th>
-                <th>Platform</th>
+                <th>Stage</th>
+                <th>Currency / Asset</th>
+                <th>Exchange / Payout Rate</th>
+                <th>Net Value</th>
+                <th>Supported Format</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td><strong>YouTube Jewels</strong></td>
-                <td>Virtual Bundles</td>
-                <td><strong style="color: #10b981;">2 Jewels = 1 Ruby = $0.01 USD (~₹0.43)</strong></td>
-                <td>~35% of Retail</td>
-                <td>Vertical Live (Shorts)</td>
+                <td><strong>Viewer Purchase</strong></td>
+                <td>Jewels Bundle</td>
+                <td>Viewers purchase bundles in the YouTube mobile app</td>
+                <td>~₹0.42 per Jewel</td>
+                <td>Shorts Mobile Feed</td>
               </tr>
               <tr>
-                <td><strong>Super Chat &amp; Stickers</strong></td>
-                <td>Direct Cash (INR, USD)</td>
-                <td><strong style="color: #10b981;">70% Net Creator Split</strong></td>
-                <td>70% (30% YouTube)</td>
-                <td>All Live Streams</td>
+                <td><strong>Virtual Gift Sent</strong></td>
+                <td>Combo Gifts (1 to 5,000 Jewels)</td>
+                <td>Panipuri, Samosa, Mic Drop, Golden Castle</td>
+                <td>Viewer sends in live chat</td>
+                <td>Vertical Live Streams</td>
               </tr>
               <tr>
-                <td><strong>Memberships</strong></td>
-                <td>Monthly Fee</td>
-                <td><strong style="color: #10b981;">70% Net Creator Split</strong></td>
-                <td>70% (30% YouTube)</td>
-                <td>All Formats</td>
+                <td><strong>Creator Conversion</strong></td>
+                <td>Rubies Balance</td>
+                <td><strong style="color: #8b5cf6;">2 Jewels = 1 Ruby</strong></td>
+                <td>Fixed 2:1 Ratio</td>
+                <td>Creator Analytics</td>
+              </tr>
+              <tr>
+                <td><strong>Creator Net Payout</strong></td>
+                <td>Direct Cash (INR / USD)</td>
+                <td><strong style="color: #10b981;">1 Ruby = $0.01 USD (~₹0.85 INR)</strong></td>
+                <td>Paid via Google AdSense</td>
+                <td>Monthly Payout</td>
               </tr>
             </tbody>
           </table>
@@ -767,7 +759,7 @@
             Are YouTube Jewels available on horizontal live streams? <span class="faq-icon">+</span>
           </summary>
           <p style="margin: 8px 0 0 0; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">
-            No, Jewels and virtual gifts are exclusive to vertical mobile live streams (Shorts feed). Horizontal streams use Super Chats and Super Stickers.
+            No, Jewels and virtual gifts are exclusive to vertical mobile live streams (Shorts feed). Jewels and virtual gifts can only be sent on vertical live streams in the YouTube mobile app.
           </p>
         </details>
 

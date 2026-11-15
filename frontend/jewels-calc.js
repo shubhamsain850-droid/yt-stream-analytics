@@ -443,17 +443,8 @@
     });
     const donorsCount = uniqueDonorsSet.size;
 
-    // Superchat / Horizontal metrics
-    const scCount = totals.superchat_count || (streamData.superchats ? streamData.superchats.length : 0);
-    const scInr = totals.superchat_inr || (streamData.superchats ? streamData.superchats.reduce((s, c) => s + (c.amount_inr || 0), 0) : 0);
-    const memCount = totals.memberships_count || (streamData.memberships ? streamData.memberships.length : 0);
-    const memInr = totals.memberships_inr || (streamData.memberships ? streamData.memberships.reduce((s, m) => s + (m.price_inr || 0), 0) : 0);
-    const grossInr = totals.gross_inr || (scInr + memInr);
-    const netInr = totals.net_creator_inr || (grossInr * 0.70);
-
     const kpiBanner = document.getElementById('resKpiBanner');
     const formatBadge = document.getElementById('resFormatBadge');
-    const horizNotice = document.getElementById('resHorizontalNotice');
     const zeroNotice = document.getElementById('resZeroAllNotice');
     const giftsSection = document.getElementById('resGiftsTableSection');
     const lbSection = document.getElementById('resLeaderboardSection');
@@ -467,7 +458,6 @@
         formatBadge.className = 'pill-badge pill-purple';
         formatBadge.textContent = 'Vertical Stream Gifts';
       }
-      if (horizNotice) horizNotice.style.display = 'none';
       if (zeroNotice) zeroNotice.style.display = 'none';
       if (giftsSection) giftsSection.style.display = 'block';
       if (lbSection) lbSection.style.display = 'block';
@@ -548,106 +538,52 @@
 
     } else {
       // ──────────────────────────────────────────────────────────
-      // CASE B: 0 Jewels Detected (e.g. Horizontal Stream with Superchats)
+      // CASE B: 0 Jewels Detected
       // ──────────────────────────────────────────────────────────
       if (formatBadge) {
         formatBadge.style.display = 'inline-block';
         formatBadge.className = 'pill-badge pill-amber';
-        formatBadge.textContent = 'Horizontal Broadcast';
+        formatBadge.textContent = '0 Jewels Detected';
       }
       if (giftsSection) giftsSection.style.display = 'none';
       if (lbSection) lbSection.style.display = 'none';
+      if (zeroNotice) zeroNotice.style.display = 'block';
 
-      if (grossInr > 0 || scCount > 0 || memCount > 0) {
-        // Horizontal stream WITH Superchats / Memberships
-        if (horizNotice) {
-          horizNotice.style.display = 'block';
-          const horizAuditBtn = document.getElementById('resHorizontalAuditBtn');
-          if (horizAuditBtn) {
-            horizAuditBtn.href = `/?stream=${vid}`;
-            horizAuditBtn.innerHTML = `<span>View Full Super Chat Audit (₹${Math.round(grossInr).toLocaleString()})</span> ➔`;
-          }
-        }
-        if (zeroNotice) zeroNotice.style.display = 'none';
+      if (kpiBanner) {
+        kpiBanner.innerHTML = `
+          <div class="kpi-card highlight">
+            <span class="kpi-badge">Jewels Audit Status</span>
+            <div class="kpi-amount" style="color: var(--text-primary); font-size: 1.35rem;">Chat Scanned</div>
+            <span class="kpi-sub">0 YouTube Jewels or Gifts detected</span>
+          </div>
 
-        if (kpiBanner) {
-          kpiBanner.innerHTML = `
-            <div class="kpi-card highlight">
-              <span class="kpi-badge">Net Creator Take</span>
-              <div class="kpi-amount" style="color: #10b981;">₹${Math.round(netInr).toLocaleString()}</div>
-              <span class="kpi-sub">approx. $${(netInr / usdToInrRate).toFixed(2)} USD (70% net split)</span>
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <span class="kpi-title">Total Jewels</span>
+              <span class="pill-badge pill-purple">Vertical Only</span>
             </div>
+            <div class="kpi-value" style="color: var(--text-muted);">0</div>
+            <span class="kpi-note">0 gifts received</span>
+          </div>
 
-            <div class="kpi-card">
-              <div class="kpi-top">
-                <span class="kpi-title">Super Chats</span>
-                <span class="pill-badge pill-green">${scCount} Donated</span>
-              </div>
-              <div class="kpi-value" style="color: #10b981;">₹${Math.round(scInr).toLocaleString()}</div>
-              <span class="kpi-note">${scCount} Super Chats in chat replay</span>
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <span class="kpi-title">Rubies Earned</span>
+              <span class="pill-badge pill-red">2:1 Ratio</span>
             </div>
+            <div class="kpi-value" style="color: var(--text-muted);">0</div>
+            <span class="kpi-note">$0.00 USD earned</span>
+          </div>
 
-            <div class="kpi-card">
-              <div class="kpi-top">
-                <span class="kpi-title">Memberships</span>
-                <span class="pill-badge pill-purple">${memCount} Members</span>
-              </div>
-              <div class="kpi-value" style="color: #8b5cf6;">₹${Math.round(memInr).toLocaleString()}</div>
-              <span class="kpi-note">${memCount} new joins &amp; milestones</span>
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <span class="kpi-title">Net Creator Payout</span>
+              <span class="pill-badge pill-green">$0.01/Ruby</span>
             </div>
-
-            <div class="kpi-card">
-              <div class="kpi-top">
-                <span class="kpi-title">YouTube Jewels</span>
-                <span class="pill-badge pill-amber">Vertical Only</span>
-              </div>
-              <div class="kpi-value" style="color: var(--text-muted);">0</div>
-              <span class="kpi-note">Exclusive to Shorts mobile feed</span>
-            </div>
-          `;
-        }
-
-      } else {
-        // Stream had 0 jewels AND 0 superchats
-        if (horizNotice) horizNotice.style.display = 'none';
-        if (zeroNotice) zeroNotice.style.display = 'block';
-
-        if (kpiBanner) {
-          kpiBanner.innerHTML = `
-            <div class="kpi-card highlight">
-              <span class="kpi-badge">Chat Replay Status</span>
-              <div class="kpi-amount" style="color: var(--text-primary); font-size: 1.35rem;">Chat Scanned</div>
-              <span class="kpi-sub">0 donations or gifts recorded</span>
-            </div>
-
-            <div class="kpi-card">
-              <div class="kpi-top">
-                <span class="kpi-title">YouTube Jewels</span>
-                <span class="pill-badge pill-purple">Vertical</span>
-              </div>
-              <div class="kpi-value" style="color: var(--text-muted);">0</div>
-              <span class="kpi-note">No gifts comboed</span>
-            </div>
-
-            <div class="kpi-card">
-              <div class="kpi-top">
-                <span class="kpi-title">Super Chats</span>
-                <span class="pill-badge pill-amber">0</span>
-              </div>
-              <div class="kpi-value" style="color: var(--text-muted);">₹0</div>
-              <span class="kpi-note">0 Super Chats</span>
-            </div>
-
-            <div class="kpi-card">
-              <div class="kpi-top">
-                <span class="kpi-title">Memberships</span>
-                <span class="pill-badge pill-amber">0</span>
-              </div>
-              <div class="kpi-value" style="color: var(--text-muted);">₹0</div>
-              <span class="kpi-note">0 joins in replay</span>
-            </div>
-          `;
-        }
+            <div class="kpi-value" style="color: var(--text-muted);">₹0</div>
+            <span class="kpi-note">Exclusive to Shorts mobile live</span>
+          </div>
+        `;
       }
     }
 
@@ -824,10 +760,10 @@
       );
     } else {
       lines.push(
-        `🔴 Stream Format        : Horizontal Broadcast (0 Jewels)`,
-        `💬 Super Chats Received : ₹${Math.round(totals.superchat_inr || 0).toLocaleString()} INR (${totals.superchat_count || 0} Super Chats)`,
-        `⭐ Memberships Revenue  : ₹${Math.round(totals.memberships_inr || 0).toLocaleString()} INR (${totals.memberships_count || 0} Members)`,
-        `💰 Net Creator Take     : ₹${Math.round(totals.net_creator_inr || 0).toLocaleString()} INR`
+        `💎 Total Jewels Received: 0 Jewels`,
+        `🔴 Rubies Earned (2:1)  : 0 Rubies`,
+        `💰 Net Creator Take     : ₹0 INR ($0.00 USD)`,
+        `ℹ️ Status               : 0 Jewels or Virtual Gifts detected in live replay`
       );
     }
 
@@ -857,9 +793,11 @@
     const streamData = currentAuditData.data || {};
     const jewelsList = streamData.jewels || [];
 
+    const headers = ['Gift Name', 'Supporter / Author', 'Quantity Comboed', 'Jewels Total', 'Net Creator INR', 'Net Creator USD'];
+    let rows = [];
+
     if (jewelsList.length > 0) {
-      const headers = ['Gift Name', 'Supporter / Author', 'Quantity Comboed', 'Jewels Total', 'Net Creator INR', 'Net Creator USD'];
-      const rows = jewelsList.map(j => {
+      rows = jewelsList.map(j => {
         const rubies = (j.jewels || 0) / 2;
         const usd = rubies * 0.01;
         const inr = usd * usdToInrRate;
@@ -872,26 +810,14 @@
           usd.toFixed(2)
         ].join(',');
       });
-
-      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
-      triggerDownload(csvContent, `tubemetrix-jewels-audit-${currentAuditData.vid}.csv`);
     } else {
-      // Export superchats if horizontal stream
-      const superchats = streamData.superchats || [];
-      const headers = ['Super Chat ID', 'Author', 'Amount', 'Currency', 'Amount INR', 'Time', 'Message'];
-      const rows = superchats.map(s => [
-        `"${s.id || ''}"`,
-        `"${(s.author || '').replace(/"/g, '""')}"`,
-        s.amount || 0,
-        `"${s.currency || 'INR'}"`,
-        s.amount_inr || 0,
-        `"${s.time || ''}"`,
-        `"${(s.message || '').replace(/"/g, '""')}"`
-      ].join(','));
-
-      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
-      triggerDownload(csvContent, `tubemetrix-stream-audit-${currentAuditData.vid}.csv`);
+      rows = [
+        ['"No Jewels Recorded"', '"-"', 0, 0, 0, '0.00']
+      ];
     }
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+    triggerDownload(csvContent, `tubemetrix-jewels-audit-${currentAuditData.vid}.csv`);
   }
 
   function triggerDownload(content, filename) {
