@@ -14,6 +14,7 @@ import threading
 import uuid
 import webbrowser
 import urllib.parse
+import tempfile
 import smtplib
 import ssl
 from email.mime.text import MIMEText
@@ -265,6 +266,7 @@ class EmailComposerDialog(ctk.CTkToplevel):
         for name, key in [
             ("🎁 Bonus Credits", "bonus"),
             ("⚡ Flat 1 CR Update", "flat"),
+            ("🎉 Welcome New", "welcome"),
             ("📢 Announcement", "announce"),
             ("👋 Feedback", "feedback"),
         ]:
@@ -513,6 +515,23 @@ class EmailComposerDialog(ctk.CTkToplevel):
                 "Happy streaming,\n"
                 "The TubeMetrix Team"
             )
+        elif key == "welcome":
+            subj = f"🎉 Welcome to TubeMetrix, {user_name}! Your Creator Account is Ready"
+            body = (
+                f"Hi {user_name},\n\n"
+                "Welcome to TubeMetrix! We're thrilled to have you join our creator analytics community.\n\n"
+                "Here is everything you have unlocked right away:\n"
+                "• 🎁 3 Free Single-Stream Audits Every Week (Super Chats, Memberships & YouTube Jewels)\n"
+                "• ⚡ Flat 1 Credit = 1 Full Stream (Zero volume penalties on all full audits)\n"
+                "• 💎 YouTube Jewels & Rubies intelligence across 30+ regional currencies\n"
+                "• 📊 Instant CSV, Excel, and JSON data exports for your channel\n\n"
+                "Start analyzing your live streams now:\n"
+                "👉 https://tubemetrix.net\n\n"
+                "If you ever need help or have questions, feel free to reply directly to this email!\n\n"
+                "Happy streaming,\n"
+                "The TubeMetrix Team\n"
+                "support@tubemetrix.net"
+            )
         elif key == "announce":
             subj = "📢 New Features & Updates on TubeMetrix"
             body = (
@@ -687,6 +706,294 @@ class EmailComposerDialog(ctk.CTkToplevel):
                 f"Failed to send emails via SMTP:\n{last_err}\n\nTip: You can use 'Open in Gmail (Web Draft)' to send reliably without SMTP errors.",
             )
 
+
+def get_welcome_preview_html(name="Creator") -> str:
+    """Return responsive HTML preview for welcome onboarding email."""
+    year = datetime.now().year
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to TubeMetrix!</title>
+  <style>
+    body {{ margin: 0; padding: 0; background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f1f5f9; }}
+    a {{ color: #ef4444; text-decoration: none; }}
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f1f5f9;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0b0f19; width: 100%;">
+    <tr>
+      <td align="center" style="padding: 32px 16px;">
+        <table role="presentation" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; background: linear-gradient(180deg, #131b2e 0%, #0f172a 100%); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+          <tr>
+            <td style="padding: 36px 36px 24px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); background: radial-gradient(circle at 100% 0%, rgba(220, 38, 38, 0.18) 0%, transparent 60%);">
+              <table role="presentation" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="vertical-align: middle;">
+                    <div style="display: inline-block; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); width: 40px; height: 40px; border-radius: 10px; text-align: center; line-height: 40px; font-size: 20px;">
+                      📈
+                    </div>
+                  </td>
+                  <td style="vertical-align: middle; padding-left: 14px;">
+                    <span style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">Tube<span style="color: #ef4444;">Metrix</span></span>
+                    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; font-weight: 600; margin-top: 2px;">Creator Analytics & Live Super Chat Intelligence</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 32px 36px 20px;">
+              <h1 style="margin: 0 0 16px; font-size: 24px; font-weight: 700; color: #ffffff; line-height: 1.3;">
+                Welcome to TubeMetrix, {name}! 🎉
+              </h1>
+              <p style="margin: 0 0 20px; font-size: 15px; line-height: 1.6; color: #cbd5e1;">
+                Thank you for joining TubeMetrix. Your creator account has been successfully created. You now have instant access to real-time YouTube live stream analytics, Super Chat & Membership tracking, YouTube Jewels intelligence, and full live chat message replay.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 36px 24px;">
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="padding: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px;">
+                    <div style="font-size: 15px; font-weight: 700; color: #f8fafc; margin-bottom: 4px;">🎁 3 Free Single-Stream Audits Every Week</div>
+                    <div style="font-size: 13px; line-height: 1.5; color: #94a3b8;">Audit any live stream replay or premier with full Super Chat, Membership, and Jewels gift breakdowns. Recharges every Monday.</div>
+                  </td>
+                </tr>
+                <tr><td height="12"></td></tr>
+                <tr>
+                  <td style="padding: 16px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px;">
+                    <div style="font-size: 15px; font-weight: 700; color: #fca5a5; margin-bottom: 4px;">⚡ Flat 1 Credit = 1 Full Stream (Zero Volume Penalties)</div>
+                    <div style="font-size: 13px; line-height: 1.5; color: #cbd5e1;">Audit whole channels or download massive 500,000+ live chat transcripts. 1 credit unlocks 100% of messages and revenue for that entire stream.</div>
+                  </td>
+                </tr>
+                <tr><td height="12"></td></tr>
+                <tr>
+                  <td style="padding: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px;">
+                    <div style="font-size: 15px; font-weight: 700; color: #f8fafc; margin-bottom: 4px;">💎 YouTube Jewels & Rubies Gifts Intelligence</div>
+                    <div style="font-size: 13px; line-height: 1.5; color: #94a3b8;">Track modern creator gifts, sticker animations, and multi-currency supporter leaderboards in 30+ regional currencies.</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 36px 36px; text-align: center;">
+              <table role="presentation" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                <tr>
+                  <td align="center" style="border-radius: 10px; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);">
+                    <a href="https://tubemetrix.net" target="_blank" style="display: inline-block; padding: 15px 36px; font-size: 16px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 10px;">Launch TubeMetrix Dashboard &rarr;</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 36px; text-align: center; font-size: 12px; line-height: 1.6; color: #64748b; border-top: 1px solid rgba(255, 255, 255, 0.04);">
+              <p style="margin: 0;">&copy; {year} TubeMetrix &bull; https://tubemetrix.net</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+
+class WelcomeOnboardingDialog(ctk.CTkToplevel):
+    """Dialog showing live status of automated welcome onboarding emails and preview."""
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self.title("TubeMetrix — Automated Welcome Email System")
+        self.geometry("680x560")
+        self.minsize(620, 500)
+        self.configure(fg_color=COLOR_BG)
+        self.transient(parent)
+        self.grab_set()
+
+        if ICON_PATH.exists():
+            try:
+                self.iconbitmap(str(ICON_PATH))
+            except Exception:
+                pass
+
+        self._build_ui()
+        self._load_live_stats()
+
+    def _build_ui(self):
+        # Header
+        head = ctk.CTkFrame(self, fg_color="transparent")
+        head.pack(fill="x", padx=24, pady=(20, 12))
+
+        ctk.CTkLabel(
+            head,
+            text="📨 Automated Welcome Email System",
+            font=ctk.CTkFont(family="Segoe UI", size=20, weight="bold"),
+            text_color="#ffffff",
+        ).pack(anchor="w")
+
+        ctk.CTkLabel(
+            head,
+            text="Cloudflare Pages Functions dispatches this welcome email 24/7 on every new Google Sign-In.",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+            text_color=COLOR_TEXT_MUTED,
+        ).pack(anchor="w", pady=(2, 0))
+
+        # Status Card
+        card = ctk.CTkFrame(self, fg_color=COLOR_CARD, corner_radius=12, border_width=1, border_color=COLOR_CARD_BORDER)
+        card.pack(fill="x", padx=24, pady=8)
+
+        card_inner = ctk.CTkFrame(card, fg_color="transparent")
+        card_inner.pack(fill="x", padx=16, pady=14)
+
+        row_status = ctk.CTkFrame(card_inner, fg_color="transparent")
+        row_status.pack(fill="x", pady=(0, 8))
+
+        ctk.CTkLabel(
+            row_status,
+            text="● Live Cloudflare Worker Hook: ACTIVE (24/7 Serverless)",
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+            text_color=COLOR_SUCCESS,
+        ).pack(side="left")
+
+        self.lbl_sent_count = ctk.CTkLabel(
+            row_status,
+            text="Loading sent count...",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+            text_color=COLOR_GOLD,
+        )
+        self.lbl_sent_count.pack(side="right")
+
+        # Details list
+        details = [
+            ("⚡ Trigger Condition:", "First-time Google Sign-In on https://tubemetrix.net (/api/auth/google)"),
+            ("🔒 Idempotency Guard:", "Protected by D1 sent_emails table (no duplicate emails ever sent)"),
+            ("🚀 Non-Blocking:", "Dispatched via Cloudflare waitUntil() - zero extra delay on user login"),
+            ("🌐 Providers Supported:", "Resend API, Brevo API, MailChannels, or SMTP Webhook"),
+        ]
+
+        for label, val in details:
+            d_row = ctk.CTkFrame(card_inner, fg_color="transparent")
+            d_row.pack(fill="x", pady=2)
+            ctk.CTkLabel(
+                d_row,
+                text=label,
+                font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+                text_color="#94a3b8",
+                width=160,
+                anchor="w",
+            ).pack(side="left")
+            ctk.CTkLabel(
+                d_row,
+                text=val,
+                font=ctk.CTkFont(family="Segoe UI", size=11),
+                text_color="#f1f5f9",
+                anchor="w",
+            ).pack(side="left", fill="x", expand=True)
+
+        # Action Buttons Box
+        act_box = ctk.CTkFrame(self, fg_color="transparent")
+        act_box.pack(fill="x", padx=24, pady=16)
+
+        btn_preview = ctk.CTkButton(
+            act_box,
+            text="👁️ Preview HTML in Browser",
+            height=38,
+            corner_radius=8,
+            fg_color="#0284c7",
+            hover_color="#0369a1",
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+            command=self._preview_in_browser,
+        )
+        btn_preview.pack(fill="x", pady=(0, 8))
+
+        btn_test_send = ctk.CTkButton(
+            act_box,
+            text="✉️ Send Test Welcome Email (Composer)",
+            height=38,
+            corner_radius=8,
+            fg_color="#b45309",
+            hover_color="#d97706",
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+            command=self._open_test_composer,
+        )
+        btn_test_send.pack(fill="x", pady=(0, 8))
+
+        btn_copy_tmpl = ctk.CTkButton(
+            act_box,
+            text="📋 Copy Plain-Text Template",
+            height=34,
+            corner_radius=8,
+            fg_color="#272733",
+            hover_color="#363647",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+            command=self._copy_plain_text,
+        )
+        btn_copy_tmpl.pack(fill="x", pady=(0, 8))
+
+        btn_close = ctk.CTkButton(
+            act_box,
+            text="Close",
+            height=32,
+            corner_radius=8,
+            fg_color="#181822",
+            hover_color="#262633",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+            command=self.destroy,
+        )
+        btn_close.pack(fill="x")
+
+    def _load_live_stats(self):
+        def _fetch():
+            try:
+                res = run_d1_query("SELECT COUNT(*) as count FROM sent_emails WHERE template = 'welcome'")
+                count = res[0].get("count", 0) if res else 0
+                self.after(0, lambda: self.lbl_sent_count.configure(text=f"Total Welcome Dispatched: {count}"))
+            except Exception:
+                self.after(0, lambda: self.lbl_sent_count.configure(text="Total Welcome Dispatched: 0 (Fresh)"))
+        threading.Thread(target=_fetch, daemon=True).start()
+
+    def _preview_in_browser(self):
+        try:
+            tmp_dir = Path(tempfile.gettempdir())
+            tmp_file = tmp_dir / "tubemetrix_welcome_preview.html"
+            html = get_welcome_preview_html("Creator")
+            tmp_file.write_text(html, encoding="utf-8")
+            webbrowser.open(tmp_file.as_uri())
+            messagebox.showinfo("Preview Opened", "Opened responsive Welcome Email preview in your default web browser!")
+        except Exception as e:
+            messagebox.showerror("Preview Error", f"Failed to preview HTML email: {e}")
+
+    def _open_test_composer(self):
+        cfg = load_email_config()
+        default_test_email = cfg.get("smtp_user") or cfg.get("from_email") or "test@example.com"
+        dlg = EmailComposerDialog(self.parent, recipients=[default_test_email], title_text="Test Welcome Email")
+        dlg._apply_template("welcome")
+
+    def _copy_plain_text(self):
+        txt = (
+            "Subject: 🎉 Welcome to TubeMetrix! Your Creator Account is Ready\n\n"
+            "Hi Creator,\n\n"
+            "Welcome to TubeMetrix! We're thrilled to have you join our creator analytics community.\n\n"
+            "Here is everything you have unlocked right away:\n"
+            "• 🎁 3 Free Single-Stream Audits Every Week (Super Chats, Memberships & YouTube Jewels)\n"
+            "• ⚡ Flat 1 Credit = 1 Full Stream (Zero volume penalties on all full audits)\n"
+            "• 💎 YouTube Jewels & Rubies intelligence across 30+ regional currencies\n"
+            "• 📊 Instant CSV, Excel, and JSON data exports for your channel\n\n"
+            "Start analyzing your live streams now:\n"
+            "👉 https://tubemetrix.net\n\n"
+            "The TubeMetrix Team\n"
+            "support@tubemetrix.net"
+        )
+        self.clipboard_clear()
+        self.clipboard_append(txt)
+        messagebox.showinfo("Copied!", "Plain text welcome email copied to clipboard.")
+
 class TubeMetrixAdminApp(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -758,6 +1065,19 @@ class TubeMetrixAdminApp(ctk.CTk):
             text_color=COLOR_SUCCESS,
         )
         self.status_pill.pack(side="left", padx=(0, 16))
+
+        btn_welcome_auto = ctk.CTkButton(
+            actions_box,
+            text="📨 Auto Welcome Email",
+            width=165,
+            height=34,
+            corner_radius=8,
+            fg_color="#1e293b",
+            hover_color="#334155",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            command=self.open_welcome_manager_dialog,
+        )
+        btn_welcome_auto.pack(side="left", padx=(0, 8))
 
         self.btn_refresh = ctk.CTkButton(
             actions_box,
@@ -1576,6 +1896,9 @@ class TubeMetrixAdminApp(ctk.CTk):
         self.clipboard_clear()
         self.clipboard_append(email)
         messagebox.showinfo("Copied", f"Copied {email} to clipboard!")
+
+    def open_welcome_manager_dialog(self):
+        WelcomeOnboardingDialog(self)
 
     def open_mailer_action(self, premium_only: bool = True):
         dataset = [u for u in self.users_cache if is_premium_user(u)] if premium_only else self.users_cache

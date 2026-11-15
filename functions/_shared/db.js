@@ -53,6 +53,12 @@ export async function upsertGoogleUser(db, claims) {
   const givenName = claims.given_name || name.split(' ')[0] || 'Creator';
   const picture = claims.picture || null;
 
+  const existing = await db
+    .prepare('SELECT id FROM users WHERE id = ?1 OR LOWER(email) = ?2 LIMIT 1')
+    .bind(id, email)
+    .first();
+  const isNewUser = !existing;
+
   await db
     .prepare(
       `INSERT INTO users (id, email, name, given_name, picture, tier, created_at, updated_at)
@@ -67,7 +73,42 @@ export async function upsertGoogleUser(db, claims) {
     .bind(id, email, name, givenName, picture, nowIso)
     .run();
 
-  return resolveActiveUser(db, id);
+  const user = await resolveActiveUser(db, id);
+  if (user) {
+    user.isNewUser = isNewUser;
+  }
+  return user;
+}
+
+export async function hasEmailBeenSent(db, userId, template = 'welcome') {
+  if (!userId) return false;
+  try {
+    const row = await db
+      .prepare('SELECT id FROM sent_emails WHERE user_id = ?1 AND template = ?2 LIMIT 1')
+      .bind(String(userId), String(template))
+      .first();
+    return Boolean(row);
+  } catch (err) {
+    console.warn('[hasEmailBeenSent error]:', err?.message);
+    return false;
+  }
+}
+
+export async function recordSentEmail(db, { userId, email, template = 'welcome', provider = 'resend', status = 'delivered' }) {
+  if (!userId || !email) return;
+  const id = `sent_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const nowIso = new Date().toISOString();
+  try {
+    await db
+      .prepare(
+        `INSERT INTO sent_emails (id, user_id, email, template, provider, status, created_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`
+      )
+      .bind(id, String(userId), String(email).toLowerCase(), String(template), String(provider), String(status), nowIso)
+      .run();
+  } catch (err) {
+    console.warn('[recordSentEmail error]:', err?.message);
+  }
 }
 
 export async function hasCompletedPurchase(db, userId) {

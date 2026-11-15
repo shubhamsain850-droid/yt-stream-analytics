@@ -12,9 +12,11 @@ import {
   isIndiaFirstPurchaseEligible,
   upsertGoogleUser,
 } from '../../_shared/db.js';
+import { sendWelcomeEmailIfNew } from '../../_shared/email.js';
 import { assertServerConfigured } from '../../_shared/context.js';
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost(context) {
+  const { request, env, waitUntil } = context;
   try {
     assertServerConfigured(env);
 
@@ -36,6 +38,17 @@ export async function onRequestPost({ request, env }) {
 
     const claims = await verifyGoogleIdToken(credential, expectedClientId);
     const user = await upsertGoogleUser(env.DB, claims);
+
+    // If new user signup, dispatch automated welcome onboarding email asynchronously
+    if (user?.isNewUser) {
+      const emailTask = sendWelcomeEmailIfNew(env.DB, env, user).catch((err) => {
+        console.warn('[Welcome Email Async Error]:', err?.message);
+      });
+      if (typeof waitUntil === 'function') {
+        waitUntil(emailTask);
+      }
+    }
+
     const sessionToken = await signSessionToken(
       { uid: user.id, email: user.email },
       env.SESSION_SECRET

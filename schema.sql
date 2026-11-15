@@ -95,3 +95,17 @@ CREATE TABLE IF NOT EXISTS user_backup_chunks (
   data_b64 TEXT NOT NULL,
   PRIMARY KEY (backup_id, kind, chunk_index)
 );
+
+CREATE TABLE IF NOT EXISTS sent_emails (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  email TEXT NOT NULL,
+  template TEXT NOT NULL,
+  provider TEXT,
+  status TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_sent_emails_user ON sent_emails(user_id, template);
+CREATE INDEX IF NOT EXISTS idx_sent_emails_email ON sent_emails(email, template);
+
