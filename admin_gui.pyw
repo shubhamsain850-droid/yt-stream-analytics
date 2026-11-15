@@ -21,6 +21,7 @@ import smtplib
 import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 from datetime import datetime, timezone
 from pathlib import Path
 import tkinter as tk
@@ -125,7 +126,7 @@ def save_email_config(cfg: dict):
 
 
 
-def format_branded_email_html(subject: str, body_text: str) -> str:
+def format_branded_email_html(subject: str, body_text: str, logo_src: str = "https://tubemetrix.net/icon-192.png") -> str:
     """Wraps any text message in a clean, modern dark-themed HTML email with the official TubeMetrix logo."""
     year = datetime.now().year
     
@@ -166,7 +167,7 @@ def format_branded_email_html(subject: str, body_text: str) -> str:
               <table role="presentation" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td style="vertical-align: middle;">
-                    <img src="https://tubemetrix.net/icon-192.png" width="40" height="40" alt="TubeMetrix Logo" style="display: block; border-radius: 10px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);" />
+                    <img src="{logo_src}" width="40" height="40" alt="TubeMetrix Logo" style="display: block; border-radius: 10px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);" />
                   </td>
                   <td style="vertical-align: middle; padding-left: 14px;">
                     <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">Tube<span style="color: #ef4444;">Metrix</span></span>
@@ -745,18 +746,35 @@ class EmailComposerDialog(ctk.CTkToplevel):
 
                 server.login(user, pwd)
 
+                logo_file = ROOT_DIR / "frontend" / "icon-192.png"
+                logo_bytes = logo_file.read_bytes() if logo_file.exists() else None
+
                 for r in self.recipients:
                     try:
-                        msg = MIMEMultipart("alternative")
-                        msg["From"] = f"{from_name} <{from_email}>"
-                        msg["To"] = r
-                        msg["Subject"] = subject
-                        # Plain-text version
-                        msg.attach(MIMEText(body, "plain", "utf-8"))
-                        # Branded HTML version with official TubeMetrix logo
-                        html_version = format_branded_email_html(subject, body)
-                        msg.attach(MIMEText(html_version, "html", "utf-8"))
-                        server.send_message(msg)
+                        msg_root = MIMEMultipart("related")
+                        msg_root["From"] = f"{from_name} <{from_email}>"
+                        msg_root["To"] = r
+                        msg_root["Subject"] = subject
+
+                        msg_alt = MIMEMultipart("alternative")
+                        msg_root.attach(msg_alt)
+
+                        # Plain-text fallback version
+                        msg_alt.attach(MIMEText(body, "plain", "utf-8"))
+
+                        # Branded HTML version with CID embedded logo
+                        logo_src = "cid:tubemetrix_logo" if logo_bytes else "https://tubemetrix.net/icon-192.png"
+                        html_version = format_branded_email_html(subject, body, logo_src=logo_src)
+                        msg_alt.attach(MIMEText(html_version, "html", "utf-8"))
+
+                        # Attach inline CID logo so Gmail NEVER blocks it
+                        if logo_bytes:
+                            img_part = MIMEImage(logo_bytes)
+                            img_part.add_header("Content-ID", "<tubemetrix_logo>")
+                            img_part.add_header("Content-Disposition", "inline", filename="logo.png")
+                            msg_root.attach(img_part)
+
+                        server.send_message(msg_root)
                         sent_count += 1
                     except Exception as e:
                         err_count += 1
