@@ -19,6 +19,25 @@
   let countdownInterval = null;
   let isMaintenanceActive = false;
 
+  // Immediately purge any legacy navbar button or admin bar from memory & DOM
+  function purgeLegacyAdminElements() {
+    try {
+      const ids = ['tmNavMaintenanceBtn', 'tmAdminStickyBar', 'tmMaintenanceModal'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      });
+      document.querySelectorAll('.tm-nav-maintenance-btn, .tm-admin-sticky-bar, .tm-m-modal-backdrop').forEach(el => el.remove());
+      localStorage.removeItem('tm_maintenance_bypass');
+      localStorage.removeItem('tm_admin_pin');
+    } catch {}
+  }
+  purgeLegacyAdminElements();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', purgeLegacyAdminElements);
+  }
+  setInterval(purgeLegacyAdminElements, 500);
+
   // Block any keyboard typing, pasting, or input events while maintenance is active
   function blockBackgroundInput(e) {
     if (e.type === 'keydown' || e.type === 'keypress' || e.type === 'keyup' ||
