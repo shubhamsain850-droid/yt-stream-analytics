@@ -1659,7 +1659,7 @@
           if (paidByCredits && window.TubeMetrixAuth?.settleChatVolumeCredits) {
             const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(rawMessages.length, vid);
             const extraDeducted = Number(settleRes?.deducted || 0);
-            allowedCount = (1 + extraDeducted) * 1000;
+            allowedCount = rawMessages.length; // Flat 1 Credit = Full Chat Replay
           } else {
             allowedCount = 1000;
           }
@@ -1705,7 +1705,7 @@
             if (chunkMsgs.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
               const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(chunkMsgs.length, vid);
               const extraDeducted = Number(settleRes?.deducted || 0);
-              allowedInChunk = (1 + extraDeducted) * 1000;
+              allowedInChunk = chunkMsgs.length; // Flat 1 Credit = Full Chat Replay
             }
           } else if (window.TubeMetrixAuth?.unlockRemainingChatCredits) {
             const needCr = Math.ceil(chunkMsgs.length / 1000);
@@ -2082,7 +2082,7 @@
         const remBalAfterBase = window.TubeMetrixAuth?.getCreditsBalance
           ? window.TubeMetrixAuth.getCreditsBalance()
           : 0;
-        const streamCap = paidByCredits ? Math.min(200000, 1000 + remBalAfterBase * 1000) : 1000;
+        const streamCap = paidByCredits ? 500000 : 1000; // Flat 1 Credit = 1 Full Stream (Unlimited chats)
         const maxStreamPct = Math.min(98, Math.round(((overallIdx + 0.85) / totalPlanned) * 100));
         startChatProgressHeartbeat(pct, maxStreamPct, [
           `[Stream ${overallIdx}/${totalPlanned}] Fetching chat chunks for ${vid}...`,
@@ -2104,7 +2104,7 @@
           if (paidByCredits && rawMsgs.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
             const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(rawMsgs.length, vid);
             const extraDeducted = Number(settleRes?.deducted || 0);
-            allowedForStream = (1 + extraDeducted) * 1000;
+            allowedForStream = rawMsgs.length; // Flat 1 Credit = 1 Full Stream (No volume penalty)
             updateChatLiveCreditBar(true, `Settled Stream ${overallIdx}/${totalPlanned}`);
           }
 
@@ -2318,7 +2318,7 @@
         if (isHighVolume && fetchedComments.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
           const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(fetchedComments.length, vid);
           const extraDeducted = Number(settleRes?.deducted || 0);
-          allowedCount = Math.min(fetchedComments.length, (1 + extraDeducted) * 1000);
+          allowedCount = fetchedComments.length; // Flat 1 Credit = Full Comments Export
         }
 
         unlockedComments = fetchedComments.slice(0, allowedCount);
@@ -2368,7 +2368,7 @@
             if (isHighVolume && chunkItems.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
               const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(chunkItems.length, vid);
               const extraDeducted = Number(settleRes?.deducted || 0);
-              allowedInChunk = Math.min(chunkItems.length, (1 + extraDeducted) * 1000);
+              allowedInChunk = chunkItems.length; // Flat 1 Credit = Full Comments Export
             }
           } else if (window.TubeMetrixAuth?.unlockRemainingChatCredits) {
             const needCr = Math.ceil(chunkItems.length / 1000);

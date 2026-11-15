@@ -39,9 +39,8 @@ export async function onRequestPost({ request, env }) {
         : requested;
       targetCredits = Math.min(2000, Math.max(0, Math.min(requested, maxForRemaining)));
     } else {
-      // 1 base credit (or 1,000-chat free cap) already covers first 1,000 messages
-      const requiredCredits = Math.max(1, Math.ceil(totalMessages / CREDIT_UNIT_MESSAGES));
-      targetCredits = Math.min(2000, Math.max(0, requiredCredits - 1));
+      // Option 1 Flat Pricing: 1 Credit = 1 Full Stream Audit (Unlimited messages, zero extra volume surcharge)
+      targetCredits = 0;
     }
 
     if (targetCredits === 0) {

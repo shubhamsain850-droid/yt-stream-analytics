@@ -28,7 +28,7 @@
             name: 'Starter Pack',
             ribbon: '',
             credits: 200,
-            chatsAllowance: '200,000 chats or comments',
+            chatsAllowance: '200 Full Streams • Unlimited Chats',
             symbol: '$',
             amount: '19.99',
             badge: '',
@@ -42,7 +42,7 @@
             name: 'Starter Mini',
             ribbon: '',
             credits: 10,
-            chatsAllowance: '10,000 chats or comments',
+            chatsAllowance: '10 Full Streams • Unlimited Chats',
             symbol: '$',
             amount: '2.99',
             badge: '',
@@ -58,11 +58,11 @@
             name: 'Starter Mini',
             ribbon: '',
             credits: 10,
-            chatsAllowance: '10,000 chats/comments',
+            chatsAllowance: '10 Full Streams / Videos',
             symbol: '₹',
             amount: '49',
             badge: '',
-            sub: '₹4.90 / 1k chats • India UPI &amp; Cards',
+            sub: '₹4.90 / stream • India UPI &amp; Cards',
             desc: 'Great for occasional streams, comment exports &amp; creator checks.',
             extra1: '✓ Never Expire • Use Any Time',
             extra2: '✓ Single, Custom URL Batch &amp; Date Range',
@@ -72,11 +72,11 @@
             name: 'Starter Volume',
             ribbon: '',
             credits: 200,
-            chatsAllowance: '200,000 chats/comments',
+            chatsAllowance: '200 Full Streams / Videos',
             symbol: '₹',
             amount: '799',
             badge: '🇮🇳 2× VS ₹499',
-            sub: '₹4.00 / 1k chats • Save 20% per 1k',
+            sub: '₹4.00 / stream • 2× vs ₹499 pack',
             desc: 'Double the credits of ₹499 for regular creators &amp; multi-stream audits.',
             extra1: '✓ Never Expire • Use Any Time',
             extra2: '✓ Single, Custom URL Batch &amp; Date Range',
@@ -94,7 +94,7 @@
             name: 'Growth Pack',
             ribbon: 'MOST POPULAR',
             credits: 500,
-            chatsAllowance: '500,000 chats or comments',
+            chatsAllowance: '500 Full Streams • Unlimited Chats',
             symbol: '$',
             amount: '29',
             badge: '',
@@ -108,7 +108,7 @@
             name: 'Creator Mini',
             ribbon: 'POPULAR MINI',
             credits: 30,
-            chatsAllowance: '30,000 chats or comments',
+            chatsAllowance: '30 Full Streams • Unlimited Chats',
             symbol: '$',
             amount: '6.99',
             badge: '',
@@ -124,11 +124,11 @@
             name: 'Creator Mini',
             ribbon: 'MOST POPULAR',
             credits: 30,
-            chatsAllowance: '30,000 chats/comments',
+            chatsAllowance: '30 Full Streams / Videos',
             symbol: '₹',
             amount: '149',
             badge: '',
-            sub: '₹4.97 / 1k chats • India UPI &amp; Cards',
+            sub: '₹4.97 / stream • India UPI &amp; Cards',
             desc: 'Best starter value for regular live streamers, editors &amp; channel audits.',
             extra1: '✓ Custom URL Batch &amp; Full Channel History',
             extra2: '✓ 14-Day Cloud Backups + Never Expires',
@@ -138,11 +138,11 @@
             name: 'Growth Volume',
             ribbon: 'MOST POPULAR',
             credits: 500,
-            chatsAllowance: '500,000 chats/comments',
+            chatsAllowance: '500 Full Streams / Videos',
             symbol: '₹',
             amount: '1,299',
             badge: '🇮🇳 SAVE 48%',
-            sub: '₹2.60 / 1k chats • Massive Creator Savings',
+            sub: '₹2.60 / stream • Massive Creator Savings',
             desc: 'High-volume pack for busy channels, editors &amp; full-month archives.',
             extra1: '✓ Custom URL Batch &amp; Full Channel History',
             extra2: '✓ 14-Day Cloud Backups + Priority Queue',
@@ -160,7 +160,7 @@
             name: 'Agency Pack',
             ribbon: 'BEST VALUE',
             credits: 1000,
-            chatsAllowance: '1,000,000 chats or comments',
+            chatsAllowance: '1,000 Full Streams • Unlimited Chats',
             symbol: '$',
             amount: '49',
             badge: '',
@@ -174,7 +174,7 @@
             name: 'Starter Volume',
             ribbon: '6.6× UPGRADE',
             credits: 200,
-            chatsAllowance: '200,000 chats or comments',
+            chatsAllowance: '200 Full Streams • Unlimited Chats',
             symbol: '$',
             amount: '19.99',
             badge: 'BEST UPGRADE',
@@ -190,11 +190,11 @@
             name: 'Agency Mini',
             ribbon: '100K PACK',
             credits: 100,
-            chatsAllowance: '100,000 chats/comments',
+            chatsAllowance: '100 Full Streams / Videos',
             symbol: '₹',
             amount: '499',
             badge: '',
-            sub: '₹4.99 / 1k chats • India UPI &amp; Cards',
+            sub: '₹4.99 / stream • India UPI &amp; Cards',
             desc: 'Solid 1 Lakh chats/comments pack for growing channels &amp; researchers.',
             extra1: '✓ Parallel Batch Engine &amp; All Exports',
             extra2: '✓ 14-Day Cloud Backups + Priority Queue',
@@ -204,11 +204,11 @@
             name: 'Agency Volume',
             ribbon: 'BEST VALUE',
             credits: 1000,
-            chatsAllowance: '1,000,000 chats/comments',
+            chatsAllowance: '1,000 Full Streams / Videos',
             symbol: '₹',
             amount: '1,799',
             badge: '🇮🇳 ₹1.80 / 1k',
-            sub: '₹1.80 / 1k chats (Save 64%) • Never expires',
+            sub: '₹1.80 / stream (Save 64%) • Never expires',
             desc: 'Massive 10 Lakh (1M) chat/comment volume for agencies &amp; MCNs.',
             extra1: '✓ Bulk Parallel Batch Engine &amp; Exports',
             extra2: '✓ 14-Day Cloud Backups + VIP Queue Speed',
@@ -301,8 +301,8 @@
 
     root.querySelectorAll('[data-tm-price-target="pricing-footnote"]').forEach((node) => {
       node.textContent = isIndia
-        ? '1 Credit = 1,000 chats/comments • India UPI Mini (₹49–₹499) & Bulk Volume (₹799–₹1,799) packs • Credits never expire.'
-        : '1 Credit = 1,000 chats/comments • Global Volume ($19.99–$49) & Mini ($2.99–$6.99) packs • Credits never expire.';
+        ? 'Flat 1 Credit = 1 Full Stream Audit (Unlimited Chats) • India UPI Mini (₹49–₹499) & Bulk Volume (₹799–₹1,799) packs • Credits never expire.'
+        : 'Flat 1 Credit = 1 Full Stream Audit (Unlimited Chats) • Global Volume ($19.99–$49) & Mini ($2.99–$6.99) packs • Credits never expire.';
     });
 
     root.querySelectorAll('[data-tm-price-target="modal-sub-default"]').forEach((node) => {
@@ -1306,18 +1306,8 @@
   }
 
   async function settleChatVolumeCredits(totalMessages, streamId) {
-    if (!currentUser || !totalMessages || totalMessages <= 1000) return null;
-    try {
-      const res = await apiRequest('/api/credits/settle', {
-        method: 'POST',
-        body: JSON.stringify({ totalMessages, streamId }),
-      });
-      if (res.ok && res.data?.user) {
-        applyServerState({ user: res.data.user, quota: res.data.quota });
-        return res.data;
-      }
-    } catch { }
-    return null;
+    // Option 1 Flat Pricing: 1 Credit = 1 Full Stream Audit (No extra volume surcharge)
+    return { ok: true, deducted: 0, requiredExtraCredits: 0 };
   }
 
   async function unlockRemainingChatCredits({
@@ -1344,7 +1334,7 @@
       if (!silent) {
         const neededDisplay = Math.max(1, Math.floor(Number(creditsNeeded) || 1));
         openCreditsModal(
-          `Unlocking remaining chats requires up to ${neededDisplay} credit(s) (1 credit = 1,000 extra chats). Your current balance is 0 CR.`
+          `Unlocking remaining chats requires up to ${neededDisplay} credit(s) (Flat 1 credit per stream). Your current balance is 0 CR.`
         );
       }
       return { ok: false, reason: 'credits_required', deducted: 0, creditsRemaining: bal };
