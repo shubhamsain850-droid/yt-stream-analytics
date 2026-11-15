@@ -14,6 +14,7 @@ import threading
 import uuid
 import webbrowser
 import urllib.parse
+import urllib.request
 import html
 import re
 import tempfile
@@ -22,7 +23,7 @@ import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox
@@ -94,6 +95,104 @@ def NumberSafe(val) -> int:
         return int(val or 0)
     except Exception:
         return 0
+
+
+def api_get_maintenance() -> dict:
+    """Fetches maintenance status from API (fast ~200ms) or falls back to remote D1."""
+    try:
+        req = urllib.request.Request(
+            "https://tubemetrix.net/api/maintenance",
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "application/json",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            if isinstance(data, dict):
+                return data
+    except Exception:
+        pass
+
+    try:
+        rows = run_d1_query("SELECT value, updated_at FROM app_settings WHERE key = 'maintenance_mode';")
+        if rows and rows[0].get("value"):
+            cfg = json.loads(rows[0]["value"])
+            cfg["updatedAt"] = rows[0].get("updated_at")
+            if cfg.get("enabled") and cfg.get("endTime"):
+                try:
+                    end_dt = datetime.fromisoformat(cfg["endTime"].replace("Z", "+00:00"))
+                    now_dt = datetime.now(timezone.utc)
+                    rem = int((end_dt - now_dt).total_seconds())
+                    cfg["remainingSeconds"] = max(0, rem)
+                    if rem <= 0:
+                        cfg["enabled"] = False
+                except Exception:
+                    cfg["remainingSeconds"] = 0
+            return cfg
+    except Exception:
+        pass
+
+    return {
+        "enabled": False,
+        "durationMinutes": 60,
+        "endTime": None,
+        "remainingSeconds": 0,
+        "reason": "We are performing scheduled maintenance and rolling out new features. We will be back online shortly!",
+    }
+
+
+def api_update_maintenance(enabled: bool, duration_minutes: int, reason: str, custom_end_time: str = None) -> dict:
+    """Updates maintenance status via API with fallback to direct D1 SQL."""
+    dur = max(1, int(duration_minutes or 60))
+    payload = {
+        "enabled": bool(enabled),
+        "durationMinutes": dur,
+        "customEndTime": custom_end_time,
+        "reason": reason.strip(),
+        "adminPin": "tubemetrix2026",
+    }
+
+    try:
+        req = urllib.request.Request(
+            "https://tubemetrix.net/api/maintenance",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            if data.get("success") and "config" in data:
+                return data["config"]
+    except Exception as exc:
+        print(f"API update failed, trying direct D1: {exc}")
+
+    now_utc = datetime.now(timezone.utc)
+    end_iso = None
+    if enabled:
+        if custom_end_time:
+            end_iso = custom_end_time
+        else:
+            end_iso = (now_utc + timedelta(minutes=dur)).isoformat()
+
+    cfg = {
+        "enabled": bool(enabled),
+        "durationMinutes": dur,
+        "endTime": end_iso,
+        "reason": reason.strip(),
+        "updatedBy": "desktop_admin_gui",
+        "updatedAt": now_utc.isoformat(),
+    }
+    sql = (
+        f"INSERT OR REPLACE INTO app_settings (key, value, updated_at) "
+        f"VALUES ('maintenance_mode', '{json.dumps(cfg).replace(chr(39), chr(39)+chr(39))}', datetime('now'));"
+    )
+    run_d1_query(sql)
+    return cfg
 
 
 
@@ -1092,13 +1191,452 @@ class WelcomeOnboardingDialog(ctk.CTkToplevel):
         self.clipboard_append(txt)
         messagebox.showinfo("Copied!", "Plain text welcome email copied to clipboard.")
 
+
+class MaintenanceControlDialog(ctk.CTkToplevel):
+    """Dialog for configuring and scheduling Website Maintenance Mode on tubemetrix.net."""
+
+    def __init__(self, parent, initial_config: dict | None = None, on_saved=None):
+        super().__init__(parent)
+        self.parent = parent
+        self.on_saved = on_saved
+        self.title("TubeMetrix — Website Maintenance Mode Manager")
+        self.geometry("680x640")
+        self.minsize(620, 580)
+        self.configure(fg_color=COLOR_BG)
+        self.transient(parent)
+        self.grab_set()
+
+        if ICON_PATH.exists():
+            try:
+                self.iconbitmap(str(ICON_PATH))
+            except Exception:
+                pass
+
+        self.config_data = initial_config or {
+            "enabled": False,
+            "durationMinutes": 60,
+            "endTime": None,
+            "reason": "We are performing scheduled maintenance and rolling out new features. We will be back online shortly!",
+        }
+        self.selected_duration = self.config_data.get("durationMinutes", 60)
+        self.is_saving = False
+
+        self._build_ui()
+        self._sync_from_config(self.config_data)
+        self._tick_timer()
+
+    def _build_ui(self):
+        # Header
+        head = ctk.CTkFrame(self, fg_color="transparent")
+        head.pack(fill="x", padx=24, pady=(20, 10))
+
+        ctk.CTkLabel(
+            head,
+            text="🛠️ Website Maintenance Mode Control",
+            font=ctk.CTkFont(family="Segoe UI", size=20, weight="bold"),
+            text_color="#ffffff",
+        ).pack(anchor="w")
+
+        ctk.CTkLabel(
+            head,
+            text="Control public visitor access to tubemetrix.net with live countdown timers and custom announcements.",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+            text_color=COLOR_TEXT_MUTED,
+        ).pack(anchor="w", pady=(2, 0))
+
+        # Real-time Status Card
+        self.status_card = ctk.CTkFrame(self, fg_color=COLOR_CARD, corner_radius=10, border_width=1, border_color=COLOR_CARD_BORDER)
+        self.status_card.pack(fill="x", padx=24, pady=(0, 12))
+
+        stat_inner = ctk.CTkFrame(self.status_card, fg_color="transparent")
+        stat_inner.pack(fill="x", padx=16, pady=12)
+
+        stat_top = ctk.CTkFrame(stat_inner, fg_color="transparent")
+        stat_top.pack(fill="x")
+
+        self.lbl_status_badge = ctk.CTkLabel(
+            stat_top,
+            text="● LIVE (NORMAL ACCESS)",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            text_color="#34d399",
+            fg_color="#064e3b",
+            corner_radius=4,
+            padx=10,
+            pady=3,
+        )
+        self.lbl_status_badge.pack(side="left")
+
+        self.lbl_countdown_timer = ctk.CTkLabel(
+            stat_top,
+            text="",
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+            text_color="#f59e0b",
+        )
+        self.lbl_countdown_timer.pack(side="right")
+
+        self.lbl_status_details = ctk.CTkLabel(
+            stat_inner,
+            text="Website is accessible to all public visitors on tubemetrix.net.",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+            text_color=COLOR_TEXT_MUTED,
+        )
+        self.lbl_status_details.pack(anchor="w", pady=(6, 0))
+
+        # Configuration Card
+        cfg_card = ctk.CTkFrame(self, fg_color=COLOR_CARD, corner_radius=10, border_width=1, border_color=COLOR_CARD_BORDER)
+        cfg_card.pack(fill="both", expand=True, padx=24, pady=(0, 14))
+
+        cfg_inner = ctk.CTkFrame(cfg_card, fg_color="transparent")
+        cfg_inner.pack(fill="both", expand=True, padx=16, pady=14)
+
+        # Toggle Switch Row
+        switch_row = ctk.CTkFrame(cfg_inner, fg_color="transparent")
+        switch_row.pack(fill="x", pady=(0, 14))
+
+        self.switch_var = ctk.BooleanVar(value=bool(self.config_data.get("enabled", False)))
+        self.switch_maint = ctk.CTkSwitch(
+            switch_row,
+            text="Enable Maintenance Mode (Lock Website for Visitors)",
+            variable=self.switch_var,
+            onvalue=True,
+            offvalue=False,
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+            progress_color="#d97706",
+            command=self._on_switch_toggle,
+        )
+        self.switch_maint.pack(side="left")
+
+        # Duration Section
+        dur_lbl = ctk.CTkLabel(
+            cfg_inner,
+            text="Set Maintenance Duration:",
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+            text_color="#ffffff",
+        )
+        dur_lbl.pack(anchor="w", pady=(0, 6))
+
+        presets_frame = ctk.CTkFrame(cfg_inner, fg_color="transparent")
+        presets_frame.pack(fill="x", pady=(0, 8))
+
+        presets = [("15m", 15), ("30m", 30), ("1 Hour", 60), ("2 Hours", 120), ("4 Hours", 240), ("8 Hours", 480), ("24 Hours", 1440)]
+        self.preset_buttons = []
+        for label, mins in presets:
+            btn = ctk.CTkButton(
+                presets_frame,
+                text=label,
+                width=65,
+                height=30,
+                corner_radius=6,
+                fg_color="#262633",
+                hover_color="#36364a",
+                font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+                command=lambda m=mins: self._set_duration_minutes(m),
+            )
+            btn.pack(side="left", padx=2)
+            self.preset_buttons.append((btn, mins))
+
+        custom_row = ctk.CTkFrame(cfg_inner, fg_color="transparent")
+        custom_row.pack(fill="x", pady=(0, 10))
+
+        ctk.CTkLabel(
+            custom_row,
+            text="Or enter custom duration:",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+            text_color=COLOR_TEXT_MUTED,
+        ).pack(side="left", padx=(0, 8))
+
+        self.entry_custom_mins = ctk.CTkEntry(
+            custom_row,
+            width=90,
+            height=30,
+            corner_radius=6,
+            fg_color="#121217",
+            border_color=COLOR_CARD_BORDER,
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+        )
+        self.entry_custom_mins.insert(0, str(self.selected_duration))
+        self.entry_custom_mins.pack(side="left", padx=(0, 6))
+        self.entry_custom_mins.bind("<KeyRelease>", lambda e: self._on_custom_minutes_change())
+
+        ctk.CTkLabel(
+            custom_row,
+            text="minutes",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+            text_color=COLOR_TEXT_MUTED,
+        ).pack(side="left")
+
+        # Live calculated return time label
+        self.lbl_scheduled_time = ctk.CTkLabel(
+            cfg_inner,
+            text="Scheduled return: --",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            text_color="#38bdf8",
+        )
+        self.lbl_scheduled_time.pack(anchor="w", pady=(0, 12))
+
+        # Custom Announcement Box
+        ctk.CTkLabel(
+            cfg_inner,
+            text="Public Visitor Notice / Announcement Message:",
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+            text_color="#ffffff",
+        ).pack(anchor="w", pady=(0, 6))
+
+        self.txt_reason = ctk.CTkTextbox(
+            cfg_inner,
+            height=70,
+            corner_radius=8,
+            fg_color="#121217",
+            border_color=COLOR_CARD_BORDER,
+            border_width=1,
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+        )
+        self.txt_reason.pack(fill="x", pady=(0, 10))
+        self.txt_reason.insert(
+            "1.0",
+            self.config_data.get(
+                "reason",
+                "We are performing scheduled maintenance and rolling out new features. We will be back online shortly!",
+            ),
+        )
+
+        # Footer Actions
+        foot = ctk.CTkFrame(self, fg_color="transparent")
+        foot.pack(fill="x", padx=24, pady=(0, 20))
+
+        self.btn_save_apply = ctk.CTkButton(
+            foot,
+            text="💾 Save & Apply to Live Website (tubemetrix.net)",
+            height=38,
+            corner_radius=8,
+            fg_color="#b45309",
+            hover_color="#d97706",
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+            command=self._save_and_apply_action,
+        )
+        self.btn_save_apply.pack(side="left", fill="x", expand=True, padx=(0, 8))
+
+        btn_verify = ctk.CTkButton(
+            foot,
+            text="🌐 Verify in Browser",
+            width=140,
+            height=38,
+            corner_radius=8,
+            fg_color="#1e293b",
+            hover_color="#334155",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+            command=lambda: webbrowser.open("https://tubemetrix.net"),
+        )
+        btn_verify.pack(side="left", padx=(0, 8))
+
+        btn_close = ctk.CTkButton(
+            foot,
+            text="Close",
+            width=90,
+            height=38,
+            corner_radius=8,
+            fg_color="#181822",
+            hover_color="#262633",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+            command=self.destroy,
+        )
+        btn_close.pack(side="left")
+
+    def _sync_from_config(self, cfg: dict):
+        self.config_data = cfg
+        enabled = bool(cfg.get("enabled", False))
+        self.switch_var.set(enabled)
+        dur = cfg.get("durationMinutes", 60)
+        self._set_duration_minutes(dur)
+        reason = cfg.get("reason")
+        if reason:
+            self.txt_reason.delete("1.0", "end")
+            self.txt_reason.insert("1.0", reason)
+        self._on_switch_toggle()
+
+    def _set_duration_minutes(self, mins: int):
+        self.selected_duration = max(1, int(mins))
+        self.entry_custom_mins.delete(0, "end")
+        self.entry_custom_mins.insert(0, str(self.selected_duration))
+
+        for btn, b_mins in self.preset_buttons:
+            if b_mins == self.selected_duration:
+                btn.configure(fg_color="#b45309", hover_color="#d97706")
+            else:
+                btn.configure(fg_color="#262633", hover_color="#36364a")
+
+        self._update_scheduled_time_preview()
+
+    def _on_custom_minutes_change(self):
+        try:
+            val = int(self.entry_custom_mins.get().strip() or "60")
+            self.selected_duration = max(1, val)
+        except Exception:
+            self.selected_duration = 60
+
+        for btn, b_mins in self.preset_buttons:
+            if b_mins == self.selected_duration:
+                btn.configure(fg_color="#b45309", hover_color="#d97706")
+            else:
+                btn.configure(fg_color="#262633", hover_color="#36364a")
+
+        self._update_scheduled_time_preview()
+
+    def _update_scheduled_time_preview(self):
+        if self.config_data.get("enabled") and self.config_data.get("endTime"):
+            try:
+                end_dt = datetime.fromisoformat(self.config_data["endTime"].replace("Z", "+00:00")).astimezone()
+                self.lbl_scheduled_time.configure(
+                    text=f"Active Schedule ends: {end_dt.strftime('%d %b %Y, %I:%M:%S %p')} (local)",
+                    text_color="#f59e0b",
+                )
+                return
+            except Exception:
+                pass
+
+        future_local = datetime.now() + timedelta(minutes=self.selected_duration)
+        self.lbl_scheduled_time.configure(
+            text=f"Estimated End Time: {future_local.strftime('%d %b %Y, %I:%M:%S %p')} (in {self.selected_duration} min)",
+            text_color="#38bdf8",
+        )
+
+    def _on_switch_toggle(self):
+        is_on = self.switch_var.get()
+        if is_on:
+            self.btn_save_apply.configure(
+                text="🔒 Lock Site & Apply Maintenance",
+                fg_color="#b45309",
+                hover_color="#d97706",
+            )
+        else:
+            self.btn_save_apply.configure(
+                text="🟢 Disable Maintenance & Go Live",
+                fg_color="#10b981",
+                hover_color="#059669",
+            )
+
+    def _tick_timer(self):
+        try:
+            if not self.winfo_exists():
+                return
+        except Exception:
+            return
+
+        enabled = bool(self.config_data.get("enabled", False))
+        end_time_str = self.config_data.get("endTime")
+
+        if enabled and end_time_str:
+            try:
+                end_dt = datetime.fromisoformat(end_time_str.replace("Z", "+00:00"))
+                now_utc = datetime.now(timezone.utc)
+                diff = int((end_dt - now_utc).total_seconds())
+                if diff > 0:
+                    hrs = diff // 3600
+                    mins = (diff % 3600) // 60
+                    secs = diff % 60
+                    time_str = f"{hrs:02d}:{mins:02d}:{secs:02d}" if hrs > 0 else f"{mins:02d}:{secs:02d}"
+                    self.lbl_countdown_timer.configure(text=f"⏳ {time_str} remaining")
+                    self.lbl_status_badge.configure(
+                        text="⚠️ MAINTENANCE ACTIVE",
+                        text_color="#fef08a",
+                        fg_color="#713f12",
+                    )
+                    self.lbl_status_details.configure(
+                        text=f"Site is locked for visitors. Ticking live countdown is displayed until {end_dt.astimezone().strftime('%I:%M %p')}.",
+                    )
+                    self.status_card.configure(
+                        fg_color="#24180d",
+                        border_color="#b45309",
+                    )
+                else:
+                    self.lbl_countdown_timer.configure(text="⏳ Time Elapsed")
+                    self.lbl_status_badge.configure(
+                        text="● AUTO-EXPIRED",
+                        text_color="#f59e0b",
+                        fg_color="#374151",
+                    )
+                    self.lbl_status_details.configure(
+                        text="Maintenance duration reached. Visitors will regain normal access.",
+                    )
+                    self.status_card.configure(
+                        fg_color=COLOR_CARD,
+                        border_color=COLOR_CARD_BORDER,
+                    )
+            except Exception:
+                self.lbl_countdown_timer.configure(text="")
+        else:
+            self.lbl_countdown_timer.configure(text="")
+            self.lbl_status_badge.configure(
+                text="● LIVE (NORMAL ACCESS)",
+                text_color="#34d399",
+                fg_color="#064e3b",
+            )
+            self.lbl_status_details.configure(
+                text="Website is accessible to all public visitors on tubemetrix.net.",
+            )
+            self.status_card.configure(
+                fg_color=COLOR_CARD,
+                border_color=COLOR_CARD_BORDER,
+            )
+
+        self.after(1000, self._tick_timer)
+
+    def _save_and_apply_action(self):
+        if self.is_saving:
+            return
+        self.is_saving = True
+        self.btn_save_apply.configure(state="disabled", text="Pushing to Cloudflare Live...")
+
+        enabled = self.switch_var.get()
+        try:
+            dur = max(1, int(self.entry_custom_mins.get().strip() or "60"))
+        except Exception:
+            dur = 60
+
+        reason_text = self.txt_reason.get("1.0", "end").strip()
+        if not reason_text:
+            reason_text = "We are performing scheduled maintenance and rolling out new features. We will be back online shortly!"
+
+        def worker():
+            try:
+                new_cfg = api_update_maintenance(
+                    enabled=enabled,
+                    duration_minutes=dur,
+                    reason=reason_text,
+                )
+                self.after(0, lambda: self._on_save_finished(new_cfg, None))
+            except Exception as e:
+                self.after(0, lambda: self._on_save_finished(None, str(e)))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _on_save_finished(self, new_cfg: dict | None, err: str | None):
+        self.is_saving = False
+        self.btn_save_apply.configure(state="normal", text="💾 Save & Apply to Live Website (tubemetrix.net)")
+
+        if err:
+            messagebox.showerror("Update Error", f"Failed to update maintenance mode:\n{err}")
+            return
+
+        self.config_data = new_cfg or {}
+        if self.on_saved and callable(self.on_saved):
+            self.on_saved(self.config_data)
+
+        state_str = "ENABLED (Site Locked with Countdown)" if self.config_data.get("enabled") else "DISABLED (Site is LIVE)"
+        messagebox.showinfo(
+            "Maintenance Mode Updated!",
+            f"Successfully updated Maintenance Mode to: {state_str}\n\nChanges are immediately active on https://tubemetrix.net!",
+        )
+        self.destroy()
+
+
 class TubeMetrixAdminApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         self.title("TubeMetrix — Owner & Admin Dashboard")
-        self.geometry("1140x740")
-        self.minsize(1020, 660)
+        self.geometry("1180x820")
+        self.minsize(1040, 700)
         self.configure(fg_color=COLOR_BG)
 
         if ICON_PATH.exists():
@@ -1111,14 +1649,22 @@ class TubeMetrixAdminApp(ctk.CTk):
         self.selected_user: dict | None = None
         self.is_busy = False
         self.active_tab = "all"  # 'all', 'premium', 'free'
+        self.maint_config: dict = {
+            "enabled": False,
+            "durationMinutes": 60,
+            "endTime": None,
+            "reason": "We are performing scheduled maintenance and rolling out new features. We will be back online shortly!",
+        }
 
         self._build_header()
         self._build_stats_row()
+        self._build_maintenance_section()
         self._build_main_workspace()
         self._build_footer()
 
         # Initial load in background thread
         self.refresh_data()
+        self.after(1000, self._tick_maintenance_timer)
 
     def _build_header(self):
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -1164,6 +1710,19 @@ class TubeMetrixAdminApp(ctk.CTk):
         )
         self.status_pill.pack(side="left", padx=(0, 16))
 
+        self.btn_header_maint = ctk.CTkButton(
+            actions_box,
+            text="🛠️ Maintenance: OFF",
+            width=165,
+            height=34,
+            corner_radius=8,
+            fg_color="#1e293b",
+            hover_color="#334155",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            command=self.open_maintenance_dialog,
+        )
+        self.btn_header_maint.pack(side="left", padx=(0, 8))
+
         btn_welcome_auto = ctk.CTkButton(
             actions_box,
             text="📨 Auto Welcome Email",
@@ -1192,7 +1751,7 @@ class TubeMetrixAdminApp(ctk.CTk):
 
     def _build_stats_row(self):
         self.stats_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.stats_frame.pack(fill="x", padx=24, pady=(0, 12))
+        self.stats_frame.pack(fill="x", padx=24, pady=(0, 10))
 
         self.card_total_users = self._create_stat_card("👥 Total Registered Users", "--", COLOR_CARD)
         self.card_paying_users = self._create_stat_card("💎 Premium / Paid Users", "--", "#221d15", border_col="#713f12")
@@ -1225,6 +1784,119 @@ class TubeMetrixAdminApp(ctk.CTk):
         )
         lbl_v.pack(anchor="w", padx=14, pady=(0, 10))
         return lbl_v
+
+    def _build_maintenance_section(self):
+        """Dedicated prominent maintenance mode control bar on the main dashboard."""
+        self.maint_frame = ctk.CTkFrame(
+            self,
+            fg_color="#14141c",
+            border_width=1,
+            border_color=COLOR_CARD_BORDER,
+            corner_radius=10,
+        )
+        self.maint_frame.pack(fill="x", padx=24, pady=(0, 10))
+
+        inner = ctk.CTkFrame(self.maint_frame, fg_color="transparent")
+        inner.pack(fill="x", padx=16, pady=10)
+
+        # Left Column: Status info
+        left_box = ctk.CTkFrame(inner, fg_color="transparent")
+        left_box.pack(side="left")
+
+        top_left = ctk.CTkFrame(left_box, fg_color="transparent")
+        top_left.pack(anchor="w")
+
+        title_lbl = ctk.CTkLabel(
+            top_left,
+            text="🛠️ Site Maintenance:",
+            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
+            text_color="#ffffff",
+        )
+        title_lbl.pack(side="left")
+
+        self.maint_badge = ctk.CTkLabel(
+            top_left,
+            text="● LIVE (NORMAL ACCESS)",
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            text_color="#34d399",
+            fg_color="#064e3b",
+            corner_radius=4,
+            padx=8,
+            pady=2,
+        )
+        self.maint_badge.pack(side="left", padx=(8, 0))
+
+        self.maint_subtext = ctk.CTkLabel(
+            left_box,
+            text="tubemetrix.net is accessible to all public visitors.",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+            text_color=COLOR_TEXT_MUTED,
+        )
+        self.maint_subtext.pack(anchor="w", pady=(3, 0))
+
+        # Middle Column: Duration quick selector
+        mid_box = ctk.CTkFrame(inner, fg_color="transparent")
+        mid_box.pack(side="left", padx=(28, 0))
+
+        dur_lbl = ctk.CTkLabel(
+            mid_box,
+            text="Duration:",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            text_color=COLOR_TEXT_MUTED,
+        )
+        dur_lbl.pack(side="left", padx=(0, 6))
+
+        self.opt_maint_duration = ctk.CTkOptionMenu(
+            mid_box,
+            values=[
+                "15 Minutes",
+                "30 Minutes",
+                "1 Hour (60m)",
+                "2 Hours (120m)",
+                "4 Hours (240m)",
+                "8 Hours (480m)",
+                "24 Hours",
+            ],
+            width=135,
+            height=32,
+            corner_radius=6,
+            fg_color="#22222d",
+            button_color="#2b2b3a",
+            button_hover_color="#3a3a4d",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+        )
+        self.opt_maint_duration.set("1 Hour (60m)")
+        self.opt_maint_duration.pack(side="left")
+
+        # Right Column: Action Buttons
+        right_box = ctk.CTkFrame(inner, fg_color="transparent")
+        right_box.pack(side="right")
+
+        self.btn_maint_toggle = ctk.CTkButton(
+            right_box,
+            text="🔒 Turn ON Maintenance",
+            width=175,
+            height=34,
+            corner_radius=8,
+            fg_color="#b45309",
+            hover_color="#d97706",
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+            command=self.toggle_maintenance_action,
+        )
+        self.btn_maint_toggle.pack(side="left", padx=(0, 8))
+
+        btn_maint_config = ctk.CTkButton(
+            right_box,
+            text="⚙️ Settings & Notice",
+            width=140,
+            height=34,
+            corner_radius=8,
+            fg_color="#1e293b",
+            hover_color="#334155",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            command=self.open_maintenance_dialog,
+        )
+        btn_maint_config.pack(side="left")
 
     def _build_main_workspace(self):
         work_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -1519,6 +2191,18 @@ class TubeMetrixAdminApp(ctk.CTk):
         )
         btn_copy_prem.pack(side="left")
 
+        btn_footer_maint = ctk.CTkButton(
+            footer,
+            text="🛠️ Maintenance Mode",
+            height=34,
+            corner_radius=8,
+            fg_color="#1e293b",
+            hover_color="#334155",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            command=self.open_maintenance_dialog,
+        )
+        btn_footer_maint.pack(side="left", padx=(8, 0))
+
         # Right: Quick Web Links
         btn_web = ctk.CTkButton(
             footer,
@@ -1568,6 +2252,7 @@ class TubeMetrixAdminApp(ctk.CTk):
         self.btn_refresh.configure(state="disabled", text="Refreshing...")
         self.status_pill.configure(text="● Querying D1...", text_color="#f59e0b")
 
+        self.refresh_maintenance_status()
         threading.Thread(target=self._fetch_users_thread, daemon=True).start()
 
     def _fetch_users_thread(self):
@@ -2025,6 +2710,195 @@ class TubeMetrixAdminApp(ctk.CTk):
         messagebox.showinfo(
             "Copied!",
             f"Successfully copied {len(recipients)} {kind_label} email address(es) to clipboard! You can paste them into Gmail or any newsletter tool.",
+        )
+
+    def refresh_maintenance_status(self):
+        def _fetch():
+            try:
+                cfg = api_get_maintenance()
+                self.after(0, lambda: self._update_maintenance_ui(cfg))
+            except Exception:
+                pass
+        threading.Thread(target=_fetch, daemon=True).start()
+
+    def _update_maintenance_ui(self, cfg: dict):
+        self.maint_config = cfg or {}
+        enabled = bool(self.maint_config.get("enabled", False))
+        end_time_str = self.maint_config.get("endTime")
+
+        if enabled and end_time_str:
+            try:
+                end_dt = datetime.fromisoformat(end_time_str.replace("Z", "+00:00"))
+                now_utc = datetime.now(timezone.utc)
+                diff = int((end_dt - now_utc).total_seconds())
+                if diff > 0:
+                    hrs = diff // 3600
+                    mins = (diff % 3600) // 60
+                    secs = diff % 60
+                    time_str = f"{hrs:02d}:{mins:02d}:{secs:02d}" if hrs > 0 else f"{mins:02d}:{secs:02d}"
+                    self.maint_badge.configure(
+                        text="⚠️ MAINTENANCE ACTIVE",
+                        text_color="#fef08a",
+                        fg_color="#713f12",
+                    )
+                    self.maint_subtext.configure(
+                        text=f"⏳ Ends in: {time_str} • Scheduled finish: {end_dt.astimezone().strftime('%I:%M %p')}",
+                        text_color="#fbbf24",
+                    )
+                    self.btn_maint_toggle.configure(
+                        text="🟢 Disable & Go Live",
+                        fg_color="#10b981",
+                        hover_color="#059669",
+                    )
+                    self.btn_header_maint.configure(
+                        text=f"🛠️ Maint: ACTIVE ({mins}m)",
+                        fg_color="#713f12",
+                        hover_color="#854d0e",
+                    )
+                    self.maint_frame.configure(
+                        fg_color="#24180d",
+                        border_color="#b45309",
+                    )
+                    return
+            except Exception:
+                pass
+
+        # Inactive / Live
+        self.maint_badge.configure(
+            text="● LIVE (NORMAL ACCESS)",
+            text_color="#34d399",
+            fg_color="#064e3b",
+        )
+        self.maint_subtext.configure(
+            text="tubemetrix.net is accessible to all public visitors.",
+            text_color=COLOR_TEXT_MUTED,
+        )
+        self.btn_maint_toggle.configure(
+            text="🔒 Turn ON Maintenance",
+            fg_color="#b45309",
+            hover_color="#d97706",
+        )
+        self.btn_header_maint.configure(
+            text="🛠️ Maintenance: OFF",
+            fg_color="#1e293b",
+            hover_color="#334155",
+        )
+        self.maint_frame.configure(
+            fg_color="#14141c",
+            border_color=COLOR_CARD_BORDER,
+        )
+
+    def _tick_maintenance_timer(self):
+        try:
+            if hasattr(self, "maint_config") and self.maint_config.get("enabled"):
+                end_time_str = self.maint_config.get("endTime")
+                if end_time_str:
+                    end_dt = datetime.fromisoformat(end_time_str.replace("Z", "+00:00"))
+                    now_utc = datetime.now(timezone.utc)
+                    diff = int((end_dt - now_utc).total_seconds())
+                    if diff > 0:
+                        hrs = diff // 3600
+                        mins = (diff % 3600) // 60
+                        secs = diff % 60
+                        time_str = f"{hrs:02d}:{mins:02d}:{secs:02d}" if hrs > 0 else f"{mins:02d}:{secs:02d}"
+                        self.maint_subtext.configure(
+                            text=f"⏳ Ends in: {time_str} • Scheduled finish: {end_dt.astimezone().strftime('%I:%M %p')}",
+                            text_color="#fbbf24",
+                        )
+                        self.btn_header_maint.configure(
+                            text=f"🛠️ Maint: ACTIVE ({mins}m)",
+                        )
+                    else:
+                        # Auto-expired
+                        self.refresh_maintenance_status()
+        except Exception:
+            pass
+
+        self.after(1000, self._tick_maintenance_timer)
+
+    def toggle_maintenance_action(self):
+        is_active = bool(self.maint_config.get("enabled", False))
+
+        if is_active:
+            confirm = messagebox.askyesno(
+                "Disable Maintenance Mode?",
+                "Are you sure you want to turn OFF Maintenance Mode?\n\ntubemetrix.net will immediately be accessible to all public visitors.",
+            )
+            if not confirm:
+                return
+
+            self.btn_maint_toggle.configure(state="disabled", text="Turning Off...")
+
+            def worker_off():
+                try:
+                    cfg = api_update_maintenance(
+                        enabled=False,
+                        duration_minutes=60,
+                        reason="Normal operation",
+                    )
+                    self.after(0, lambda: self._on_maintenance_updated(cfg, None))
+                except Exception as exc:
+                    self.after(0, lambda: self._on_maintenance_updated(None, str(exc)))
+
+            threading.Thread(target=worker_off, daemon=True).start()
+
+        else:
+            val_str = self.opt_maint_duration.get()
+            dur_mins = 60
+            if "15" in val_str:
+                dur_mins = 15
+            elif "30" in val_str:
+                dur_mins = 30
+            elif "2 Hours" in val_str:
+                dur_mins = 120
+            elif "4 Hours" in val_str:
+                dur_mins = 240
+            elif "8 Hours" in val_str:
+                dur_mins = 480
+            elif "24 Hours" in val_str:
+                dur_mins = 1440
+
+            confirm = messagebox.askyesno(
+                "Activate Maintenance Mode?",
+                f"Are you sure you want to turn ON Maintenance Mode for {val_str} ({dur_mins} mins)?\n\n"
+                f"Visitors to tubemetrix.net will see a full-screen maintenance lockdown with a live countdown timer.",
+            )
+            if not confirm:
+                return
+
+            self.btn_maint_toggle.configure(state="disabled", text="Activating...")
+
+            def worker_on():
+                try:
+                    cfg = api_update_maintenance(
+                        enabled=True,
+                        duration_minutes=dur_mins,
+                        reason=self.maint_config.get(
+                            "reason",
+                            "We are performing scheduled maintenance and rolling out new features. We will be back online shortly!",
+                        ),
+                    )
+                    self.after(0, lambda: self._on_maintenance_updated(cfg, None))
+                except Exception as exc:
+                    self.after(0, lambda: self._on_maintenance_updated(None, str(exc)))
+
+            threading.Thread(target=worker_on, daemon=True).start()
+
+    def _on_maintenance_updated(self, cfg: dict | None, err: str | None):
+        self.btn_maint_toggle.configure(state="normal")
+        if err:
+            messagebox.showerror("Error", f"Failed to update maintenance state:\n{err}")
+            return
+        self.maint_config = cfg or {}
+        self._update_maintenance_ui(self.maint_config)
+        state_txt = "ACTIVATED (Site Locked)" if self.maint_config.get("enabled") else "DEACTIVATED (Site Live)"
+        messagebox.showinfo("Maintenance Mode Updated", f"Maintenance Mode is now {state_txt} on tubemetrix.net!")
+
+    def open_maintenance_dialog(self):
+        MaintenanceControlDialog(
+            self,
+            initial_config=self.maint_config,
+            on_saved=self._update_maintenance_ui,
         )
 
 def main():
