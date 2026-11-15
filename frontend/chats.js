@@ -8076,6 +8076,183 @@
 
   // ─────────────────────────────────────────────
 
+
+  // ──────────────────────────────────────────
+  // CHAT STREAM AUDIT BREAKDOWN ENGINE (Interactive Category Inspector)
+  // ──────────────────────────────────────────
+  let chatStreamAuditList = [];
+  let currentChatAuditFilter = 'all';
+  let isChatAuditTableExpanded = true;
+
+  function initChatStreamAuditSystem(streamObjects, totalCount) {
+    chatStreamAuditList = [];
+    currentChatAuditFilter = 'all';
+    isChatAuditTableExpanded = true;
+    const auditBox = document.getElementById('chatStreamAuditBox');
+    if (auditBox) auditBox.style.display = totalCount > 1 ? 'block' : 'none';
+
+    if (Array.isArray(streamObjects) && streamObjects.length > 0) {
+      chatStreamAuditList = streamObjects.map((s, idx) => ({
+        idx: idx + 1,
+        vid: s.id || extractVideoId(s.url || '') || `stream_${idx+1}`,
+        url: s.url || `https://www.youtube.com/watch?v=${s.id}`,
+        title: s.title || `Live Stream [${s.id || idx + 1}]`,
+        date: s.date || '',
+        status: s.is_members_only ? 'members_only' : (s.is_private ? 'private' : 'pending'),
+        reason: s.is_members_only ? 'Channel Membership Required' : (s.is_private ? 'Private Stream' : 'Waiting in extraction queue...'),
+        info: ''
+      }));
+    }
+    renderChatStreamAuditTable();
+  }
+
+  function recordChatStreamAuditItem(item) {
+    const existingIdx = chatStreamAuditList.findIndex(x => x.vid === item.vid || x.url === item.url);
+    if (existingIdx !== -1) {
+      chatStreamAuditList[existingIdx] = { ...chatStreamAuditList[existingIdx], ...item };
+    } else {
+      chatStreamAuditList.push({
+        idx: chatStreamAuditList.length + 1,
+        ...item
+      });
+    }
+    renderChatStreamAuditTable();
+  }
+
+  function renderChatStreamAuditTable() {
+    const tbody = document.getElementById('chatStreamAuditTbody');
+    if (!tbody) return;
+
+    const total = chatStreamAuditList.length;
+    const processed = chatStreamAuditList.filter(x => x.status === 'processed').length;
+    const members = chatStreamAuditList.filter(x => x.status === 'members_only' || x.status === 'private').length;
+    const nochat = chatStreamAuditList.filter(x => x.status === 'no_chat').length;
+    const failed = chatStreamAuditList.filter(x => x.status === 'failed').length;
+    const checkedCount = processed + members + nochat + failed;
+
+    const setTxt = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+    setTxt('chatPillCountAll', checkedCount > 0 ? checkedCount : total);
+    setTxt('chatPillCountProcessed', processed);
+    setTxt('chatPillCountMembers', members);
+    setTxt('chatPillCountNoChat', nochat);
+    setTxt('chatPillCountFailed', failed);
+    setTxt('chatAuditCheckedBadge', `${checkedCount} of ${total} Checked`);
+
+    // Sync metric chips with audit counts
+    const setChip = (elemKey, fallbackId, val) => {
+      const e = (typeof el !== 'undefined' && el && el[elemKey]) ? el[elemKey] : document.getElementById(fallbackId);
+      if (e) e.textContent = val;
+    };
+    setChip('countChatTotalStreams', 'countChatTotalStreams', total);
+    setChip('countChatProcessed', 'countChatProcessed', processed);
+    setChip('countChatFailed', 'countChatFailed', failed);
+    setChip('countChatNoChat', 'countChatNoChat', nochat);
+    setChip('countChatMembersOnly', 'countChatMembersOnly', members);
+
+    const filtered = chatStreamAuditList.filter(x => {
+      if (x.status === 'pending' && checkedCount > 0 && currentChatAuditFilter !== 'all') return false;
+      if (currentChatAuditFilter === 'all') return x.status !== 'pending' || checkedCount === 0;
+      if (currentChatAuditFilter === 'processed') return x.status === 'processed';
+      if (currentChatAuditFilter === 'members_only') return x.status === 'members_only' || x.status === 'private';
+      if (currentChatAuditFilter === 'no_chat') return x.status === 'no_chat';
+      if (currentChatAuditFilter === 'failed') return x.status === 'failed';
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No streams found in "${currentChatAuditFilter.replace('_', ' ').toUpperCase()}" category.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map((item, i) => {
+      let badgeClass = 'processed';
+      let badgeLabel = '✅ Processed';
+      if (item.status === 'members_only') {
+        badgeClass = 'members_only';
+        badgeLabel = '🔒 Members-Only';
+      } else if (item.status === 'private') {
+        badgeClass = 'members_only';
+        badgeLabel = '🔒 Private';
+      } else if (item.status === 'no_chat') {
+        badgeClass = 'no_chat';
+        badgeLabel = '⚠️ Chat Disabled';
+      } else if (item.status === 'failed') {
+        badgeClass = 'failed';
+        badgeLabel = '❌ Failed';
+      } else if (item.status === 'pending') {
+        badgeClass = 'pending';
+        badgeLabel = '⏳ Pending';
+      }
+
+      const detailText = item.info || item.reason || '—';
+      const cleanUrl = item.url || `https://www.youtube.com/watch?v=${item.vid}`;
+
+      return `
+        <tr>
+          <td style="color: var(--text-muted); font-size: 0.78rem;">${item.idx || i + 1}</td>
+          <td>
+            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="stream-title-link" title="Open on YouTube">
+              <span>${escapeHtml(item.title || item.vid)}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+          </td>
+          <td style="color: var(--text-muted); font-size: 0.8rem; white-space: nowrap;">${item.date || '—'}</td>
+          <td><span class="audit-status-badge ${badgeClass}">${badgeLabel}</span></td>
+          <td style="font-size: 0.82rem; color: var(--text-secondary);">${escapeHtml(detailText)}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function setupChatAuditFilterListeners() {
+    document.querySelectorAll('#chatStreamMetricsGrid .metric-chip.clickable').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('#chatStreamMetricsGrid .metric-chip.clickable').forEach(c => c.classList.remove('active-filter'));
+        chip.classList.add('active-filter');
+        currentChatAuditFilter = chip.dataset.filter || 'all';
+
+        document.querySelectorAll('#chatAuditFilterPills .audit-pill').forEach(p => {
+          p.classList.toggle('active', p.dataset.filter === currentChatAuditFilter);
+        });
+
+        const wrap = document.getElementById('chatStreamAuditTableWrap');
+        const box = document.getElementById('chatStreamAuditBox');
+        if (box) box.style.display = 'block';
+        if (wrap) wrap.style.display = 'block';
+        const label = document.getElementById('chatAuditToggleLabel');
+        if (label) label.textContent = 'Hide List';
+        isChatAuditTableExpanded = true;
+
+        renderChatStreamAuditTable();
+      });
+    });
+
+    document.querySelectorAll('#chatAuditFilterPills .audit-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('#chatAuditFilterPills .audit-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        currentChatAuditFilter = pill.dataset.filter || 'all';
+
+        document.querySelectorAll('#chatStreamMetricsGrid .metric-chip.clickable').forEach(c => {
+          c.classList.toggle('active-filter', c.dataset.filter === currentChatAuditFilter);
+        });
+
+        renderChatStreamAuditTable();
+      });
+    });
+
+    const toggleBtn = document.getElementById('toggleChatAuditTableBtn');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        isChatAuditTableExpanded = !isChatAuditTableExpanded;
+        const wrap = document.getElementById('chatStreamAuditTableWrap');
+        const label = document.getElementById('chatAuditToggleLabel');
+        if (wrap) wrap.style.display = isChatAuditTableExpanded ? 'block' : 'none';
+        if (label) label.textContent = isChatAuditTableExpanded ? 'Hide List' : 'Show List';
+      });
+    }
+  }
+
   // INITIALIZE ON DOM READY
 
   // ─────────────────────────────────────────────
@@ -8282,177 +8459,3 @@ function initMobileScrollHints() {
   });
 
 }
-
-
-
-  // ──────────────────────────────────────────
-  // CHAT STREAM AUDIT BREAKDOWN ENGINE (Interactive Category Inspector)
-  // ──────────────────────────────────────────
-  let chatStreamAuditList = [];
-  let currentChatAuditFilter = 'all';
-  let isChatAuditTableExpanded = true;
-
-  function initChatStreamAuditSystem(streamObjects, totalCount) {
-    chatStreamAuditList = [];
-    currentChatAuditFilter = 'all';
-    isChatAuditTableExpanded = true;
-    const auditBox = document.getElementById('chatStreamAuditBox');
-    if (auditBox) auditBox.style.display = totalCount > 1 ? 'block' : 'none';
-
-    if (Array.isArray(streamObjects) && streamObjects.length > 0) {
-      chatStreamAuditList = streamObjects.map((s, idx) => ({
-        idx: idx + 1,
-        vid: s.id || extractVideoId(s.url || '') || `stream_${idx+1}`,
-        url: s.url || `https://www.youtube.com/watch?v=${s.id}`,
-        title: s.title || `Live Stream [${s.id || idx + 1}]`,
-        date: s.date || '',
-        status: s.is_members_only ? 'members_only' : (s.is_private ? 'private' : 'pending'),
-        reason: s.is_members_only ? 'Channel Membership Required' : (s.is_private ? 'Private Stream' : 'Waiting in extraction queue...'),
-        info: ''
-      }));
-    }
-    renderChatStreamAuditTable();
-  }
-
-  function recordChatStreamAuditItem(item) {
-    const existingIdx = chatStreamAuditList.findIndex(x => x.vid === item.vid || x.url === item.url);
-    if (existingIdx !== -1) {
-      chatStreamAuditList[existingIdx] = { ...chatStreamAuditList[existingIdx], ...item };
-    } else {
-      chatStreamAuditList.push({
-        idx: chatStreamAuditList.length + 1,
-        ...item
-      });
-    }
-    renderChatStreamAuditTable();
-  }
-
-  function renderChatStreamAuditTable() {
-    const tbody = document.getElementById('chatStreamAuditTbody');
-    if (!tbody) return;
-
-    const total = chatStreamAuditList.length;
-    const processed = chatStreamAuditList.filter(x => x.status === 'processed').length;
-    const members = chatStreamAuditList.filter(x => x.status === 'members_only' || x.status === 'private').length;
-    const nochat = chatStreamAuditList.filter(x => x.status === 'no_chat').length;
-    const failed = chatStreamAuditList.filter(x => x.status === 'failed').length;
-    const checkedCount = processed + members + nochat + failed;
-
-    const setTxt = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
-    setTxt('chatPillCountAll', checkedCount > 0 ? checkedCount : total);
-    setTxt('chatPillCountProcessed', processed);
-    setTxt('chatPillCountMembers', members);
-    setTxt('chatPillCountNoChat', nochat);
-    setTxt('chatPillCountFailed', failed);
-    setTxt('chatAuditCheckedBadge', `${checkedCount} of ${total} Checked`);
-
-    // Sync metric chips with audit counts
-    if (el.countChatTotalStreams) el.countChatTotalStreams.textContent = total;
-    if (el.countChatProcessed) el.countChatProcessed.textContent = processed;
-    if (el.countChatFailed) el.countChatFailed.textContent = failed;
-    if (el.countChatNoChat) el.countChatNoChat.textContent = nochat;
-    if (el.countChatMembersOnly) el.countChatMembersOnly.textContent = members;
-
-    const filtered = chatStreamAuditList.filter(x => {
-      if (x.status === 'pending' && checkedCount > 0 && currentChatAuditFilter !== 'all') return false;
-      if (currentChatAuditFilter === 'all') return x.status !== 'pending' || checkedCount === 0;
-      if (currentChatAuditFilter === 'processed') return x.status === 'processed';
-      if (currentChatAuditFilter === 'members_only') return x.status === 'members_only' || x.status === 'private';
-      if (currentChatAuditFilter === 'no_chat') return x.status === 'no_chat';
-      if (currentChatAuditFilter === 'failed') return x.status === 'failed';
-      return true;
-    });
-
-    if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">No streams found in "${currentChatAuditFilter.replace('_', ' ').toUpperCase()}" category.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = filtered.map((item, i) => {
-      let badgeClass = 'processed';
-      let badgeLabel = '✅ Processed';
-      if (item.status === 'members_only') {
-        badgeClass = 'members_only';
-        badgeLabel = '🔒 Members-Only';
-      } else if (item.status === 'private') {
-        badgeClass = 'members_only';
-        badgeLabel = '🔒 Private';
-      } else if (item.status === 'no_chat') {
-        badgeClass = 'no_chat';
-        badgeLabel = '⚠️ Chat Disabled';
-      } else if (item.status === 'failed') {
-        badgeClass = 'failed';
-        badgeLabel = '❌ Failed';
-      } else if (item.status === 'pending') {
-        badgeClass = 'pending';
-        badgeLabel = '⏳ Pending';
-      }
-
-      const detailText = item.info || item.reason || '—';
-      const cleanUrl = item.url || `https://www.youtube.com/watch?v=${item.vid}`;
-
-      return `
-        <tr>
-          <td style="color: var(--text-muted); font-size: 0.78rem;">${item.idx || i + 1}</td>
-          <td>
-            <a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="stream-title-link" title="Open on YouTube">
-              <span>${escapeHtml(item.title || item.vid)}</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-            </a>
-          </td>
-          <td style="color: var(--text-muted); font-size: 0.8rem; white-space: nowrap;">${item.date || '—'}</td>
-          <td><span class="audit-status-badge ${badgeClass}">${badgeLabel}</span></td>
-          <td style="font-size: 0.82rem; color: var(--text-secondary);">${escapeHtml(detailText)}</td>
-        </tr>
-      `;
-    }).join('');
-  }
-
-  function setupChatAuditFilterListeners() {
-    document.querySelectorAll('#chatStreamMetricsGrid .metric-chip.clickable').forEach(chip => {
-      chip.addEventListener('click', () => {
-        document.querySelectorAll('#chatStreamMetricsGrid .metric-chip.clickable').forEach(c => c.classList.remove('active-filter'));
-        chip.classList.add('active-filter');
-        currentChatAuditFilter = chip.dataset.filter || 'all';
-
-        document.querySelectorAll('#chatAuditFilterPills .audit-pill').forEach(p => {
-          p.classList.toggle('active', p.dataset.filter === currentChatAuditFilter);
-        });
-
-        const wrap = document.getElementById('chatStreamAuditTableWrap');
-        const box = document.getElementById('chatStreamAuditBox');
-        if (box) box.style.display = 'block';
-        if (wrap) wrap.style.display = 'block';
-        const label = document.getElementById('chatAuditToggleLabel');
-        if (label) label.textContent = 'Hide List';
-        isChatAuditTableExpanded = true;
-
-        renderChatStreamAuditTable();
-      });
-    });
-
-    document.querySelectorAll('#chatAuditFilterPills .audit-pill').forEach(pill => {
-      pill.addEventListener('click', () => {
-        document.querySelectorAll('#chatAuditFilterPills .audit-pill').forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-        currentChatAuditFilter = pill.dataset.filter || 'all';
-
-        document.querySelectorAll('#chatStreamMetricsGrid .metric-chip.clickable').forEach(c => {
-          c.classList.toggle('active-filter', c.dataset.filter === currentChatAuditFilter);
-        });
-
-        renderChatStreamAuditTable();
-      });
-    });
-
-    const toggleBtn = document.getElementById('toggleChatAuditTableBtn');
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => {
-        isChatAuditTableExpanded = !isChatAuditTableExpanded;
-        const wrap = document.getElementById('chatStreamAuditTableWrap');
-        const label = document.getElementById('chatAuditToggleLabel');
-        if (wrap) wrap.style.display = isChatAuditTableExpanded ? 'block' : 'none';
-        if (label) label.textContent = isChatAuditTableExpanded ? 'Hide List' : 'Show List';
-      });
-    }
-  }
