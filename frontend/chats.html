@@ -491,9 +491,52 @@
         <span class="ticker-text" id="statusTicker">Connecting to YouTube live chat engine...</span>
       </div>
 
-      <div class="metrics-grid">
+      <!-- Stream Batch Status Metrics (Visible during Multi-Stream / Channel runs) -->
+      <div class="metrics-grid" id="chatStreamMetricsGrid" style="display: none; margin-bottom: 12px;">
         <div class="metric-chip total">
           <div class="metric-icon">📊</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countChatTotalStreams">0</span>
+            <span class="metric-label">Total Streams</span>
+          </div>
+        </div>
+
+        <div class="metric-chip success">
+          <div class="metric-icon">✅</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countChatProcessed">0</span>
+            <span class="metric-label">Processed</span>
+          </div>
+        </div>
+
+        <div class="metric-chip failed">
+          <div class="metric-icon">❌</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countChatFailed">0</span>
+            <span class="metric-label">Failed</span>
+          </div>
+        </div>
+
+        <div class="metric-chip nochat">
+          <div class="metric-icon">⚠️</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countChatNoChat">0</span>
+            <span class="metric-label">Chat Unavailable</span>
+          </div>
+        </div>
+
+        <div class="metric-chip membersonly">
+          <div class="metric-icon">🔒</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countChatMembersOnly">0</span>
+            <span class="metric-label">Members / Pvt Stream</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="metrics-grid" id="chatMessageMetricsGrid">
+        <div class="metric-chip total">
+          <div class="metric-icon">💬</div>
           <div class="metric-info">
             <span class="metric-value" id="countExtracted">0</span>
             <span class="metric-label" id="labelExtracted">Extracted Messages</span>

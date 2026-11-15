@@ -957,7 +957,7 @@ body {
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
 }
 
@@ -1004,6 +1004,10 @@ body {
 
 .metric-chip.nochat .metric-value {
   color: #f59e0b;
+}
+
+.metric-chip.membersonly .metric-value {
+  color: #a855f7;
 }
 
 /* ──────────────────────────────────────────
@@ -2495,6 +2499,10 @@ body {
 
 [data-theme="light"] .metric-chip.total .metric-value {
   color: #111827;
+}
+
+[data-theme="light"] .metric-chip.membersonly .metric-value {
+  color: #7c3aed;
 }
 
 /* KPI Cards & Badges */

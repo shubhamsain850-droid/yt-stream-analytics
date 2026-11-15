@@ -102,7 +102,8 @@ const state = {
     total: 0,
     success: 0,
     failed: 0,
-    noChat: 0
+    noChat: 0,
+    membersOnly: 0
   },
   tierPrices: {
     "Duggu’s world 🐥": 59,
@@ -170,6 +171,7 @@ const elements = {
   countSuccess: document.getElementById('countSuccess'),
   countFailed: document.getElementById('countFailed'),
   countNoChat: document.getElementById('countNoChat'),
+  countMembersOnly: document.getElementById('countMembersOnly'),
   earningsResumeBanner: document.getElementById('earningsResumeBanner'),
   earningsLiveCreditBar: document.getElementById('earningsLiveCreditBar'),
   earningsLiveCreditPill: document.getElementById('earningsLiveCreditPill'),
@@ -1863,7 +1865,8 @@ async function startProcessing(urls, label = null, options = {}) {
         total: totalPlanned,
         success: 0,
         failed: 0,
-        noChat: 0
+        noChat: 0,
+        membersOnly: 0
       };
   updateMetricsDisplay();
 
@@ -2032,6 +2035,10 @@ async function startProcessing(urls, label = null, options = {}) {
           hasShownFirstResult = true;
           elements.resultsSection.style.display = 'block';
         }
+      } else if (resData.error === "MEMBERS_ONLY" || resData.is_members_only || resData.error === "PRIVATE_STREAM" || resData.is_private) {
+        state.metrics.membersOnly++;
+        const kindLabel = (resData.error === "PRIVATE_STREAM" || resData.is_private) ? "Private Stream" : "Members-Only Stream";
+        elements.statusTicker.textContent = `[${kindLabel.toUpperCase()}] ${resData.message || (resData.title || vid)}`;
       } else if (resData.error === "NO_CHAT_AVAILABLE") {
         state.metrics.noChat++;
         elements.statusTicker.textContent = `[NO CHAT] Live chat replay was disabled for: ${resData.title || vid}`;
@@ -2257,10 +2264,11 @@ async function startProcessing(urls, label = null, options = {}) {
 }
 
 function updateMetricsDisplay() {
-  elements.countTotal.textContent = state.metrics.total;
-  elements.countSuccess.textContent = state.metrics.success;
-  elements.countFailed.textContent = state.metrics.failed;
-  elements.countNoChat.textContent = state.metrics.noChat;
+  if (elements.countTotal) elements.countTotal.textContent = state.metrics.total;
+  if (elements.countSuccess) elements.countSuccess.textContent = state.metrics.success;
+  if (elements.countFailed) elements.countFailed.textContent = state.metrics.failed;
+  if (elements.countNoChat) elements.countNoChat.textContent = state.metrics.noChat;
+  if (elements.countMembersOnly) elements.countMembersOnly.textContent = state.metrics.membersOnly || 0;
 }
 
 function extractVideoId(url) {
