@@ -338,3 +338,4 @@ with open('frontend/jewels-calc.js', 'w', encoding='utf-8') as f:
     f.write(code)
 
 print('frontend/jewels-calc.js updated successfully!')
+
