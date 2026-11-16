@@ -32,7 +32,7 @@
             symbol: '$',
             amount: '19.99',
             badge: '',
-            sub: '$0.10 per 1k chats • Never expires',
+            sub: '$0.10 / stream • Never expires',
             desc: 'Great for high-volume creators, giveaways &amp; bulk stream audits.',
             extra1: '✓ Never Expire • Use Any Time',
             extra2: '✓ Single, Custom URL Batch &amp; Date Range',
@@ -46,7 +46,7 @@
             symbol: '$',
             amount: '2.99',
             badge: '',
-            sub: '$0.30 per 1k chats • Quick trial pack',
+            sub: '$0.30 / stream • Quick trial pack',
             desc: 'Quick entry pack for occasional stream audits or comment exports.',
             extra1: '✓ Never Expire • Use Any Time',
             extra2: '✓ Single, Custom URL Batch &amp; Date Range',
@@ -98,7 +98,7 @@
             symbol: '$',
             amount: '29',
             badge: '',
-            sub: '$0.058 per 1k chats (Save 42%) • Never expires',
+            sub: '$0.058 / stream (Save 42%) • Never expires',
             desc: 'Best value for regular live streamers, editors &amp; channel audits.',
             extra1: '✓ Custom URL Batch &amp; Full Channel History',
             extra2: '✓ 14-Day Cloud Backups + Priority Queue',
@@ -112,7 +112,7 @@
             symbol: '$',
             amount: '6.99',
             badge: '',
-            sub: '$0.23 per 1k chats (Save 23%) • Never expires',
+            sub: '$0.23 / stream (Save 23%) • Never expires',
             desc: 'Balanced mini pack for weekly batch streams and YouTube comments.',
             extra1: '✓ Custom URL Batch &amp; Full Channel History',
             extra2: '✓ 14-Day Cloud Backups + Priority Queue',
@@ -164,8 +164,8 @@
             symbol: '$',
             amount: '49',
             badge: '',
-            sub: '$0.049 per 1k chats (Save 51%) • Never expires',
-            desc: 'Massive million-chat volume for MCNs, agencies &amp; researchers.',
+            sub: '$0.049 / stream (Save 51%) • Never expires',
+            desc: 'Massive volume for MCNs, agencies &amp; multi-stream channel audits.',
             extra1: '✓ Bulk Parallel Batch Engine &amp; Exports',
             extra2: '✓ 14-Day Cloud Backups + VIP Queue Speed',
           },
@@ -178,8 +178,8 @@
             symbol: '$',
             amount: '19.99',
             badge: 'BEST UPGRADE',
-            sub: '$0.10 per 1k chats (Save 66% vs Mini)',
-            desc: 'Get 200,000 chats instead of 30k for only $13 more — massive value.',
+            sub: '$0.10 / stream (Save 66% vs Mini)',
+            desc: 'Get 200 streams instead of 30 for only $13 more — massive value.',
             extra1: '✓ Single, Custom URL Batch &amp; Date Range',
             extra2: '✓ 14-Day Cloud Backups + All 4 Exports',
           },
@@ -195,7 +195,7 @@
             amount: '499',
             badge: '',
             sub: '₹4.99 / stream • India UPI &amp; Cards',
-            desc: 'Solid 1 Lakh chats/comments pack for growing channels &amp; researchers.',
+            desc: 'Solid 100 stream / video export pack for growing channels &amp; researchers.',
             extra1: '✓ Parallel Batch Engine &amp; All Exports',
             extra2: '✓ 14-Day Cloud Backups + Priority Queue',
           },
@@ -207,9 +207,9 @@
             chatsAllowance: '1,000 Full Streams / Videos',
             symbol: '₹',
             amount: '1,799',
-            badge: '🇮🇳 ₹1.80 / 1k',
+            badge: '🇮🇳 ₹1.80 / STREAM',
             sub: '₹1.80 / stream (Save 64%) • Never expires',
-            desc: 'Massive 10 Lakh (1M) chat/comment volume for agencies &amp; MCNs.',
+            desc: 'Massive 1,000 stream / video audit volume for agencies &amp; MCNs.',
             extra1: '✓ Bulk Parallel Batch Engine &amp; Exports',
             extra2: '✓ 14-Day Cloud Backups + VIP Queue Speed',
           },
@@ -301,8 +301,8 @@
 
     root.querySelectorAll('[data-tm-price-target="pricing-footnote"]').forEach((node) => {
       node.textContent = isIndia
-        ? 'Flat 1 Credit = 1 Full Stream Audit (Unlimited Chats) • India UPI Mini (₹49–₹499) & Bulk Volume (₹799–₹1,799) packs • Credits never expire.'
-        : 'Flat 1 Credit = 1 Full Stream Audit (Unlimited Chats) • Global Volume ($19.99–$49) & Mini ($2.99–$6.99) packs • Credits never expire.';
+        ? 'Flat 1 Credit = 1 Full Stream Audit (Unlimited Chats) or 1 Video Comments Export • India UPI Mini (₹49–₹499) & Bulk Volume (₹799–₹1,799) packs • Credits never expire.'
+        : 'Flat 1 Credit = 1 Full Stream Audit (Unlimited Chats) or 1 Video Comments Export • Global Volume ($19.99–$49) & Mini ($2.99–$6.99) packs • Credits never expire.';
     });
 
     root.querySelectorAll('[data-tm-price-target="modal-sub-default"]').forEach((node) => {
@@ -314,7 +314,7 @@
     });
 
     root.querySelectorAll('[data-tm-tier-btn="volume"]').forEach((btn) => {
-      btn.textContent = isIndia ? '💎 Volume (₹799–₹1,799)' : '💎 Volume (200k–1M)';
+      btn.textContent = isIndia ? '💎 Volume (₹799–₹1,799)' : '💎 Volume (200–1,000 CR)';
       btn.classList.toggle('active', currentPackTier === 'volume');
     });
     root.querySelectorAll('[data-tm-tier-btn="mini"]').forEach((btn) => {
@@ -377,8 +377,8 @@
       node.style.display = 'block';
       node.className = 'tm-india-promo-banner is-active';
       node.innerHTML = isMini
-        ? '🇮🇳 <strong>India UPI Mini Packs (10k–100k):</strong> Instant UPI packs from <strong>₹49</strong> — need 200k–1M chats? Switch to <strong>💎 Volume (₹799–₹1,799)</strong> above!'
-        : '🇮🇳 <strong>India UPI Volume Packs (200k–1M):</strong> Massive bulk savings from <strong>₹1.80 / 1k chats</strong> (beats competitor PPP) — or switch to <strong>⚡ Mini (₹49–₹499)</strong> above!';
+        ? '🇮🇳 <strong>India UPI Mini Packs (10–100 Credits):</strong> Instant UPI packs from <strong>₹49</strong> — need 200–1,000 credits? Switch to <strong>💎 Volume (₹799–₹1,799)</strong> above!'
+        : '🇮🇳 <strong>India UPI Volume Packs (200–1,000 Credits):</strong> Massive bulk savings from <strong>₹1.80 / stream</strong> (Flat 1 Credit = 1 Full Stream or Comments Export) — or switch to <strong>⚡ Mini (₹49–₹499)</strong> above!';
     });
 
     root.querySelectorAll('[data-tm-region-btn]').forEach((btn) => {
@@ -1093,7 +1093,7 @@
               <button type="button" class="tm-region-btn ${currentPricingRegion === 'INR' ? 'active' : ''}" data-tm-region-btn="INR">🇮🇳 India (INR)</button>
             </div>
             <div class="tm-pack-tier-toggle" role="group" aria-label="Pack size range">
-              <button type="button" class="tm-pack-tier-btn ${currentPackTier === 'volume' ? 'active' : ''}" data-tm-tier-btn="volume">${isIndia ? '💎 Volume (₹799–₹1,799)' : '💎 Volume (200k–1M)'}</button>
+              <button type="button" class="tm-pack-tier-btn ${currentPackTier === 'volume' ? 'active' : ''}" data-tm-tier-btn="volume">${isIndia ? '💎 Volume (₹799–₹1,799)' : '💎 Volume (200–1,000 CR)'}</button>
               <button type="button" class="tm-pack-tier-btn ${currentPackTier === 'mini' ? 'active' : ''}" data-tm-tier-btn="mini">${isIndia ? '⚡ Mini (₹49–₹499)' : '⚡ Mini ($2.99–$6.99)'}</button>
             </div>
           </div>

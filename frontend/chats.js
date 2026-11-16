@@ -1259,159 +1259,71 @@
     if (!el.commentsCostPreviewBar || !el.commentsLimitSelect) return;
 
     const limit = parseInt(el.commentsLimitSelect.value, 10) || 1000;
-
     const isHighVolume = limit > 1000;
-
-    const neededCredits = Math.max(1, Math.ceil(limit / 1000));
-
+    const neededCredits = 1; // Uniform rule: Flat 1 Credit = 1 Full Video Comments Export
     const auth = window.TubeMetrixAuth;
-
     const loggedIn = auth?.isLoggedIn?.() || false;
-
     const credits = auth?.getCreditsBalance?.() ?? 0;
-
     const freeLeft = auth?.getRemainingStreams?.() ?? 0;
 
-
-
     if (!isHighVolume) {
-
       if (freeLeft > 0) {
-
         return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
-
           title: `✅ Free Quota Eligible (${freeLeft} weekly free run${freeLeft === 1 ? '' : 's'} left)`,
-
           sub: `Up to ${limit.toLocaleString()} comments covered cleanly by your weekly allowance (0 Credits deducted).`
-
         });
-
       }
-
       if (!loggedIn) {
-
         return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
-
           toneClass: 'is-warn',
-
           title: `🔒 Free Quota Used — Sign In / 1 CR Required`,
-
-          sub: `Your free weekly runs are used up. Sign in & top up 1 Credit to download up to ${limit.toLocaleString()} comments.`,
-
+          sub: `Your free weekly runs are used up. Sign in & use 1 Credit to download comments.`,
           btnLabel: '🔑 Sign In / Buy Credits',
-
           btnAction: 'auth',
-
           neededCredits: 1,
-
-          modalSubtitle: `Sign in to continue downloading comments (1 CR per 1,000 comments).`
-
+          modalSubtitle: `Sign in to continue downloading comments (Flat 1 Credit = 1 Video Comments Export).`
         });
-
       }
-
       if (credits < 1) {
-
         return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
-
           toneClass: 'is-danger',
-
           title: `⚠️ Weekly Free Quota Used & 0 Credits Available (Needs 1 CR)`,
-
-          sub: `Top up 1 Credit to download up to ${limit.toLocaleString()} video comments.`,
-
+          sub: `Top up 1 Credit (from ₹49 / $2.99) to download up to ${limit.toLocaleString()} video comments.`,
           btnLabel: '💎 Recharge Credits',
-
           neededCredits: 1,
-
-          modalSubtitle: `Free runs reached 0/week. Recharge Credits (₹49 / $2.99 packs) to extract up to 1,000 comments for 1 CR.`
-
+          modalSubtitle: `Free runs reached 0/week. Recharge Credits (₹49 / $2.99 packs) — Flat 1 Credit = 1 Video Comments Export.`
         });
-
       }
-
       return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
-
-        title: `✅ Ready: 1 CR Max • ${credits} CR Available`,
-
-        sub: `Weekly free quota used; this extraction uses 1 Credit cleanly.`
-
+        title: `✅ Ready: Flat 1 CR • ${credits} CR Available`,
+        sub: `Weekly free quota used; this extraction uses Flat 1 Credit cleanly.`
       });
-
     }
-
-
 
     if (!loggedIn) {
-
       return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
-
         toneClass: 'is-warn',
-
-        title: `🔒 Sign In Required • Up to ${neededCredits} CR Max (Zero Overcharge)`,
-
-        sub: `Only 1 CR is billed upfront; remaining credits settle strictly per 1,000 actual comments found on YouTube.`,
-
+        title: `🔒 Sign In Required • Flat 1 Credit per Video Export`,
+        sub: `Download up to ${limit.toLocaleString()} comments for just Flat 1 Credit (Unlimited Comments).`,
         btnLabel: '🔑 Sign In / Buy Credits',
-
         btnAction: 'auth',
-
-        neededCredits,
-
-        modalSubtitle: `High-volume comments (up to ${limit.toLocaleString()}) use Prepaid Credits cleanly with zero overcharge.`
-
+        neededCredits: 1,
+        modalSubtitle: `Downloading up to ${limit.toLocaleString()} comments requires 1 Credit (Flat 1 Credit = 1 Full Video Comments Export).`
       });
-
     }
-
     if (credits === 0) {
-
       return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
-
         toneClass: 'is-danger',
-
-        title: `⚠️ Insufficient Credits: 0 CR Available (Limit Needs 1–${neededCredits} CR)`,
-
-        sub: `High-volume limits (>1,000) require Credits. You are never billed for comments a video doesn't have.`,
-
+        title: `⚠️ Insufficient Credits: 0 CR Available (Needs 1 CR)`,
+        sub: `High-volume export (up to ${limit.toLocaleString()} comments) requires 1 Credit. Prepaid packs start from ₹49 / $2.99.`,
         btnLabel: '💎 Recharge Credits',
-
-        neededCredits,
-
-        modalSubtitle: `Downloading up to ${limit.toLocaleString()} comments needs 1–${neededCredits} CR (zero overcharge on shorter videos).`
-
+        neededCredits: 1,
+        modalSubtitle: `Downloading up to ${limit.toLocaleString()} comments needs Flat 1 CR (never expires).`
       });
-
     }
-
-    if (credits < neededCredits) {
-
-      const missing = neededCredits - credits;
-
-      return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
-
-        toneClass: 'is-warn',
-
-        title: `⚠️ Partial Balance: ${credits} CR Available vs Up to ${neededCredits} CR (${limit.toLocaleString()} Cap)`,
-
-        sub: `Only 1 CR charges upfront. We'll fetch up to ${(credits * 1000).toLocaleString()} comments now, never overcharge if fewer exist, or let you top up for the rest.`,
-
-        btnLabel: `💎 Top Up +${missing} CR`,
-
-        neededCredits,
-
-        modalSubtitle: `You have ${credits} CR and selected up to ${limit.toLocaleString()} comments (max ${neededCredits} CR if video has ${limit.toLocaleString()}+ comments).`
-
-      });
-
-    }
-
     return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
-
-      title: `✅ Ready: Up to ${neededCredits} CR Max • ${credits} CR Available (Zero Overcharge)`,
-
-      sub: `Only 1 CR charges upfront, then 1 CR per 1,000 actual comments fetched (unused quota stays untouched).`
-
+      title: `✅ Ready: Flat 1 CR • ${credits} CR Available`,
+      sub: `High-volume export (up to ${limit.toLocaleString()} comments) uses Flat 1 Credit cleanly.`
     });
 
   }
@@ -4641,7 +4553,7 @@
 
           window.TubeMetrixAuth.openAuthModal?.(
 
-            `Downloading up to ${limit.toLocaleString()} video comments requires Google Sign-In and Prepaid Credits (1 Credit = 1,000 comments).`
+            `Downloading up to ${limit.toLocaleString()} video comments requires Google Sign-In and Prepaid Credits (Flat 1 Credit = 1 Full Video Comments Export).`
 
           );
 
