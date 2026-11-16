@@ -718,7 +718,7 @@
 
             <div class="dropdown-tier-status">
               <span class="tier-label">Credit Balance:</span>
-              <span class="tier-val ${credits > 0 ? 'text-gold' : 'text-cyan'}">💎 ${credits} Credits (${credits} Streams • ${(credits * 3000).toLocaleString()} Chats)</span>
+              <span class="tier-val ${credits > 0 ? 'text-gold' : 'text-cyan'}">💎 ${credits} Credits (${credits} Streams • ${(credits * 3000).toLocaleString()} Chats • ${(credits * 1000).toLocaleString()} Comments)</span>
             </div>
 
             <div class="user-quota-box">

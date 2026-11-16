@@ -1028,7 +1028,7 @@
 
         batchNotice.className = 'batch-limit-pill pro-pill';
 
-        batchNotice.textContent = `💎 ${credits} Credits Available (1 Cr / 1k chats)`;
+        batchNotice.textContent = `💎 ${credits} Credits Available (1 Cr / 3k chats)`;
 
       } else {
 
@@ -1064,7 +1064,7 @@
 
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
 
-          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (${hasCredits ? `💎 ${credits} Credits Ready — 1 Credit / 1k chats` : 'Requires Credits • No Free Quota'}).</span>
+          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (${hasCredits ? `💎 ${credits} Credits Ready — 1 Credit / 3k chats` : 'Requires Credits • No Free Quota'}).</span>
 
         </div>`;
 
