@@ -4,9 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YouTube Jewels to INR &amp; USD Calculator (2026): Live Stream Gifts Auditor &amp; Rubies Value — TubeMetrix</title>
-  <meta name="description"
-    content="Calculate YouTube Jewels &amp; Rubies value in INR (₹) and USD ($). Paste any YouTube Live stream URL to audit virtual gifts, count Jewels and Rubies, and calculate net creator earnings with official 2 Jewels = 1 Ruby formula.">
+  <title>YouTube Live Stream Gifts &amp; Jewels to INR/USD Calculator (2026) — TubeMetrix</title>
+  <meta name="description" content="Calculate real creator earnings from YouTube Live stream gifts, stickers, and Jewels in INR (₹) and USD ($). View actual YouTube India bundle prices and fan spend vs creator net payout.">
   <meta name="keywords"
     content="youtube jewels calculator, youtube jewels to inr, 2 jewels to rubies value, youtube gifts calculator in inr, audit live stream jewels, how much does youtube pay for rubies, convert youtube jewels to rupees, youtube virtual gifts payout">
   <meta name="author" content="TubeMetrix">
@@ -143,7 +142,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=9.3">
+  <link rel="stylesheet" href="styles.css?v=9.4">
   <style>
     /* Free tool styles */
     .auth-guest-group .guest-quota-pill {
@@ -366,11 +365,11 @@
     <section class="hero-section" style="max-width: 760px; margin: 0 auto 28px auto; text-align: center;">
       <div class="hero-badge" style="margin-bottom: 10px;">
         <span class="pulse-dot"></span>
-        <span>2 JEWELS = 1 RUBY</span>
+        <span>LIVE STREAM GIFTS &amp; STICKERS CALCULATOR</span>
       </div>
-      <h1 class="hero-title" style="margin-bottom: 8px;">YouTube Jewels &amp; Gifts Calculator</h1>
-      <p class="hero-subtitle" style="font-size: 0.98rem; color: var(--text-secondary); max-width: 580px; margin: 0 auto; line-height: 1.5;">
-        Audit any live stream link to calculate gifts, Jewels, Rubies, and net creator payout.
+      <h1 class="hero-title" style="margin-bottom: 8px;">YouTube Live Stream Gifts &amp; Jewels Calculator</h1>
+      <p class="hero-subtitle" style="font-size: 0.98rem; color: var(--text-secondary); max-width: 620px; margin: 0 auto; line-height: 1.5;">
+        Convert YouTube live gifts, stickers &amp; Jewels into real money (₹ INR &amp; $ USD). See exact Creator Net Take vs Fan Purchase Cost.
       </p>
     </section>
 
@@ -544,23 +543,26 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
         <div>
           <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">
-            💎 Quick Jewels Converter
+            💎 Instant Jewels &amp; Gifts Payout Calculator
           </h2>
           <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">
-            Enter any Jewels quantity or select a preset to see the exact payout.
+            Enter any Jewels count or pick an official pack preset to see your real take-home cash.
           </p>
         </div>
         <span class="pill-badge pill-green" id="forexRateBadge" style="font-size: 0.76rem; padding: 5px 12px; border-radius: 9999px;">$1 USD = ₹86.85 INR</span>
       </div>
 
-      <!-- Quick Preset Chips -->
-      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
-        <button type="button" class="jewel-preset-chip" data-jewels="500">500</button>
+      <!-- Quick Preset Chips (Aligned to Official YouTube Bundles) -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center;">
+        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-right: 4px;">Packs:</span>
+        <button type="button" class="jewel-preset-chip" data-jewels="50">50</button>
+        <button type="button" class="jewel-preset-chip" data-jewels="300">300</button>
+        <button type="button" class="jewel-preset-chip" data-jewels="700">700</button>
+        <button type="button" class="jewel-preset-chip" data-jewels="1500">1,500</button>
         <button type="button" class="jewel-preset-chip active" data-jewels="1000">1,000</button>
-        <button type="button" class="jewel-preset-chip" data-jewels="2000">2,000</button>
-        <button type="button" class="jewel-preset-chip" data-jewels="5000">5,000</button>
-        <button type="button" class="jewel-preset-chip" data-jewels="10000">10,000</button>
-        <button type="button" class="jewel-preset-chip" data-jewels="50000">50,000</button>
+        <button type="button" class="jewel-preset-chip" data-jewels="4000">4,000</button>
+        <button type="button" class="jewel-preset-chip" data-jewels="8000">8,000</button>
+        <button type="button" class="jewel-preset-chip" data-jewels="20000">20,000</button>
       </div>
 
       <!-- Main Input Box -->
@@ -574,183 +576,735 @@
         </div>
       </div>
 
-      <!-- 3 Real-time Value Calculation Cards -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 14px;">
+      <!-- 4 Real-time Value Calculation Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 14px;">
         <div class="kpi-card highlight">
-          <span class="kpi-badge">Rubies Earned</span>
-          <div class="kpi-amount" id="calcRubiesVal" style="color: #ff0033;">500</div>
-          <span class="kpi-sub">1 Ruby per 2 Jewels (2:1 Ratio)</span>
+          <span class="kpi-badge">Net Creator Take (INR)</span>
+          <div class="kpi-amount" id="calcInrVal" style="color: #10b981; font-size: 1.45rem;">₹434.25</div>
+          <span class="kpi-sub" id="calcInrSub">~₹0.43 net in Bank</span>
         </div>
 
         <div class="kpi-card">
           <span class="kpi-badge">Net Creator Take (USD)</span>
-          <div class="kpi-amount" id="calcUsdVal" style="color: #10b981;">$5.00</div>
-          <span class="kpi-sub">$0.01 USD per Ruby</span>
+          <div class="kpi-amount" id="calcUsdVal" style="color: #10b981; font-size: 1.45rem;">$5.00</div>
+          <span class="kpi-sub">$0.005 net per Jewel</span>
         </div>
 
         <div class="kpi-card">
-          <span class="kpi-badge">Net Creator Take (INR)</span>
-          <div class="kpi-amount" id="calcInrVal" style="color: #10b981;">₹434.25</div>
-          <span class="kpi-sub" id="calcInrSub">~₹0.43 net per Jewel</span>
+          <span class="kpi-badge">Total Jewels Spent</span>
+          <div class="kpi-amount" id="calcJewelsVal" style="color: #8b5cf6; font-size: 1.45rem;">1,000 💎</div>
+          <span class="kpi-sub">Total gifts value</span>
+        </div>
+
+        <div class="kpi-card">
+          <span class="kpi-badge">Fan Purchase Cost</span>
+          <div class="kpi-amount" id="calcFanCostVal" style="color: #f59e0b; font-size: 1.45rem;">~₹1,200</div>
+          <span class="kpi-sub">Official YouTube app cost</span>
         </div>
       </div>
 
-      <div id="calcFormulaNote" style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">
-        Formula: <strong>1,000 Jewels ÷ 2 = 500 Rubies × $0.01 = $5.00 USD</strong>
-      </div>
-    </section>
-
-    <!-- 3. Popular Gifts Catalog -->
-    <section class="info-section" style="max-width: 860px; margin: 0 auto 32px auto; padding: 0 16px;">
-      <div style="text-align: center; margin-bottom: 18px;">
-        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">
-          Popular Stream Gifts
-        </h2>
-        <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">
-          Click any gift to calculate creator payout.
-        </p>
-      </div>
-
-      <!-- 8 Gift Cards Grid -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px;">
-        <div class="gift-preset-card" data-jewels="10"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 1.5rem;">🍲</span>
-            <span class="pill-badge pill-amber">10 Jewels</span>
-          </div>
-          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Panipuri</div>
-          <div class="gift-take-label" style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹4.20</div>
-        </div>
-
-        <div class="gift-preset-card" data-jewels="25"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 1.5rem;">🥟</span>
-            <span class="pill-badge pill-amber">25 Jewels</span>
-          </div>
-          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Samosa</div>
-          <div class="gift-take-label" style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹10.50</div>
-        </div>
-
-        <div class="gift-preset-card" data-jewels="50"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 1.5rem;">☕</span>
-            <span class="pill-badge pill-amber">50 Jewels</span>
-          </div>
-          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Masala Chai</div>
-          <div class="gift-take-label" style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹21.00</div>
-        </div>
-
-        <div class="gift-preset-card" data-jewels="100"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 1.5rem;">🎤</span>
-            <span class="pill-badge pill-amber">100 Jewels</span>
-          </div>
-          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Mic Drop</div>
-          <div class="gift-take-label" style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹42.00</div>
-        </div>
-
-        <div class="gift-preset-card" data-jewels="250"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 1.5rem;">💖</span>
-            <span class="pill-badge pill-amber">250 Jewels</span>
-          </div>
-          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Heart Fireworks</div>
-          <div class="gift-take-label" style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹105.00</div>
-        </div>
-
-        <div class="gift-preset-card" data-jewels="1000"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 1.5rem;">👑</span>
-            <span class="pill-badge pill-amber">1,000 Jewels</span>
-          </div>
-          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Royal Crown</div>
-          <div class="gift-take-label" style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹420.00</div>
-        </div>
-
-        <div class="gift-preset-card" data-jewels="5000"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 1.5rem;">🏰</span>
-            <span class="pill-badge pill-amber">5,000 Jewels</span>
-          </div>
-          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Golden Castle</div>
-          <div class="gift-take-label" style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹2,100.00</div>
-        </div>
-
-        <div class="gift-preset-card" data-jewels="25000"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; cursor: pointer;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 1.5rem;">🌌</span>
-            <span class="pill-badge pill-amber">25,000 Jewels</span>
-          </div>
-          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">Super Galaxy</div>
-          <div class="gift-take-label" style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 4px;">Take: ~₹10,500.00</div>
-        </div>
+      <div id="calcFormulaNote" style="font-size: 0.82rem; color: var(--text-muted); text-align: center; line-height: 1.5; background: var(--bg-card); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+        💡 YouTube Formula: <strong>1 Jewel = $0.005 USD Net Creator Take</strong> (1,000 Jewels = $5.00 USD ≈ ₹434 INR). 
+        <span style="opacity: 0.85;">(In YouTube Studio backend, this is calculated as 2 Jewels = 1 Ruby = $0.01 USD).</span>
       </div>
     </section>
 
-    <!-- 4. YouTube Jewels & Rubies Economics Breakdown -->
+    <!-- 3. Real YouTube Gifts & Stickers Catalog -->
     <section class="info-section" style="max-width: 860px; margin: 0 auto 32px auto; padding: 0 16px;">
       <div style="text-align: center; margin-bottom: 16px;">
-        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">
-          YouTube Jewels &amp; Rubies Unit Economics
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>🎁</span> Live YouTube Stream Gifts &amp; Stickers Catalog
         </h2>
         <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">
-          Official revenue model, Ruby conversion ratios, and creator net payouts.
+          All official stickers live in the YouTube mobile app. Click any sticker to calculate instant creator payout.
         </p>
       </div>
 
-      <div class="table-card">
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Stage</th>
-                <th>Currency / Asset</th>
-                <th>Exchange / Payout Rate</th>
-                <th>Net Value</th>
-                <th>Supported Format</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Viewer Purchase</strong></td>
-                <td>Jewels Bundle</td>
-                <td>Viewers purchase bundles in the YouTube mobile app</td>
-                <td>~₹0.42 per Jewel</td>
-                <td>Shorts Mobile Feed</td>
-              </tr>
-              <tr>
-                <td><strong>Virtual Gift Sent</strong></td>
-                <td>Combo Gifts (1 to 5,000 Jewels)</td>
-                <td>Panipuri, Samosa, Mic Drop, Golden Castle</td>
-                <td>Viewer sends in live chat</td>
-                <td>Vertical Live Streams</td>
-              </tr>
-              <tr>
-                <td><strong>Creator Conversion</strong></td>
-                <td>Rubies Balance</td>
-                <td><strong style="color: #8b5cf6;">2 Jewels = 1 Ruby</strong></td>
-                <td>Fixed 2:1 Ratio</td>
-                <td>Creator Analytics</td>
-              </tr>
-              <tr>
-                <td><strong>Creator Net Payout</strong></td>
-                <td>Direct Cash (INR / USD)</td>
-                <td><strong style="color: #10b981;">1 Ruby = $0.01 USD (~₹0.85 INR)</strong></td>
-                <td>Paid via Google AdSense</td>
-                <td>Monthly Payout</td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Category Filter Pills -->
+      <div id="giftCategoryTabs" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px;">
+        <button type="button" class="preset-chip active" data-filter="all">All Gifts (74)</button>
+        <button type="button" class="preset-chip" data-filter="indian">🇮🇳 Desi Specials (20)</button>
+        <button type="button" class="preset-chip" data-filter="gaming">🎮 Gaming &amp; Memes (18)</button>
+        <button type="button" class="preset-chip" data-filter="mega">💎 Mega Gifts (17)</button>
+        <button type="button" class="preset-chip" data-filter="emotes">🍿 Snacks &amp; Emotes (19)</button>
+      </div>
+
+      <!-- 74 Real Gift Cards Grid -->
+      <div id="giftsGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; max-height: 520px; overflow-y: auto; padding: 8px; border: 1px solid var(--border-color); border-radius: 14px; background: var(--bg-surface);">
+        <div class="gift-preset-card" data-jewels="2" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🥟</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">2 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Samosa">Samosa</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹0.87</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="2" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🍲</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">2 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Panipuri">Panipuri</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹0.87</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="2" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🥭</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">2 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Mango lassi">Mango lassi</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹0.87</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="2" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🙏</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">2 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Namaste">Namaste</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹0.87</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="2" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">👌</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">2 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Hamsasya mudra">Hamsasya mudra</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹0.87</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="5" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🗣️</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">5 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Arre yaar!">Arre yaar!</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹2.17</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="5" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">👋</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">5 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Kem cho?">Kem cho?</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹2.17</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="5" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🤙</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">5 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Macha">Macha</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹2.17</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="10" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🛑</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">10 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Bas kar">Bas kar</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹4.34</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="10" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🏏</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">10 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Cricket">Cricket</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹4.34</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="10" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">✨</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">10 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="All izz well">All izz well</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹4.34</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="100" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🪔</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">100 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Diya">Diya</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹43.42</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="100" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">☕</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">100 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Chai toast">Chai toast</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹43.42</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="100" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🍔</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">100 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Vada pav">Vada pav</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹43.42</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="100" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🌶️</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">100 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Nimbu Mirchi">Nimbu Mirchi</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹43.42</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="100" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🌈</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">100 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Vibe hai">Vibe hai</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹43.42</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="350" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">💃</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">350 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Bindaas">Bindaas</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹152</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="350" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">😲</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">350 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Aiyyo!">Aiyyo!</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹152</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="400" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎊</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">400 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Badhai ho">Badhai ho</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹174</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="800" data-cat="indian"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🧧</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">800 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Lucky lifafa">Lucky lifafa</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹347</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="10" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🪙</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">10 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Gold coin">Gold coin</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹4.34</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="10" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">⌨️</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">10 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="W">W</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹4.34</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="10" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">⌨️</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">10 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Press F">Press F</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹4.34</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="20" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎮</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">20 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="GGEZ">GGEZ</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹8.69</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="200" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🐱</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">200 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Jammin">Jammin</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹86.85</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="200" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🔥</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">200 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="OP">OP</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹86.85</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="250" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎷</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">250 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Saxophone">Saxophone</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹109</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="250" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">👑</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">250 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="MVP">MVP</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹109</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="250" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🪦</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">250 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="GG gravestone">GG gravestone</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹109</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="500" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎮</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">500 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Controller">Controller</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹217</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="750" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🍳</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">750 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Let em cook">Let em cook</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹326</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="800" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">⌨️</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">800 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="GG keys">GG keys</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹347</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="1000" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">👻</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">1,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Gamer ghost">Gamer ghost</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹434</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="1000" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎁</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">1,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Loot box">Loot box</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹434</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="1000" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🐐</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">1,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Goat trophy">Goat trophy</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹434</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="2500" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">😎</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">2,500 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Aura Farming">Aura Farming</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹1,086</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="2500" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">💀</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">2,500 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Skull dance">Skull dance</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹1,086</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="10000" data-cat="gaming"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🚀</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">10,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Super GG">Super GG</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹4,342</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="7000" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎉</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">7,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Hooray">Hooray</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹3,040</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="7800" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎸</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">7,800 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Rock star">Rock star</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹3,387</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="9500" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🏎️</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">9,500 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Sports car">Sports car</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹4,125</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="10000" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🚘</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">10,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Limo">Limo</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹4,342</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="10000" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🍰</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">10,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Trifle smash">Trifle smash</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹4,342</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="12000" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🏮</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">12,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Matsuri">Matsuri</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹5,211</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="12000" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🦭</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">12,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Seal splash">Seal splash</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹5,211</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="12000" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">⚽</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">12,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Ball party">Ball party</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹5,211</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="15000" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🐶</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">15,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Gamer corgi">Gamer corgi</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹6,514</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="15000" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🗼</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">15,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Tokyo Night">Tokyo Night</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹6,514</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="15500" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎪</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">15,500 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Night market">Night market</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹6,731</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="17000" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎤</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">17,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Idol Life">Idol Life</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹7,382</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="17000" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🏆</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">17,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Victory spin">Victory spin</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹7,382</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="18000" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🏰</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">18,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Castle">Castle</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹7,816</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="20000" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🏎️</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">20,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Racing game">Racing game</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹8,685</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="20000" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎂</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">20,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Happy Birthday">Happy Birthday</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹8,685</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="22500" data-cat="mega"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🌊</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">22,500 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Seaside">Seaside</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹9,771</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="2" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">⭐</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">2 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Star">Star</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹0.87</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="2" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">✨</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">2 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Sparkles">Sparkles</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹0.87</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="2" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">💯</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">2 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="100">100</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹0.87</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="5" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🦴</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">5 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Treat">Treat</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹2.17</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="6" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🌶️</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">6 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Chili">Chili</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹2.61</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="20" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🧄</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">20 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Garlic">Garlic</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹8.69</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="20" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎉</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">20 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Party hat">Party hat</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹8.69</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="60" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🍩</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">60 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Fox on donut">Fox on donut</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹26.05</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="350" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🫰</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">350 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Finger heart">Finger heart</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹152</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="500" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎇</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">500 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Fuljhadi spark">Fuljhadi spark</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹217</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="600" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">☕</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">600 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Latte">Latte</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹261</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="600" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎤</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">600 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Mic drop">Mic drop</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹261</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="1000" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎂</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">1,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Trophy cake">Trophy cake</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹434</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="1000" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🎸</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">1,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Guitar">Guitar</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹434</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="1500" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🫧</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">1,500 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Bubble heart">Bubble heart</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹651</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="5000" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🍂</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">5,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Falling leaves">Falling leaves</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹2,171</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="5000" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🍪</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">5,000 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Biscuit tin">Biscuit tin</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹2,171</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="5500" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🍣</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">5,500 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Sushi">Sushi</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹2,388</div>
+        </div>\n        <div class="gift-preset-card" data-jewels="6800" data-cat="emotes"
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.2s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 1.6rem;">🍲</span>
+            <span class="pill-badge pill-purple" style="font-weight: 700; font-size: 0.72rem;">6,800 💎</span>
+          </div>
+          <div style="font-weight: 700; color: var(--text-primary); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Hot pot">Hot pot</div>
+          <div class="gift-take-label" style="font-size: 0.78rem; color: #10b981; font-weight: 700; margin-top: 3px;">Take: ~₹2,953</div>
         </div>
       </div>
+    </section>
+
+    <!-- 4. Official YouTube India "Get Jewels" Packs Breakdown -->
+    <section class="config-card" style="max-width: 860px; margin: 0 auto 32px auto; padding: 24px 26px; border-radius: 18px;">
+      <div style="margin-bottom: 16px;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+          <span>🛒</span> YouTube India "Get Jewels" Bundle Prices &amp; Revenue Split
+        </h2>
+        <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">
+          Actual prices fans pay on the YouTube mobile app vs what the streamer receives.
+        </p>
+      </div>
+
+      <div class="table-card" style="overflow-x: auto;">
+        <table class="data-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+          <thead>
+            <tr>
+              <th style="text-align: left; padding: 10px 12px;">Jewels Pack</th>
+              <th style="text-align: right; padding: 10px 12px;">Fan Pays (INR)</th>
+              <th style="text-align: right; padding: 10px 12px;">Price Per Jewel</th>
+              <th style="text-align: right; padding: 10px 12px;">Creator Takes (Net INR)</th>
+              <th style="text-align: right; padding: 10px 12px;">Creator Takes (USD)</th>
+              <th style="text-align: center; padding: 10px 12px;">Streamer Share</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 10px 12px;"><strong>💎 50 Jewels</strong></td>
+              <td style="text-align: right; color: var(--text-primary); font-weight: 600; padding: 10px 12px;">₹95</td>
+              <td style="text-align: right; color: var(--text-muted); padding: 10px 12px;">₹1.90</td>
+              <td style="text-align: right; color: #10b981; font-weight: 700; padding: 10px 12px;">₹21.71</td>
+              <td style="text-align: right; color: #10b981; padding: 10px 12px;">$0.25</td>
+              <td style="text-align: center; padding: 10px 12px;"><span class="pill-badge pill-amber">~23%</span></td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 12px;"><strong>💎 300 Jewels</strong></td>
+              <td style="text-align: right; color: var(--text-primary); font-weight: 600; padding: 10px 12px;">₹479</td>
+              <td style="text-align: right; color: var(--text-muted); padding: 10px 12px;">₹1.60</td>
+              <td style="text-align: right; color: #10b981; font-weight: 700; padding: 10px 12px;">₹130.28</td>
+              <td style="text-align: right; color: #10b981; padding: 10px 12px;">$1.50</td>
+              <td style="text-align: center; padding: 10px 12px;"><span class="pill-badge pill-amber">~27%</span></td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 12px;"><strong>💎 700 Jewels</strong></td>
+              <td style="text-align: right; color: var(--text-primary); font-weight: 600; padding: 10px 12px;">₹959</td>
+              <td style="text-align: right; color: var(--text-muted); padding: 10px 12px;">₹1.37</td>
+              <td style="text-align: right; color: #10b981; font-weight: 700; padding: 10px 12px;">₹303.98</td>
+              <td style="text-align: right; color: #10b981; padding: 10px 12px;">$3.50</td>
+              <td style="text-align: center; padding: 10px 12px;"><span class="pill-badge pill-green">~32%</span></td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 12px;"><strong>💎 1,500 Jewels</strong></td>
+              <td style="text-align: right; color: var(--text-primary); font-weight: 600; padding: 10px 12px;">₹1,900</td>
+              <td style="text-align: right; color: var(--text-muted); padding: 10px 12px;">₹1.27</td>
+              <td style="text-align: right; color: #10b981; font-weight: 700; padding: 10px 12px;">₹651.38</td>
+              <td style="text-align: right; color: #10b981; padding: 10px 12px;">$7.50</td>
+              <td style="text-align: center; padding: 10px 12px;"><span class="pill-badge pill-green">~34%</span></td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 12px;"><strong>💎 4,000 Jewels</strong></td>
+              <td style="text-align: right; color: var(--text-primary); font-weight: 600; padding: 10px 12px;">₹4,799</td>
+              <td style="text-align: right; color: var(--text-muted); padding: 10px 12px;">₹1.20</td>
+              <td style="text-align: right; color: #10b981; font-weight: 700; padding: 10px 12px;">₹1,737.00</td>
+              <td style="text-align: right; color: #10b981; padding: 10px 12px;">$20.00</td>
+              <td style="text-align: center; padding: 10px 12px;"><span class="pill-badge pill-green">~36%</span></td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 12px;"><strong>💎 8,000 Jewels</strong></td>
+              <td style="text-align: right; color: var(--text-primary); font-weight: 600; padding: 10px 12px;">₹9,500</td>
+              <td style="text-align: right; color: var(--text-muted); padding: 10px 12px;">₹1.19</td>
+              <td style="text-align: right; color: #10b981; font-weight: 700; padding: 10px 12px;">₹3,474.00</td>
+              <td style="text-align: right; color: #10b981; padding: 10px 12px;">$40.00</td>
+              <td style="text-align: center; padding: 10px 12px;"><span class="pill-badge pill-purple">~37%</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 10px; margin-bottom: 0;">
+        * Note: Remainder goes toward Google Play / Apple App Store in-app transaction fees (up to 30%) and YouTube platform infrastructure costs.
+      </p>
     </section>
 
     <!-- 5. Frequently Asked Questions -->
@@ -854,7 +1408,7 @@
   </footer>
 
   <script src="auth.js?v=5.0"></script>
-  <script src="jewels-calc.js?v=2.6"></script>
+  <script src="jewels-calc.js?v=3.0"></script>
   <script src="maintenance.js?v=3.0"></script>
 </body>
 
