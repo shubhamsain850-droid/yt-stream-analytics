@@ -5,7 +5,9 @@
 
 import { timingSafeEqualBytes } from './security.js';
 
-export const CREDIT_UNIT_MESSAGES = 1000; // 1 Credit = 1,000 chats/comments
+export const CREDIT_UNIT_CHATS = 3000; // 1 Credit = 3,000 Live Chats
+export const CREDIT_UNIT_COMMENTS = 1000; // 1 Credit = 1,000 Video Comments
+export const CREDIT_UNIT_MESSAGES = 3000; // Standard 1 Credit = 3,000 live chats
 
 export const CREDIT_PACKS = {
   // Global USD Volume Packs ($19.99 / 200 Streams • $29 / 500 Streams • $49 / 1,000 Streams)
@@ -16,11 +18,12 @@ export const CREDIT_PACKS = {
     market: 'USD',
     name: 'Starter Pack',
     credits: 200,
-    chatsAllowance: 200000,
+    chatsAllowance: 600000,
+    commentsAllowance: 200000,
     streamsAllowance: 200,
     usdPrice: 19.99,
     usdLabel: '$19.99',
-    unitLabel: '$0.10 / stream',
+    unitLabel: '$0.10 / credit',
     minUsdCents: 1500,
   },
   credits_500: {
@@ -30,11 +33,12 @@ export const CREDIT_PACKS = {
     market: 'USD',
     name: 'Growth Pack',
     credits: 500,
-    chatsAllowance: 500000,
+    chatsAllowance: 1500000,
+    commentsAllowance: 500000,
     streamsAllowance: 500,
     usdPrice: 29.0,
     usdLabel: '$29.00',
-    unitLabel: '$0.058 / stream',
+    unitLabel: '$0.058 / credit',
     minUsdCents: 2400,
   },
   credits_1000: {
@@ -44,11 +48,12 @@ export const CREDIT_PACKS = {
     market: 'USD',
     name: 'Agency Pack',
     credits: 1000,
-    chatsAllowance: 1000000,
+    chatsAllowance: 3000000,
+    commentsAllowance: 1000000,
     streamsAllowance: 1000,
     usdPrice: 49.0,
     usdLabel: '$49.00',
-    unitLabel: '$0.049 / stream',
+    unitLabel: '$0.049 / credit',
     minUsdCents: 4000,
   },
   // Global USD Mini Packs ($2.99 / 10 Streams • $6.99 / 30 Streams)
@@ -59,11 +64,12 @@ export const CREDIT_PACKS = {
     market: 'USD',
     name: 'Starter Mini Pack',
     credits: 10,
-    chatsAllowance: 10000,
+    chatsAllowance: 30000,
+    commentsAllowance: 10000,
     streamsAllowance: 10,
     usdPrice: 2.99,
     usdLabel: '$2.99',
-    unitLabel: '$0.30 / stream',
+    unitLabel: '$0.30 / credit',
     minUsdCents: 200,
   },
   usd_30: {
@@ -73,11 +79,12 @@ export const CREDIT_PACKS = {
     market: 'USD',
     name: 'Creator Mini Pack',
     credits: 30,
-    chatsAllowance: 30000,
+    chatsAllowance: 90000,
+    commentsAllowance: 30000,
     streamsAllowance: 30,
     usdPrice: 6.99,
     usdLabel: '$6.99',
-    unitLabel: '$0.23 / stream',
+    unitLabel: '$0.23 / credit',
     minUsdCents: 500,
   },
   // India INR Mini Packs (₹49 / 10 Streams • ₹149 / 30 Streams • ₹499 / 100 Streams)
@@ -88,11 +95,12 @@ export const CREDIT_PACKS = {
     market: 'INR',
     name: 'Starter Mini Pack (India)',
     credits: 10,
-    chatsAllowance: 10000,
+    chatsAllowance: 30000,
+    commentsAllowance: 10000,
     streamsAllowance: 10,
     inrRegular: 49,
     inrFirst: 49,
-    unitLabel: '₹4.90 / stream',
+    unitLabel: '₹4.90 / credit',
   },
   in_30: {
     id: 'in_30',
@@ -101,11 +109,12 @@ export const CREDIT_PACKS = {
     market: 'INR',
     name: 'Creator Mini Pack (India)',
     credits: 30,
-    chatsAllowance: 30000,
+    chatsAllowance: 90000,
+    commentsAllowance: 30000,
     streamsAllowance: 30,
     inrRegular: 149,
     inrFirst: 149,
-    unitLabel: '₹4.97 / stream',
+    unitLabel: '₹4.97 / credit',
   },
   in_100: {
     id: 'in_100',
@@ -114,11 +123,12 @@ export const CREDIT_PACKS = {
     market: 'INR',
     name: 'Agency Mini Pack (India)',
     credits: 100,
-    chatsAllowance: 100000,
+    chatsAllowance: 300000,
+    commentsAllowance: 100000,
     streamsAllowance: 100,
     inrRegular: 499,
     inrFirst: 499,
-    unitLabel: '₹4.99 / stream',
+    unitLabel: '₹4.99 / credit',
   },
   // India INR Volume Packs (₹799 / 200 Streams • ₹1,299 / 500 Streams • ₹1,799 / 1,000 Streams)
   in_200: {
@@ -128,11 +138,12 @@ export const CREDIT_PACKS = {
     market: 'INR',
     name: 'Starter Volume Pack (India)',
     credits: 200,
-    chatsAllowance: 200000,
+    chatsAllowance: 600000,
+    commentsAllowance: 200000,
     streamsAllowance: 200,
     inrRegular: 799,
     inrFirst: 799,
-    unitLabel: '₹4.00 / stream',
+    unitLabel: '₹4.00 / credit',
   },
   in_500: {
     id: 'in_500',
@@ -141,11 +152,12 @@ export const CREDIT_PACKS = {
     market: 'INR',
     name: 'Growth Volume Pack (India)',
     credits: 500,
-    chatsAllowance: 500000,
+    chatsAllowance: 1500000,
+    commentsAllowance: 500000,
     streamsAllowance: 500,
     inrRegular: 1299,
     inrFirst: 1299,
-    unitLabel: '₹2.60 / stream',
+    unitLabel: '₹2.60 / credit',
   },
   in_1000: {
     id: 'in_1000',
@@ -154,11 +166,12 @@ export const CREDIT_PACKS = {
     market: 'INR',
     name: 'Agency Volume Pack (India)',
     credits: 1000,
-    chatsAllowance: 1000000,
+    chatsAllowance: 3000000,
+    commentsAllowance: 1000000,
     streamsAllowance: 1000,
     inrRegular: 1799,
     inrFirst: 1799,
-    unitLabel: '₹1.80 / stream',
+    unitLabel: '₹1.80 / credit',
   },
   // Backward-compatible keys for legacy payment records
   credits_10: {

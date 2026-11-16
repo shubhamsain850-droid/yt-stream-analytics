@@ -26,6 +26,8 @@ export async function onRequestPost({ request, env }) {
     }
 
     const mode = body?.mode === 'unlock' ? 'unlock' : 'volume';
+    const kind = body?.kind === 'comments' ? 'comments' : 'chats';
+    const unitSize = kind === 'comments' ? 1000 : CREDIT_UNIT_MESSAGES; // 1,000 for comments, 3,000 for live chats
     const totalMessages = Math.max(0, Math.floor(Number(body?.totalMessages || 0)));
     const unlockedCount = Math.max(0, Math.floor(Number(body?.unlockedCount || 0)));
     const streamId = typeof body?.streamId === 'string' ? body.streamId.slice(0, 32) : '';
@@ -35,11 +37,11 @@ export async function onRequestPost({ request, env }) {
       const requested = Math.max(0, Math.floor(Number(body?.creditsNeeded || 0)));
       const remainingMessages = Math.max(0, totalMessages - unlockedCount);
       const maxForRemaining = totalMessages > 0
-        ? Math.ceil(remainingMessages / CREDIT_UNIT_MESSAGES)
+        ? Math.ceil(remainingMessages / unitSize)
         : requested;
       targetCredits = Math.min(2000, Math.max(0, Math.min(requested, maxForRemaining)));
     } else {
-      // Option 1 Flat Pricing: 1 Credit = 1 Full Stream Audit (Unlimited messages, zero extra volume surcharge)
+      // Option 1 Flat Pricing: 1 Credit = 1 Full Stream Audit (Unlimited Super Chats & Jewels)
       targetCredits = 0;
     }
 
@@ -73,7 +75,7 @@ export async function onRequestPost({ request, env }) {
       deducted: deductRes.deducted,
       requiredExtraCredits: targetCredits,
       shortfall: Math.max(0, targetCredits - deductRes.deducted),
-      addedMessageAllowance: deductRes.deducted * CREDIT_UNIT_MESSAGES,
+      addedMessageAllowance: deductRes.deducted * unitSize,
       creditsRemaining: refreshedUser?.creditsBalance ?? deductRes.balance,
       user: refreshedUser,
       quota,

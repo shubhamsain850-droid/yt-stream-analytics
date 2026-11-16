@@ -1186,7 +1186,7 @@
 
         title: `🔒 Sign in & Credits Required (${count} CR Base + Extra Volume)`,
 
-        sub: 'Bulk batch chat extraction does not use free quota. 1 CR unlocks stream + first 1,000 chats (1 CR / extra 1k chats actually fetched).',
+        sub: 'Bulk batch chat extraction does not use free quota. 1 CR unlocks stream + up to 3,000 chats (1 CR / extra 3k chats).',
 
         btnLabel: '🔑 Sign In / Buy Credits',
 
@@ -1246,7 +1246,7 @@
 
       title: `✅ Ready: ${count} CR Base + Volume Metered • ${credits} CR Available`,
 
-      sub: 'Fair billing: 1 CR per stream + 1 CR per extra 1,000 chats actually returned.'
+      sub: 'Fair billing: 1 CR per stream (up to 3,000 chats) + 1 CR per extra 3,000 chats actually returned.'
 
     });
 
@@ -1260,7 +1260,7 @@
 
     const limit = parseInt(el.commentsLimitSelect.value, 10) || 1000;
     const isHighVolume = limit > 1000;
-    const neededCredits = 1; // Uniform rule: Flat 1 Credit = 1 Full Video Comments Export
+    const neededCredits = Math.max(1, Math.ceil(limit / 1000));
     const auth = window.TubeMetrixAuth;
     const loggedIn = auth?.isLoggedIn?.() || false;
     const credits = auth?.getCreditsBalance?.() ?? 0;
@@ -1277,53 +1277,53 @@
         return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
           toneClass: 'is-warn',
           title: `🔒 Free Quota Used — Sign In / 1 CR Required`,
-          sub: `Your free weekly runs are used up. Sign in & use 1 Credit to download comments.`,
+          sub: `Your free weekly runs are used up. Sign in & use 1 Credit (1 CR = 1,000 comments).`,
           btnLabel: '🔑 Sign In / Buy Credits',
           btnAction: 'auth',
           neededCredits: 1,
-          modalSubtitle: `Sign in to continue downloading comments (Flat 1 Credit = 1 Video Comments Export).`
+          modalSubtitle: `Sign in to download comments (1 Credit = 1,000 Comments).`
         });
       }
       if (credits < 1) {
         return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
           toneClass: 'is-danger',
           title: `⚠️ Weekly Free Quota Used & 0 Credits Available (Needs 1 CR)`,
-          sub: `Top up 1 Credit (from ₹49 / $2.99) to download up to ${limit.toLocaleString()} video comments.`,
+          sub: `Top up 1 Credit (from ₹49 / $2.99) to download up to ${limit.toLocaleString()} video comments (1 CR = 1,000 comments).`,
           btnLabel: '💎 Recharge Credits',
           neededCredits: 1,
-          modalSubtitle: `Free runs reached 0/week. Recharge Credits (₹49 / $2.99 packs) — Flat 1 Credit = 1 Video Comments Export.`
+          modalSubtitle: `Recharge Credits (₹49 / $2.99 packs) — 1 Credit = 1,000 Comments.`
         });
       }
       return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
-        title: `✅ Ready: Flat 1 CR • ${credits} CR Available`,
-        sub: `Weekly free quota used; this extraction uses Flat 1 Credit cleanly.`
+        title: `✅ Ready: 1 CR • ${credits} CR Available`,
+        sub: `Weekly free quota used; this extraction uses 1 Credit cleanly (up to 1,000 comments).`
       });
     }
 
     if (!loggedIn) {
       return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
         toneClass: 'is-warn',
-        title: `🔒 Sign In Required • Flat 1 Credit per Video Export`,
-        sub: `Download up to ${limit.toLocaleString()} comments for just Flat 1 Credit (Unlimited Comments).`,
+        title: `🔒 Sign In Required • ${neededCredits} Credits Required`,
+        sub: `Downloading up to ${limit.toLocaleString()} comments requires ${neededCredits} Credits (1 CR = 1,000 comments).`,
         btnLabel: '🔑 Sign In / Buy Credits',
         btnAction: 'auth',
-        neededCredits: 1,
-        modalSubtitle: `Downloading up to ${limit.toLocaleString()} comments requires 1 Credit (Flat 1 Credit = 1 Full Video Comments Export).`
+        neededCredits: neededCredits,
+        modalSubtitle: `Downloading up to ${limit.toLocaleString()} comments requires ${neededCredits} Credits (1 CR = 1,000 comments).`
       });
     }
-    if (credits === 0) {
+    if (credits < neededCredits) {
       return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
         toneClass: 'is-danger',
-        title: `⚠️ Insufficient Credits: 0 CR Available (Needs 1 CR)`,
-        sub: `High-volume export (up to ${limit.toLocaleString()} comments) requires 1 Credit. Prepaid packs start from ₹49 / $2.99.`,
+        title: `⚠️ Insufficient Credits: ${credits} / ${neededCredits} CR (Needs ${neededCredits - credits} More)`,
+        sub: `Downloading up to ${limit.toLocaleString()} comments requires ${neededCredits} Credits. Top up credits to proceed.`,
         btnLabel: '💎 Recharge Credits',
-        neededCredits: 1,
-        modalSubtitle: `Downloading up to ${limit.toLocaleString()} comments needs Flat 1 CR (never expires).`
+        neededCredits: neededCredits,
+        modalSubtitle: `Downloading up to ${limit.toLocaleString()} comments requires ${neededCredits} Credits (1 CR = 1,000 comments).`
       });
     }
     return renderChatPreflightBar(el.commentsCostPreviewBar, 'commentsPreflightBuyBtn', {
-      title: `✅ Ready: Flat 1 CR • ${credits} CR Available`,
-      sub: `High-volume export (up to ${limit.toLocaleString()} comments) uses Flat 1 Credit cleanly.`
+      title: `✅ Ready: ${neededCredits} CR • ${credits} CR Available`,
+      sub: `High-volume export (up to ${limit.toLocaleString()} comments) uses ${neededCredits} Credits (1 CR = 1,000 comments).`
     });
 
   }
@@ -1590,15 +1590,19 @@
 
 
 
+    const isComments = ckpt.kind === 'comments_overflow';
+
+    const perCreditUnit = isComments ? 1000 : 3000;
+
     const remStreams = Array.isArray(ckpt.remainingVids) ? ckpt.remainingVids.length : 0;
 
-    const tailCredits = Math.ceil((ckpt.lockedTail?.length || 0) / 1000);
+    const tailCredits = Math.ceil((ckpt.lockedTail?.length || 0) / perCreditUnit);
 
     const serverCredits = ckpt.hasMoreOnServer
 
       ? (ckpt.requestedLimit
 
-          ? Math.max(1, Math.ceil((ckpt.requestedLimit - (ckpt.unlockedOnStream || 0)) / 1000))
+          ? Math.max(1, Math.ceil((ckpt.requestedLimit - (ckpt.unlockedOnStream || 0)) / perCreditUnit))
 
           : 1)
 
@@ -2164,15 +2168,21 @@
 
     const bal = window.TubeMetrixAuth?.getCreditsBalance ? window.TubeMetrixAuth.getCreditsBalance() : 0;
 
+    const isComments = ckpt.kind === 'comments_overflow';
+
+    const perCreditUnit = isComments ? 1000 : 3000;
+
     const lockedCount = hasLockedTail ? ckpt.lockedTail.length : 0;
 
     const remStreamsCount = hasRemainingStreams ? ckpt.remainingVids.length : 0;
 
-    const creditsForLocked = Math.ceil(lockedCount / 1000);
+    const creditsForLocked = Math.ceil(lockedCount / perCreditUnit);
 
     const totalEstimatedCredits = Math.max(hasContinuation ? 1 : 0, creditsForLocked + remStreamsCount);
 
-    const unitNoun = ckpt.kind === 'comments_overflow' ? 'comments' : 'chats';
+    const unitNoun = isComments ? 'comments' : 'chats';
+
+    const unitRuleDesc = isComments ? '1 Credit = 1,000 Comments' : '1 Credit = 3,000 Live Chats';
 
 
 
@@ -2200,15 +2210,15 @@
 
     } else if (hasLockedTail) {
 
-      headline = `🔒 Credit Limit Reached — Showing ${ckpt.unlockedOnStream?.toLocaleString() || 0} of ${ckpt.lockedStreamTotal?.toLocaleString() || 0} ${ckpt.kind === 'comments_overflow' ? 'Comments' : 'Chats'}`;
+      headline = `🔒 Credit Limit Reached — Showing ${ckpt.unlockedOnStream?.toLocaleString() || 0} of ${ckpt.lockedStreamTotal?.toLocaleString() || 0} ${isComments ? 'Comments' : 'Chats'}`;
 
-      subtext = `${lockedCount.toLocaleString()} extra ${unitNoun} are safely held and need up to ${creditsForLocked} Credit(s) to unlock & export (1 Credit = 1,000 ${unitNoun}).`;
+      subtext = `${lockedCount.toLocaleString()} extra ${unitNoun} are safely held and need up to ${creditsForLocked} Credit(s) to unlock & export (${unitRuleDesc}).`;
 
     } else if (hasContinuation) {
 
       const capTag = ckpt.pauseReason === 'free_limit' ? 'Free Tier Limit (1,000)' : 'Credit Limit Reached';
 
-      headline = `🔒 ${capTag} — Showing ${(ckpt.unlockedOnStream || 0).toLocaleString()} ${ckpt.kind === 'comments_overflow' ? 'Comments' : 'Chats'} (More Available)`;
+      headline = `🔒 ${capTag} — Showing ${(ckpt.unlockedOnStream || 0).toLocaleString()} ${isComments ? 'Comments' : 'Chats'} (More Available)`;
 
       subtext = `Stopped early at your current allowance so zero extra ${unitNoun} were wasted. Buy credits or click Unlock Next Chunk to continue seamlessly.`;
 
@@ -2238,7 +2248,7 @@
 
     } else if (hasLockedTail && creditsForLocked > bal) {
 
-      const unlockNowCount = bal * 1000;
+      const unlockNowCount = bal * perCreditUnit;
 
       primaryLabel = `▶ Unlock +${unlockNowCount.toLocaleString()} More (${bal} CR)`;
 
@@ -2558,11 +2568,15 @@
 
     let bal = window.TubeMetrixAuth.getCreditsBalance();
 
+    const isCommentsResume = ckpt.kind === 'comments_overflow';
+
+    const perCreditUnitResume = isCommentsResume ? 1000 : 3000;
+
     if (bal < 1) {
 
       const remCount = (Array.isArray(ckpt.remainingVids) ? ckpt.remainingVids.length : 0) +
 
-        Math.max(ckpt.hasMoreOnServer ? 1 : 0, Math.ceil((ckpt.lockedTail?.length || 0) / 1000));
+        Math.max(ckpt.hasMoreOnServer ? 1 : 0, Math.ceil((ckpt.lockedTail?.length || 0) / perCreditUnitResume));
 
       window.TubeMetrixAuth?.openCreditsModal?.(
 
@@ -2576,7 +2590,7 @@
 
 
 
-    const resumeBackupId = ckpt.cloudBackupId || `${ckpt.kind === 'comments_overflow' ? 'comm' : 'chat'}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const resumeBackupId = ckpt.cloudBackupId || `${isCommentsResume ? 'comm' : 'chat'}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
 
 
@@ -2584,7 +2598,7 @@
 
     if (Array.isArray(ckpt.lockedTail) && ckpt.lockedTail.length > 0) {
 
-      const creditsNeeded = Math.ceil(ckpt.lockedTail.length / 1000);
+      const creditsNeeded = Math.ceil(ckpt.lockedTail.length / perCreditUnitResume);
 
       const unlockRes = await window.TubeMetrixAuth.unlockRemainingChatCredits({
 
@@ -2600,7 +2614,7 @@
 
 
 
-      const added = Number(unlockRes?.addedMessageAllowance || (unlockRes?.deducted || 0) * 1000);
+      const added = Number(unlockRes?.addedMessageAllowance || (unlockRes?.deducted || 0) * perCreditUnitResume);
 
       if (added <= 0) {
 
@@ -3199,7 +3213,7 @@
 
         : 0;
 
-      const maxFetch = paidByCredits ? Math.min(200000, 1000 + remBalAfterBase * 1000) : 1000;
+      const maxFetch = paidByCredits ? Math.min(60000, 3000 + remBalAfterBase * 3000) : 1000;
 
       startChatProgressHeartbeat(25, 88, [
 
@@ -3269,19 +3283,37 @@
 
         let allowedCount = rawMessages.length;
 
-        if (rawMessages.length > 1000) {
+        const baseChatCap = paidByCredits ? 3000 : 1000;
 
-          if (paidByCredits && window.TubeMetrixAuth?.settleChatVolumeCredits) {
+        if (rawMessages.length > baseChatCap) {
 
-            const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(rawMessages.length, vid);
+          if (paidByCredits && remBalAfterBase > 0 && window.TubeMetrixAuth?.unlockRemainingChatCredits) {
 
-            const extraDeducted = Number(settleRes?.deducted || 0);
+            const extraMsgs = rawMessages.length - 3000;
 
-            allowedCount = rawMessages.length; // Flat 1 Credit = Full Chat Replay
+            const extraCreditsNeeded = Math.ceil(extraMsgs / 3000);
+
+            const uRes = await window.TubeMetrixAuth.unlockRemainingChatCredits({
+
+              streamId: vid,
+
+              totalMessages: rawMessages.length,
+
+              unlockedCount: 3000,
+
+              creditsNeeded: extraCreditsNeeded,
+
+              silent: true,
+
+            });
+
+            const added = Number(uRes?.addedMessageAllowance || (uRes?.deducted || 0) * 3000);
+
+            allowedCount = Math.min(rawMessages.length, 3000 + added);
 
           } else {
 
-            allowedCount = 1000;
+            allowedCount = baseChatCap;
 
           }
 
@@ -3363,19 +3395,17 @@
 
           if (chunkIdx === 0) {
 
-            if (chunkMsgs.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
+            const baseCap = paidByCredits ? 3000 : 1000;
 
-              const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(chunkMsgs.length, vid);
+            if (chunkMsgs.length > baseCap) {
 
-              const extraDeducted = Number(settleRes?.deducted || 0);
-
-              allowedInChunk = chunkMsgs.length; // Flat 1 Credit = Full Chat Replay
+              allowedInChunk = baseCap;
 
             }
 
           } else if (window.TubeMetrixAuth?.unlockRemainingChatCredits) {
 
-            const needCr = Math.ceil(chunkMsgs.length / 1000);
+            const needCr = Math.ceil(chunkMsgs.length / 3000);
 
             const uRes = await window.TubeMetrixAuth.unlockRemainingChatCredits({
 
@@ -3391,7 +3421,7 @@
 
             });
 
-            allowedInChunk = Math.min(chunkMsgs.length, Number(uRes?.addedMessageAllowance || 0));
+            allowedInChunk = Math.min(chunkMsgs.length, Number(uRes?.addedMessageAllowance || (uRes?.deducted || 0) * 3000));
 
           }
 
@@ -4139,7 +4169,7 @@
 
           : 0;
 
-        const streamCap = paidByCredits ? 500000 : 1000; // Flat 1 Credit = 1 Full Stream (Unlimited chats)
+        const streamCap = paidByCredits ? 3000 : 1000; // 1 Credit = Up to 3,000 Live Chats per stream
 
         const maxStreamPct = Math.min(98, Math.round(((overallIdx + 0.85) / totalPlanned) * 100));
 
@@ -4175,19 +4205,7 @@
 
 
 
-          let allowedForStream = rawMsgs.length;
-
-          if (paidByCredits && rawMsgs.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
-
-            const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(rawMsgs.length, vid);
-
-            const extraDeducted = Number(settleRes?.deducted || 0);
-
-            allowedForStream = rawMsgs.length; // Flat 1 Credit = 1 Full Stream (No volume penalty)
-
-            updateChatLiveCreditBar(true, `Settled Stream ${overallIdx}/${totalPlanned}`);
-
-          }
+          let allowedForStream = Math.min(rawMsgs.length, streamCap);
 
 
 
@@ -4543,6 +4561,8 @@
 
     const isHighVolume = limit > 1000;
 
+    const neededCredits = Math.max(1, Math.ceil(limit / 1000));
+
     if (window.TubeMetrixAuth) {
 
       if (isHighVolume) {
@@ -4553,7 +4573,7 @@
 
           window.TubeMetrixAuth.openAuthModal?.(
 
-            `Downloading up to ${limit.toLocaleString()} video comments requires Google Sign-In and Prepaid Credits (Flat 1 Credit = 1 Full Video Comments Export).`
+            `Downloading up to ${limit.toLocaleString()} video comments requires Google Sign-In and ${neededCredits} Prepaid Credits (1 Credit = 1,000 Comments).`
 
           );
 
@@ -4561,7 +4581,7 @@
 
         }
 
-        const ok = await window.TubeMetrixAuth.authorizeRun?.(1, { mode: 'comments', credits: 1 });
+        const ok = await window.TubeMetrixAuth.authorizeRun?.(neededCredits, { mode: 'comments', credits: neededCredits });
 
         if (!ok) return;
 
@@ -4579,17 +4599,7 @@
 
 
 
-    const remBalAfterBase = window.TubeMetrixAuth?.getCreditsBalance
-
-      ? window.TubeMetrixAuth.getCreditsBalance()
-
-      : 0;
-
-    const affordableLimit = isHighVolume
-
-      ? Math.min(limit, (1 + remBalAfterBase) * 1000)
-
-      : limit;
+    const affordableLimit = limit;
 
     const runBackupId = `comm_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
@@ -4681,17 +4691,7 @@
 
 
 
-        let allowedCount = fetchedComments.length;
-
-        if (isHighVolume && fetchedComments.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
-
-          const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(fetchedComments.length, vid);
-
-          const extraDeducted = Number(settleRes?.deducted || 0);
-
-          allowedCount = fetchedComments.length; // Flat 1 Credit = Full Comments Export
-
-        }
+        let allowedCount = Math.min(fetchedComments.length, affordableLimit);
 
 
 
@@ -4779,41 +4779,7 @@
 
 
 
-          let allowedInChunk = chunkItems.length;
-
-          if (chunkIdx === 0) {
-
-            if (isHighVolume && chunkItems.length > 1000 && window.TubeMetrixAuth?.settleChatVolumeCredits) {
-
-              const settleRes = await window.TubeMetrixAuth.settleChatVolumeCredits(chunkItems.length, vid);
-
-              const extraDeducted = Number(settleRes?.deducted || 0);
-
-              allowedInChunk = chunkItems.length; // Flat 1 Credit = Full Comments Export
-
-            }
-
-          } else if (window.TubeMetrixAuth?.unlockRemainingChatCredits) {
-
-            const needCr = Math.ceil(chunkItems.length / 1000);
-
-            const uRes = await window.TubeMetrixAuth.unlockRemainingChatCredits({
-
-              streamId: vid,
-
-              totalMessages: chunkItems.length,
-
-              unlockedCount: 0,
-
-              creditsNeeded: needCr,
-
-              silent: true,
-
-            });
-
-            allowedInChunk = Math.min(chunkItems.length, Number(uRes?.addedMessageAllowance || 0));
-
-          }
+          let allowedInChunk = Math.min(chunkItems.length, Math.max(0, affordableLimit - unlockedComments.length));
 
 
 

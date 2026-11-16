@@ -73,14 +73,14 @@
   {"@context":"https://schema.org","@type":"WebApplication","name":"TubeMetrix — YouTube Live Chat & Comments Downloader","url":"https://tubemetrix.net/chats","description":"Download YouTube live stream chat replays with timestamps, Superchats and Memberships. Bulk export comments from any YouTube video to CSV or Excel.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["YouTube Live Chat Replay Downloader","YouTube Comments Bulk Export","Superchat Filter & Export","Custom URL Batch Download","In-Browser Chat Viewer","CSV and Excel Export"]}
   </script>
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How to download YouTube live chat replay?","acceptedAnswer":{"@type":"Answer","text":"Paste your YouTube live stream URL into TubeMetrix Live Chat Downloader. The tool fetches the complete chat replay with timestamps, Superchats, and Memberships. Export to CSV, Excel, or TXT instantly."}},{"@type":"Question","name":"Can I export YouTube comments to Excel or CSV?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix supports one-click export of all YouTube video comments to Excel (.xls), CSV, TXT, and JSON. Use Option D (Video Comments) to download comments from any public YouTube video."}},{"@type":"Question","name":"What are the free limits and credit rates for live chat exports?","acceptedAnswer":{"@type":"Answer","text":"Single Stream mode includes 2 one-time free runs as a Guest and 3 free runs per week when signed in with Google (covering Single Live Chat or Single Video Comments up to 1,000). Custom URL Batch Export and Channel Multi Live Chat Export run on prepaid never-expiring Credits (Flat 1 Credit = 1 Full Stream Audit with Unlimited Chats or 1 Full Video Comments Export; packs from ₹49 / $2.99; credits never expire)."}},{"@type":"Question","name":"How to filter Superchats from live chat logs?","acceptedAnswer":{"@type":"Answer","text":"After downloading, open the in-browser Chat Viewer and use the Event Type filter to show only Superchats. Set a minimum Superchat amount filter and sort by highest value."}},{"@type":"Question","name":"Does TubeMetrix work with YouTube Shorts comments?","acceptedAnswer":{"@type":"Answer","text":"Yes, TubeMetrix can download comments from YouTube Shorts, regular videos, and live stream replays. Simply paste the YouTube Shorts URL into the Video Comments tab."}}]}
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How to download YouTube live chat replay?","acceptedAnswer":{"@type":"Answer","text":"Paste your YouTube live stream URL into TubeMetrix Live Chat Downloader. The tool fetches the complete chat replay with timestamps, Superchats, and Memberships. Export to CSV, Excel, or TXT instantly."}},{"@type":"Question","name":"Can I export YouTube comments to Excel or CSV?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix supports one-click export of all YouTube video comments to Excel (.xls), CSV, TXT, and JSON. Use Option D (Video Comments) to download comments from any public YouTube video."}},{"@type":"Question","name":"What are the free limits and credit rates for live chat exports?","acceptedAnswer":{"@type":"Answer","text":"Single Stream mode includes 2 one-time free runs as a Guest and 3 free runs per week when signed in with Google (covering Single Live Chat or Single Video Comments up to 1,000). Custom URL Batch Export and high-volume runs use never-expiring prepaid Credits (1 Credit = 1 Full Stream Audit with Unlimited Super Chats • 1 Credit = 3,000 Live Chats • 1 Credit = 1,000 Video Comments; packs from ₹49 / $2.99; credits never expire)."}},{"@type":"Question","name":"How to filter Superchats from live chat logs?","acceptedAnswer":{"@type":"Answer","text":"After downloading, open the in-browser Chat Viewer and use the Event Type filter to show only Superchats. Set a minimum Superchat amount filter and sort by highest value."}},{"@type":"Question","name":"Does TubeMetrix work with YouTube Shorts comments?","acceptedAnswer":{"@type":"Answer","text":"Yes, TubeMetrix can download comments from YouTube Shorts, regular videos, and live stream replays. Simply paste the YouTube Shorts URL into the Video Comments tab."}}]}
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=9.6">
+  <link rel="stylesheet" href="styles.css?v=9.7">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -311,10 +311,10 @@
           <h3 class="pro-lock-title">Unlock Bulk Channel &amp; Date Range Chat Downloader</h3>
           <p class="pro-lock-desc">
             Download complete live chat logs, Superchats, and Member messages across any channel date window using
-            never-expiring prepaid credits (Flat 1 Credit = 1 Full Stream Audit • Unlimited Chats & Comments • zero subscriptions).
+            never-expiring prepaid credits (1 Credit = 1 Full Stream Audit • 3,000 Live Chats • 1,000 Comments • zero subscriptions).
           </p>
           <div class="pro-lock-perks">
-            <span class="pro-perk-item">✓ Flat 1 Credit = 1 Full Stream (Unlimited Chats)</span>
+            <span class="pro-perk-item">✓ 1 Credit = 3k Chats / 1k Comments / 1 Stream</span>
             <span class="pro-perk-item">✓ Highlighted Superchats &amp; Memberships</span>
             <span class="pro-perk-item">✓ 14-Day Cloud ZIP Backups</span>
             <span class="pro-perk-item">✓ Full JSON / CSV / Excel Batch Export</span>
@@ -462,14 +462,13 @@
           <label for="commentsLimitSelect" class="limit-label">Limit:</label>
           <select id="commentsLimitSelect" class="limit-select">
             <option value="100">100 Comments (Fast)</option>
-            <option value="300">300 Comments</option>
             <option value="500">500 Comments</option>
-            <option value="1000">1,000 Comments (Free Tier)</option>
-            <option value="2000">2,000 Comments</option>
-            <option value="5000">5,000 Comments</option>
-            <option value="10000">10,000 Comments</option>
-            <option value="25000">25,000 Comments</option>
-            <option value="50000" selected>50,000 Comments (Flat 1 Credit)</option>
+            <option value="1000" selected>1,000 Comments (Free Tier / 1 CR)</option>
+            <option value="2000">2,000 Comments (2 Credits)</option>
+            <option value="5000">5,000 Comments (5 Credits)</option>
+            <option value="10000">10,000 Comments (10 Credits)</option>
+            <option value="25000">25,000 Comments (25 Credits)</option>
+            <option value="50000">50,000 Comments (50 Credits • Max Cap)</option>
           </select>
         </div>
 
@@ -969,7 +968,7 @@
         <div class="info-box">
           <div class="info-icon">💭</div>
           <h4>Video &amp; Shorts Comments</h4>
-          <p>Extract top comments, replies &amp; pinned creators across any YouTube video or Short — <strong>Flat 1 Credit = 1 Full Video Comments Export (Unlimited Comments)</strong>.</p>
+          <p>Extract top comments, replies &amp; pinned creators across any YouTube video or Short — <strong>1 Credit = Up to 1,000 Comments &amp; Replies (Free tier up to 1,000 comments)</strong>.</p>
         </div>
         <div class="info-box">
           <div class="info-icon">☁️</div>
@@ -1023,7 +1022,7 @@
             <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Single Stream
               mode includes 2 one-time free runs as a Guest and 3 free runs per week after Google Sign-In (for single
               chat replays or up to 1,000 video comments). Custom URL Batch Export and Multi Live Chat Export (Date
-              Range) use never-expiring prepaid Credits (Flat 1 Credit = 1 Full Stream Audit with Unlimited Chats or 1 Full Video Comments Export; packs from ₹49 / $2.99; credits never expire).</p>
+              Range) use never-expiring prepaid Credits (1 Credit = 1 Full Stream Audit with Unlimited Super Chats • 1 Credit = 3,000 Live Chats • 1 Credit = 1,000 Video Comments; packs from ₹49 / $2.99; credits never expire).</p>
           </details>
           <details
             style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
@@ -1200,9 +1199,9 @@
     </div>
   </div>
 
-  <script src="auth.js?v=5.1"></script>
+  <script src="auth.js?v=5.2"></script>
   <script src="cloud-backup.js?v=1.0"></script>
-  <script src="chats.js?v=9.4"></script>
+  <script src="chats.js?v=9.5"></script>
   <script src="maintenance.js?v=3.0"></script>
 </body>
 
