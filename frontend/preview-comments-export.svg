@@ -17,7 +17,7 @@
   <circle cx="95" cy="56" r="6" fill="#ffbd2e"/>
   <circle cx="115" cy="56" r="6" fill="#27c93f"/>
   <rect x="300" y="42" width="600" height="28" rx="8" fill="#0c0d13" stroke="#232838"/>
-  <text x="600" y="61" fill="#94a3b8" font-family="sans-serif" font-size="12" font-weight="500" text-anchor="middle">https://tubemetrix.net/youtube-comments-downloader — YouTube Comments Exporter</text>
+  <text x="600" y="61" fill="#94a3b8" font-family="sans-serif" font-size="12" font-weight="500" text-anchor="middle">https://tubemetrix.net/chats — YouTube Comments Exporter</text>
 
   <!-- Export Banner -->
   <rect x="70" y="105" width="1060" height="120" rx="16" fill="url(#cardG)" stroke="#272c40"/>

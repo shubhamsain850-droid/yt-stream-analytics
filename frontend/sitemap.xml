@@ -12,7 +12,7 @@
     <priority>1.0</priority>
   </url>
 
-  <!-- Page 2: YouTube Live Chat Replay Downloader -->
+  <!-- Page 2: YouTube Live Chat & Comments Downloader -->
   <url>
     <loc>https://tubemetrix.net/chats</loc>
     <lastmod>2026-11-16</lastmod>
@@ -20,9 +20,9 @@
     <priority>0.9</priority>
   </url>
 
-  <!-- Page 3: YouTube Comments Downloader -->
+  <!-- Page 3: YouTube Channel Statistics & Analytics -->
   <url>
-    <loc>https://tubemetrix.net/youtube-comments-downloader</loc>
+    <loc>https://tubemetrix.net/revenue</loc>
     <lastmod>2026-11-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -33,23 +33,7 @@
     <loc>https://tubemetrix.net/youtube-jewels-calculator</loc>
     <lastmod>2026-11-16</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <!-- Page 5: YouTube Channel Statistics & Analytics -->
-  <url>
-    <loc>https://tubemetrix.net/revenue</loc>
-    <lastmod>2026-11-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <!-- Page 6: Free SocialBlade Alternative & Comparison -->
-  <url>
-    <loc>https://tubemetrix.net/socialblade-alternative</loc>
-    <lastmod>2026-11-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.8</priority>
   </url>
 
   <!-- Legal Pages -->
