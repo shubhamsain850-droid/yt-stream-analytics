@@ -1755,6 +1755,14 @@ body {
   .metrics-grid {
     grid-template-columns: 1fr;
   }
+
+  .user-dropdown-card {
+    left: 0 !important;
+    right: auto !important;
+    width: min(300px, calc(100vw - 20px)) !important;
+    max-width: calc(100vw - 20px) !important;
+    padding: 14px 12px !important;
+  }
 }
 
 /* ──────────────────────────────────────────
@@ -8157,11 +8165,13 @@ body.light-mode .glass-cue-btn {
   position: absolute;
   top: calc(100% + 12px);
   right: 0;
-  width: 280px;
+  width: 300px;
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
   background: #14161b;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
-  padding: 18px;
+  padding: 16px;
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
   z-index: 1000;
   backdrop-filter: blur(20px);
@@ -8230,10 +8240,10 @@ body.light-mode .glass-cue-btn {
 
 .dropdown-tier-status {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 5px;
   font-size: 0.8rem;
-  padding: 8px 10px;
+  padding: 9px 11px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
   margin-bottom: 12px;
@@ -8241,6 +8251,24 @@ body.light-mode .glass-cue-btn {
 
 [data-theme="light"] .dropdown-tier-status {
   background: rgba(0, 0, 0, 0.03);
+}
+
+.tier-status-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.tier-breakdown-sub {
+  font-size: 0.72rem;
+  color: #a0aec0;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+[data-theme="light"] .tier-breakdown-sub {
+  color: #64748b;
 }
 
 .tier-label {
@@ -9421,6 +9449,15 @@ body {
   .user-menu-caret {
     width: 10px !important;
     height: 10px !important;
+  }
+
+  /* User Profile Dropdown: pin left: 0 to prevent left-side mobile screen cut-off */
+  .user-dropdown-card {
+    left: 0 !important;
+    right: auto !important;
+    width: min(310px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    padding: 16px 14px !important;
   }
 
   .theme-toggle-btn {

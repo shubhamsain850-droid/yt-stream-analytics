@@ -717,8 +717,13 @@
             </div>
 
             <div class="dropdown-tier-status">
-              <span class="tier-label">Credit Balance:</span>
-              <span class="tier-val ${credits > 0 ? 'text-gold' : 'text-cyan'}">💎 ${credits} Credits (${credits} Streams • ${(credits * 3000).toLocaleString()} Chats • ${(credits * 1000).toLocaleString()} Comments)</span>
+              <div class="tier-status-top">
+                <span class="tier-label">Credit Balance:</span>
+                <span class="tier-val ${credits > 0 ? 'text-gold' : 'text-cyan'}">💎 ${credits} Credits</span>
+              </div>
+              <div class="tier-breakdown-sub">
+                ${credits > 0 ? `${credits} Streams &bull; ${(credits * 3000).toLocaleString()} Chats &bull; ${(credits * 1000).toLocaleString()} Comments` : '0 Streams &bull; 0 Chats &bull; 0 Comments'}
+              </div>
             </div>
 
             <div class="user-quota-box">
@@ -770,10 +775,38 @@
       const avatarBtn = document.getElementById('userAvatarBtn');
       const dropdownCard = document.getElementById('userDropdownCard');
       if (avatarBtn && dropdownCard) {
+        function positionDropdown() {
+          const vw = window.innerWidth || document.documentElement.clientWidth;
+          if (vw <= 768) {
+            dropdownCard.style.left = '0px';
+            dropdownCard.style.right = 'auto';
+            return;
+          }
+          dropdownCard.style.right = '0px';
+          dropdownCard.style.left = 'auto';
+          const r = dropdownCard.getBoundingClientRect();
+          if (r.left < 8) {
+            dropdownCard.style.left = '0px';
+            dropdownCard.style.right = 'auto';
+          }
+        }
+
         avatarBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           const isShown = dropdownCard.style.display === 'block';
-          dropdownCard.style.display = isShown ? 'none' : 'block';
+          if (!isShown) {
+            positionDropdown();
+            dropdownCard.style.display = 'block';
+            requestAnimationFrame(positionDropdown);
+          } else {
+            dropdownCard.style.display = 'none';
+          }
+        });
+
+        window.addEventListener('resize', () => {
+          if (dropdownCard.style.display === 'block') {
+            positionDropdown();
+          }
         });
 
         document.addEventListener('click', () => {
