@@ -2795,7 +2795,7 @@ class TubeMetrixAdminApp(ctk.CTk):
 
         fields = ["email", "name", "credits_balance", "total_purchased_credits", "created_at", "updated_at"]
         try:
-            with csv_file.open("w", newline="", encoding="utf-8") as fh:
+            with csv_file.open("w", newline="", encoding="utf-8-sig") as fh:
                 writer = csv.DictWriter(fh, fieldnames=fields)
                 writer.writeheader()
                 for u in dataset:
