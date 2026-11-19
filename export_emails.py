@@ -78,6 +78,10 @@ def query_d1(sql: str) -> list[dict]:
     env["CI"] = "1"
     env["NO_UPDATE_NOTIFIER"] = "1"
     env["WRANGLER_SEND_METRICS"] = "false"
+    env["PYTHONUTF8"] = "1"
+    env["PYTHONIOENCODING"] = "utf-8"
+    env["LANG"] = "en_US.UTF-8"
+    env["LC_ALL"] = "en_US.UTF-8"
 
     creationflags = 0
     if os.name == "nt":
@@ -89,6 +93,8 @@ def query_d1(sql: str) -> list[dict]:
             cwd=str(ROOT_DIR),
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             stdin=subprocess.DEVNULL,
             creationflags=creationflags,
             timeout=30,

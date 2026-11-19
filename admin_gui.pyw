@@ -14,6 +14,10 @@ import subprocess
 import threading
 import time
 import uuid
+
+# Force UTF-8 environment on Windows
+os.environ["PYTHONUTF8"] = "1"
+os.environ["PYTHONIOENCODING"] = "utf-8"
 import webbrowser
 import urllib.parse
 import urllib.request
@@ -124,6 +128,10 @@ def run_d1_query(sql: str, retries: int = 1) -> list[dict]:
         env["CI"] = "1"
         env["NO_UPDATE_NOTIFIER"] = "1"
         env["WRANGLER_SEND_METRICS"] = "false"
+        env["PYTHONUTF8"] = "1"
+        env["PYTHONIOENCODING"] = "utf-8"
+        env["LANG"] = "en_US.UTF-8"
+        env["LC_ALL"] = "en_US.UTF-8"
 
         creationflags = 0
         if os.name == "nt":
@@ -138,6 +146,8 @@ def run_d1_query(sql: str, retries: int = 1) -> list[dict]:
                     cwd=str(ROOT_DIR),
                     capture_output=True,
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     stdin=subprocess.DEVNULL,
                     creationflags=creationflags,
                     timeout=30,
