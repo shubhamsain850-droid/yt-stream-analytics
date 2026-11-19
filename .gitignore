@@ -9,6 +9,7 @@ exports/
 *.csv
 admin_email_config.json
 *email_config*.json
+*.log
 
 
 

@@ -29,7 +29,23 @@ import shutil
 
 def _find_wrangler_cmd() -> list[str]:
     """Finds the fastest and most direct wrangler executable on this machine."""
+    node_exe = shutil.which("node")
+    if not node_exe and os.name == "nt":
+        for cand in [
+            Path("C:/Program Files/nodejs/node.exe"),
+            Path("C:/Program Files (x86)/nodejs/node.exe"),
+            Path(os.environ.get("LOCALAPPDATA", "")) / "Programs" / "node" / "node.exe",
+        ]:
+            if cand.exists():
+                node_exe = str(cand)
+                break
+
     appdata = os.environ.get("APPDATA", "")
+    if node_exe and appdata:
+        global_wrangler_js = Path(appdata) / "npm" / "node_modules" / "wrangler" / "bin" / "wrangler.js"
+        if global_wrangler_js.exists():
+            return [str(node_exe), str(global_wrangler_js)]
+
     if appdata:
         global_wrangler = Path(appdata) / "npm" / "wrangler.cmd"
         if global_wrangler.exists():

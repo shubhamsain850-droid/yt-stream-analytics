@@ -12,6 +12,7 @@ import os
 import shutil
 import subprocess
 import threading
+import time
 import uuid
 import webbrowser
 import urllib.parse
@@ -55,11 +56,40 @@ COLOR_PREMIUM_BG = "#1f1d17"
 
 
 _D1_LOCK = threading.Lock()
+DEBUG_LOG_FILE = ROOT_DIR / "admin_debug.log"
+
+
+def _log_debug(msg: str):
+    try:
+        with open(DEBUG_LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}\n")
+    except Exception:
+        pass
 
 
 def _find_wrangler_cmd() -> list[str]:
-    """Finds the fastest and most direct wrangler executable on this machine."""
+    """Finds the fastest and most direct wrangler executable on this machine.
+    
+    Direct node.exe + wrangler.js execution is preferred because it bypasses Windows
+    cmd.exe batch file title/redirection quirks when running headless under pythonw.exe.
+    """
+    node_exe = shutil.which("node")
+    if not node_exe and os.name == "nt":
+        for cand in [
+            Path("C:/Program Files/nodejs/node.exe"),
+            Path("C:/Program Files (x86)/nodejs/node.exe"),
+            Path(os.environ.get("LOCALAPPDATA", "")) / "Programs" / "node" / "node.exe",
+        ]:
+            if cand.exists():
+                node_exe = str(cand)
+                break
+
     appdata = os.environ.get("APPDATA", "")
+    if node_exe and appdata:
+        global_wrangler_js = Path(appdata) / "npm" / "node_modules" / "wrangler" / "bin" / "wrangler.js"
+        if global_wrangler_js.exists():
+            return [str(node_exe), str(global_wrangler_js)]
+
     if appdata:
         global_wrangler = Path(appdata) / "npm" / "wrangler.cmd"
         if global_wrangler.exists():
@@ -76,8 +106,8 @@ def _find_wrangler_cmd() -> list[str]:
     return ["npx.cmd" if os.name == "nt" else "npx", "wrangler"]
 
 
-def run_d1_query(sql: str) -> list[dict]:
-    """Execute SQL on remote Cloudflare D1 database with thread safety, timeout and clean JSON extraction."""
+def run_d1_query(sql: str, retries: int = 1) -> list[dict]:
+    """Execute SQL on remote Cloudflare D1 database with thread safety, timeout, retry and clean JSON extraction."""
     with _D1_LOCK:
         base_cmd = _find_wrangler_cmd()
         cmd = base_cmd + [
@@ -99,59 +129,90 @@ def run_d1_query(sql: str) -> list[dict]:
         if os.name == "nt":
             creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
 
-        try:
-            proc = subprocess.run(
-                cmd,
-                cwd=str(ROOT_DIR),
-                capture_output=True,
-                text=True,
-                stdin=subprocess.DEVNULL,
-                creationflags=creationflags,
-                timeout=30,
-                env=env,
-            )
-        except subprocess.TimeoutExpired:
-            raise RuntimeError("Cloudflare D1 query timed out after 30 seconds.")
-        except Exception as exc:
-            raise RuntimeError(f"Failed to execute wrangler command: {exc}")
+        for attempt in range(retries + 1):
+            _log_debug(f"RUN_D1 (attempt {attempt + 1}): base_cmd={base_cmd[0]} sql={sql[:60]}...")
 
-        if proc.returncode != 0:
-            err_msg = (proc.stderr or proc.stdout or "Unknown wrangler error").strip()
-            raise RuntimeError(err_msg)
+            try:
+                proc = subprocess.run(
+                    cmd,
+                    cwd=str(ROOT_DIR),
+                    capture_output=True,
+                    text=True,
+                    stdin=subprocess.DEVNULL,
+                    creationflags=creationflags,
+                    timeout=30,
+                    env=env,
+                )
+            except subprocess.TimeoutExpired:
+                _log_debug(f"RUN_D1: TIMEOUT after 30s (attempt {attempt + 1})")
+                if attempt < retries:
+                    time.sleep(1)
+                    continue
+                raise RuntimeError("Cloudflare D1 query timed out after 30 seconds.")
+            except Exception as exc:
+                _log_debug(f"RUN_D1: EXCEPTION: {exc}")
+                if attempt < retries:
+                    time.sleep(1)
+                    continue
+                raise RuntimeError(f"Failed to execute wrangler command: {exc}")
 
-        raw_out = (proc.stdout or "").strip()
-        if not raw_out:
-            return []
+            _log_debug(f"RUN_D1: rc={proc.returncode} stdout_len={len(proc.stdout or '')} stderr_len={len(proc.stderr or '')}")
 
-        # Robust JSON extraction: Find start of JSON array or object, ignoring banners/notices
-        json_str = raw_out
-        bracket_idx = raw_out.find("[")
-        brace_idx = raw_out.find("{")
+            if proc.returncode != 0:
+                err_msg = (proc.stderr or proc.stdout or "Unknown wrangler error").strip()
+                _log_debug(f"RUN_D1: ERROR: {err_msg[:200]}")
+                if attempt < retries:
+                    time.sleep(1)
+                    continue
+                raise RuntimeError(err_msg)
 
-        start_idx = -1
-        if bracket_idx != -1 and brace_idx != -1:
-            start_idx = min(bracket_idx, brace_idx)
-        elif bracket_idx != -1:
-            start_idx = bracket_idx
-        elif brace_idx != -1:
-            start_idx = brace_idx
+            raw_out = (proc.stdout or "").strip()
+            if not raw_out:
+                err_msg = (proc.stderr or "").strip()
+                _log_debug(f"RUN_D1: EMPTY raw_out, stderr: {err_msg[:200]}")
+                if attempt < retries:
+                    time.sleep(1)
+                    continue
+                raise RuntimeError(f"Cloudflare D1 returned empty output. CLI stderr: {err_msg or 'None'}")
 
-        if start_idx != -1:
-            rbracket = raw_out.rfind("]")
-            rbrace = raw_out.rfind("}")
-            end_idx = max(rbracket, rbrace)
-            if end_idx != -1 and end_idx >= start_idx:
-                json_str = raw_out[start_idx : end_idx + 1]
+            # Robust JSON extraction: Find start of JSON array or object, ignoring banners/notices
+            json_str = raw_out
+            bracket_idx = raw_out.find("[")
+            brace_idx = raw_out.find("{")
 
-        try:
-            payload = json.loads(json_str)
-            if isinstance(payload, list) and payload:
-                return payload[0].get("results", []) or []
-            if isinstance(payload, dict):
-                return payload.get("results", []) or []
-        except Exception as exc:
-            raise RuntimeError(f"Failed to parse D1 JSON output: {exc}\nRaw: {raw_out[:180]}")
+            start_idx = -1
+            if bracket_idx != -1 and brace_idx != -1:
+                start_idx = min(bracket_idx, brace_idx)
+            elif bracket_idx != -1:
+                start_idx = bracket_idx
+            elif brace_idx != -1:
+                start_idx = brace_idx
 
+            if start_idx != -1:
+                rbracket = raw_out.rfind("]")
+                rbrace = raw_out.rfind("}")
+                end_idx = max(rbracket, rbrace)
+                if end_idx != -1 and end_idx >= start_idx:
+                    json_str = raw_out[start_idx : end_idx + 1]
+
+            try:
+                payload = json.loads(json_str)
+                if isinstance(payload, list) and payload:
+                    res = payload[0].get("results", []) or []
+                    _log_debug(f"RUN_D1: SUCCESS parsed {len(res)} rows from list[0]")
+                    return res
+                if isinstance(payload, dict):
+                    res = payload.get("results", []) or []
+                    _log_debug(f"RUN_D1: SUCCESS parsed {len(res)} rows from dict")
+                    return res
+            except Exception as exc:
+                _log_debug(f"RUN_D1: JSON parse error: {exc}")
+                if attempt < retries:
+                    time.sleep(1)
+                    continue
+                raise RuntimeError(f"Failed to parse D1 JSON output: {exc}\nRaw: {raw_out[:180]}")
+
+        _log_debug("RUN_D1: Fallthrough empty list")
         return []
 
 
@@ -2353,10 +2414,12 @@ class TubeMetrixAdminApp(ctk.CTk):
             self.btn_refresh.configure(state="normal", text="⟳ Refresh Data")
 
             if err:
+                _log_debug(f"_on_users_fetched: ERROR {err}")
                 self.status_pill.configure(text="● Error Connecting", text_color="#ef4444")
                 messagebox.showerror("D1 Connection Error", f"Unable to reach Cloudflare D1:\n{err}")
                 return
 
+            _log_debug(f"_on_users_fetched: SUCCESS {len(results)} users loaded")
             self.users_cache = results
             self.status_pill.configure(text="● Online: tubemetrix-db", text_color=COLOR_SUCCESS)
 
@@ -2989,8 +3052,15 @@ class TubeMetrixAdminApp(ctk.CTk):
         )
 
 def main():
-    app = TubeMetrixAdminApp()
-    app.mainloop()
+    try:
+        _log_debug("Application starting...")
+        app = TubeMetrixAdminApp()
+        _log_debug("Entering mainloop...")
+        app.mainloop()
+        _log_debug("Exited mainloop cleanly.")
+    except Exception as exc:
+        import traceback
+        _log_debug(f"FATAL EXCEPTION in main(): {exc}\n{traceback.format_exc()}")
 
 
 if __name__ == "__main__":
