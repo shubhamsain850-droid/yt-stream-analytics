@@ -9,6 +9,7 @@ from __future__ import annotations
 import csv
 import json
 import os
+import shutil
 import subprocess
 import threading
 import uuid
@@ -53,34 +54,105 @@ COLOR_PREMIUM_BORDER = "#854d0e"
 COLOR_PREMIUM_BG = "#1f1d17"
 
 
-def run_d1_query(sql: str) -> list[dict]:
-    """Execute SQL on remote Cloudflare D1 database and return results."""
-    cmd = [
-        "npx.cmd" if os.name == "nt" else "npx",
-        "wrangler",
-        "d1",
-        "execute",
-        DB_NAME,
-        "--remote",
-        "--json",
-        "--command",
-        sql,
-    ]
-    proc = subprocess.run(
-        cmd,
-        cwd=str(ROOT_DIR),
-        capture_output=True,
-        text=True,
-    )
-    if proc.returncode != 0:
-        raise RuntimeError(proc.stderr or proc.stdout)
+_D1_LOCK = threading.Lock()
 
-    payload = json.loads(proc.stdout)
-    if isinstance(payload, list) and payload:
-        return payload[0].get("results", []) or []
-    if isinstance(payload, dict):
-        return payload.get("results", []) or []
-    return []
+
+def _find_wrangler_cmd() -> list[str]:
+    """Finds the fastest and most direct wrangler executable on this machine."""
+    appdata = os.environ.get("APPDATA", "")
+    if appdata:
+        global_wrangler = Path(appdata) / "npm" / "wrangler.cmd"
+        if global_wrangler.exists():
+            return [str(global_wrangler)]
+
+    local_wrangler = ROOT_DIR / "node_modules" / ".bin" / "wrangler.cmd"
+    if local_wrangler.exists():
+        return [str(local_wrangler)]
+
+    which_wrangler = shutil.which("wrangler.cmd" if os.name == "nt" else "wrangler")
+    if which_wrangler:
+        return [which_wrangler]
+
+    return ["npx.cmd" if os.name == "nt" else "npx", "wrangler"]
+
+
+def run_d1_query(sql: str) -> list[dict]:
+    """Execute SQL on remote Cloudflare D1 database with thread safety, timeout and clean JSON extraction."""
+    with _D1_LOCK:
+        base_cmd = _find_wrangler_cmd()
+        cmd = base_cmd + [
+            "d1",
+            "execute",
+            DB_NAME,
+            "--remote",
+            "--json",
+            "--command",
+            sql,
+        ]
+
+        env = os.environ.copy()
+        env["CI"] = "1"
+        env["NO_UPDATE_NOTIFIER"] = "1"
+        env["WRANGLER_SEND_METRICS"] = "false"
+
+        creationflags = 0
+        if os.name == "nt":
+            creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+
+        try:
+            proc = subprocess.run(
+                cmd,
+                cwd=str(ROOT_DIR),
+                capture_output=True,
+                text=True,
+                stdin=subprocess.DEVNULL,
+                creationflags=creationflags,
+                timeout=30,
+                env=env,
+            )
+        except subprocess.TimeoutExpired:
+            raise RuntimeError("Cloudflare D1 query timed out after 30 seconds.")
+        except Exception as exc:
+            raise RuntimeError(f"Failed to execute wrangler command: {exc}")
+
+        if proc.returncode != 0:
+            err_msg = (proc.stderr or proc.stdout or "Unknown wrangler error").strip()
+            raise RuntimeError(err_msg)
+
+        raw_out = (proc.stdout or "").strip()
+        if not raw_out:
+            return []
+
+        # Robust JSON extraction: Find start of JSON array or object, ignoring banners/notices
+        json_str = raw_out
+        bracket_idx = raw_out.find("[")
+        brace_idx = raw_out.find("{")
+
+        start_idx = -1
+        if bracket_idx != -1 and brace_idx != -1:
+            start_idx = min(bracket_idx, brace_idx)
+        elif bracket_idx != -1:
+            start_idx = bracket_idx
+        elif brace_idx != -1:
+            start_idx = brace_idx
+
+        if start_idx != -1:
+            rbracket = raw_out.rfind("]")
+            rbrace = raw_out.rfind("}")
+            end_idx = max(rbracket, rbrace)
+            if end_idx != -1 and end_idx >= start_idx:
+                json_str = raw_out[start_idx : end_idx + 1]
+
+        try:
+            payload = json.loads(json_str)
+            if isinstance(payload, list) and payload:
+                return payload[0].get("results", []) or []
+            if isinstance(payload, dict):
+                return payload.get("results", []) or []
+        except Exception as exc:
+            raise RuntimeError(f"Failed to parse D1 JSON output: {exc}\nRaw: {raw_out[:180]}")
+
+        return []
 
 
 def is_premium_user(user: dict) -> bool:
@@ -2254,6 +2326,15 @@ class TubeMetrixAdminApp(ctk.CTk):
 
         self.refresh_maintenance_status()
         threading.Thread(target=self._fetch_users_thread, daemon=True).start()
+        # Failsafe: if query takes longer than 35s, unlock button so owner is never permanently locked
+        self.after(35000, self._failsafe_reset_busy)
+
+    def _failsafe_reset_busy(self):
+        if self.is_busy:
+            self.is_busy = False
+            self.btn_refresh.configure(state="normal", text="⟳ Refresh Data")
+            if "Querying" in str(self.status_pill.cget("text")):
+                self.status_pill.configure(text="● Connection Timeout", text_color="#ef4444")
 
     def _fetch_users_thread(self):
         sql = (
@@ -2267,57 +2348,63 @@ class TubeMetrixAdminApp(ctk.CTk):
             self.after(0, lambda: self._on_users_fetched([], str(exc)))
 
     def _on_users_fetched(self, results: list[dict], err: str | None):
-        self.is_busy = False
-        self.btn_refresh.configure(state="normal", text="⟳ Refresh Data")
+        try:
+            self.is_busy = False
+            self.btn_refresh.configure(state="normal", text="⟳ Refresh Data")
 
-        if err:
-            self.status_pill.configure(text="● Error Connecting", text_color="#ef4444")
-            messagebox.showerror("D1 Connection Error", f"Unable to reach Cloudflare D1:\n{err}")
-            return
+            if err:
+                self.status_pill.configure(text="● Error Connecting", text_color="#ef4444")
+                messagebox.showerror("D1 Connection Error", f"Unable to reach Cloudflare D1:\n{err}")
+                return
 
-        self.users_cache = results
-        self.status_pill.configure(text="● Online: tubemetrix-db", text_color=COLOR_SUCCESS)
+            self.users_cache = results
+            self.status_pill.configure(text="● Online: tubemetrix-db", text_color=COLOR_SUCCESS)
 
-        # Calculate counts
-        total_users = len(results)
-        premium_users = [u for u in results if is_premium_user(u)]
-        free_users = [u for u in results if not is_premium_user(u)]
+            # Calculate counts
+            total_users = len(results)
+            premium_users = [u for u in results if is_premium_user(u)]
+            free_users = [u for u in results if not is_premium_user(u)]
 
-        tot_balance = sum(u.get("credits_balance") or 0 for u in results)
-        tot_purchased = sum(u.get("total_purchased_credits") or 0 for u in results)
+            tot_balance = sum(u.get("credits_balance") or 0 for u in results)
+            tot_purchased = sum(u.get("total_purchased_credits") or 0 for u in results)
 
-        self.card_total_users.configure(text=str(total_users))
-        self.card_paying_users.configure(text=f"{len(premium_users)} users")
-        self.card_balance_credits.configure(text=str(tot_balance))
-        self.card_total_bought.configure(text=str(tot_purchased))
+            self.card_total_users.configure(text=str(total_users))
+            self.card_paying_users.configure(text=f"{len(premium_users)} users")
+            self.card_balance_credits.configure(text=str(tot_balance))
+            self.card_total_bought.configure(text=str(tot_purchased))
 
-        # Update Tab Labels with dynamic counts
-        tab_vals = [
-            f"All Users ({total_users})",
-            f"💎 Premium Users ({len(premium_users)})",
-            f"🆓 Free Users ({len(free_users)})",
-        ]
-        self.seg_filter.configure(values=tab_vals)
+            # Update Tab Labels with dynamic counts
+            tab_vals = [
+                f"All Users ({total_users})",
+                f"💎 Premium Users ({len(premium_users)})",
+                f"🆓 Free Users ({len(free_users)})",
+            ]
+            self.seg_filter.configure(values=tab_vals)
 
-        # Restore current tab
-        if self.active_tab == "premium":
-            self.seg_filter.set(tab_vals[1])
-        elif self.active_tab == "free":
-            self.seg_filter.set(tab_vals[2])
-        else:
-            self.seg_filter.set(tab_vals[0])
+            # Restore current tab
+            if self.active_tab == "premium":
+                self.seg_filter.set(tab_vals[1])
+            elif self.active_tab == "free":
+                self.seg_filter.set(tab_vals[2])
+            else:
+                self.seg_filter.set(tab_vals[0])
 
-        self.filter_users()
+            self.filter_users()
 
-        # If previous user was selected, re-select to refresh balance
-        if self.selected_user:
-            matching = [u for u in results if u.get("id") == self.selected_user.get("id")]
-            if matching:
-                self.select_user(matching[0])
+            # If previous user was selected, re-select to refresh balance
+            if self.selected_user:
+                matching = [u for u in results if u.get("id") == self.selected_user.get("id")]
+                if matching:
+                    self.select_user(matching[0])
+                elif results:
+                    self.select_user(results[0])
             elif results:
                 self.select_user(results[0])
-        elif results:
-            self.select_user(results[0])
+        except Exception as exc:
+            self.is_busy = False
+            self.btn_refresh.configure(state="normal", text="⟳ Refresh Data")
+            self.status_pill.configure(text="● Error Displaying", text_color="#ef4444")
+            print(f"Error in _on_users_fetched: {exc}")
 
     def filter_users(self):
         query = self.search_entry.get().strip().lower()

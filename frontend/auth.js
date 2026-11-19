@@ -641,7 +641,7 @@
       const legacyBtn = document.getElementById('tmNavMaintenanceBtn');
       if (legacyBtn) legacyBtn.remove();
       document.querySelectorAll('.tm-nav-maintenance-btn').forEach(el => el.remove());
-    } catch {}
+    } catch { }
 
     const container = document.getElementById('authNavContainer');
     if (!container) return;
