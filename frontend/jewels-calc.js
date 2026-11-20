@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  const API_ENDPOINT = 'https://shubhamsain858-kickcuttr-api.hf.space/api/youtube/analyze-stream';
+  const API_ENDPOINT = 'https://tubemetrix-ap.onrender.com/api/youtube/analyze-stream';
   let usdToInrRate = 86.85; // Live fallback, synced with open.er-api.com
   const INR_PER_JEWEL_CREATOR = 0.42; // Standard ~Rs. 0.42 net creator rate
   const INR_PER_JEWEL_VIEWER = 1.20;  // Approx. retail bundle price in India

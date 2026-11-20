@@ -1,10 +1,10 @@
 /**
  * TubeMetrix — YouTube Live Stream Earning, Super Chat, Memberships & Jewels Analytics
- * Connected to live FastAPI backend on Hugging Face: https://shubhamsain858-kickcuttr-api.hf.space
+ * Connected to live FastAPI backend on Render: https://tubemetrix-ap.onrender.com
  */
 
 // ── Configuration ──
-const API_BASE = "https://shubhamsain858-kickcuttr-api.hf.space/api/youtube";
+const API_BASE = "https://tubemetrix-ap.onrender.com/api/youtube";
 
 // ── Currency Metadata & Live Forex Engine ──
 const DEFAULT_CURRENCY_RATES = {

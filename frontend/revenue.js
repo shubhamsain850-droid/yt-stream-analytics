@@ -10,7 +10,7 @@
   // CONFIGURATION & STATE
   // ─────────────────────────────────────────────
 
-  const API_BASE = 'https://shubhamsain858-kickcuttr-api.hf.space/api/youtube';
+  const API_BASE = 'https://tubemetrix-ap.onrender.com/api/youtube';
 
   const CURRENCY_MAP = {
     INR: { symbol: '₹', rate: 86.85, decimals: 0 },

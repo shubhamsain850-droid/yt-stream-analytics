@@ -14,7 +14,7 @@
 
 
 
-  const API_BASE = 'https://shubhamsain858-kickcuttr-api.hf.space/api/youtube';
+  const API_BASE = 'https://tubemetrix-ap.onrender.com/api/youtube';
 
   const MAX_MULTI_STREAMS = 1000;
 
