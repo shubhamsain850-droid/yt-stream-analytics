@@ -4230,28 +4230,18 @@
 
 
 
-          const serverStopped = Boolean(rawMsgs.length <= allowedForStream && res.has_more && res.continuation_token);
-
-          if (rawMsgs.length > allowedForStream || serverStopped) {
-
-            lockedTail = rawMsgs.slice(allowedForStream);
-
-            continuationToken = serverStopped ? res.continuation_token : '';
-
-            hasMoreOnServer = serverStopped;
-
-            lockedStreamId = vid;
-
-            lockedStreamTotal = rawMsgs.length > allowedForStream ? rawMsgs.length : 0;
-
-            unlockedOnStream = unlockedSlice.length;
-
-            remainingVids = vids.slice(i + 1);
-
-            pauseReason = 'credits_exhausted';
-
-            break;
-
+          // In multi-stream batch / channel runs: 1 Credit covers up to 3,000 chats per stream.
+          // Smoothly continue to the next stream in queue without interrupting or breaking early!
+          const hasStreamOverflow = Boolean(rawMsgs.length > allowedForStream || (res.has_more && res.continuation_token));
+          if (hasStreamOverflow) {
+            recordChatStreamAuditItem({
+              vid,
+              url: `https://www.youtube.com/watch?v=${vid}`,
+              title: res.data?.title || res.title || `Live Stream [${vid}]`,
+              date: res.data?.upload_date || res.upload_date || '',
+              status: 'processed',
+              info: `${allowedForStream.toLocaleString()} messages extracted (1 Cr batch unit)`
+            });
           }
 
         } else if (res.error === "MEMBERS_ONLY" || res.is_members_only || res.error === "PRIVATE_STREAM" || res.is_private) {
@@ -4409,7 +4399,7 @@
 
 
 
-    const stoppedEarly = Boolean(lockedTail.length > 0 || hasMoreOnServer || remainingVids.length > 0);
+    const stoppedEarly = Boolean(remainingVids.length > 0);
 
     const ckptPayload = {
 
