@@ -85,6 +85,22 @@
 
   async function checkMaintenanceStatus() {
     try {
+      // ── Developer / Owner Secret Bypass (?admin=dev) ──
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('admin') === 'exit') {
+          sessionStorage.removeItem('tm_dev_bypass');
+        } else if (urlParams.get('admin') === 'dev' || sessionStorage.getItem('tm_dev_bypass') === 'true') {
+          sessionStorage.setItem('tm_dev_bypass', 'true');
+          if (isMaintenanceActive) {
+            isMaintenanceActive = false;
+            disableBackgroundLock();
+            removeCenterMaintenanceWindow();
+          }
+          return;
+        }
+      } catch (err) {}
+
       const resp = await fetch(STATUS_ENDPOINT, {
         method: 'GET',
         headers: { 'Accept': 'application/json' },
