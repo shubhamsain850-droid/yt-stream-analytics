@@ -73,7 +73,7 @@
   {"@context":"https://schema.org","@type":"WebApplication","name":"TubeMetrix — YouTube Shorts & Video Comments Downloader","url":"https://tubemetrix.net/download-youtube-shorts-comments","description":"Extract viewer comments, replies, like counts, and pinned creators from any YouTube Short or uploaded video. Export clean Excel and CSV datasets.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["YouTube Live Chat Replay Downloader","YouTube Comments Bulk Export","Superchat Filter & Export","Custom URL Batch Download","In-Browser Chat Viewer","CSV and Excel Export"]}
   </script>
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How to download YouTube live chat replay?","acceptedAnswer":{"@type":"Answer","text":"Paste your YouTube live stream URL into TubeMetrix Live Chat Downloader. The tool fetches the complete chat replay with timestamps, Superchats, and Memberships. Export to CSV, Excel, or TXT instantly."}},{"@type":"Question","name":"Can I export YouTube comments to Excel or CSV?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix supports one-click export of all YouTube video comments to Excel (.xls), CSV, TXT, and JSON. Use Option D (Video Comments) to download comments from any public YouTube video."}},{"@type":"Question","name":"What are the free limits and credit rates for live chat exports?","acceptedAnswer":{"@type":"Answer","text":"Single Stream mode includes 2 one-time free runs as a Guest and 3 free runs per week when signed in with Google (covering Single Live Chat or Single Video Comments up to 1,000). Custom URL Batch Export and high-volume runs use never-expiring prepaid Credits (1 Credit = 1 Full Stream Audit with Unlimited Super Chats • 1 Credit = 3,000 Live Chats • 1 Credit = 1,000 Video Comments; packs from ₹49 / $2.99; credits never expire)."}},{"@type":"Question","name":"How to filter Superchats from live chat logs?","acceptedAnswer":{"@type":"Answer","text":"After downloading, open the in-browser Chat Viewer and use the Event Type filter to show only Superchats. Set a minimum Superchat amount filter and sort by highest value."}},{"@type":"Question","name":"Does TubeMetrix work with YouTube Shorts comments?","acceptedAnswer":{"@type":"Answer","text":"Yes, TubeMetrix can download comments from YouTube Shorts, regular videos, and live stream replays. Simply paste the YouTube Shorts URL into the Video Comments tab."}}]}
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Can I download comments directly from a youtube.com/shorts/ link?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix fully supports direct YouTube Shorts URLs without needing desktop watch link conversions."}},{"@type":"Question","name":"Does the export include reply threads or only top-level comments?","acceptedAnswer":{"@type":"Answer","text":"TubeMetrix extracts both top-level parent comments and nested reply chains."}},{"@type":"Question","name":"How can I sort comments by the highest number of likes?","acceptedAnswer":{"@type":"Answer","text":"Exported Excel and CSV files include a dedicated Likes column for easy sorting."}},{"@type":"Question","name":"Can I export comments from unlisted YouTube Shorts?","acceptedAnswer":{"@type":"Answer","text":"Yes, as long as you have the direct unlisted link and comments are public."}},{"@type":"Question","name":"Is there a limit on how many comments TubeMetrix can extract?","acceptedAnswer":{"@type":"Answer","text":"The free tier supports up to 1,000 comments, with prepaid credits unlocking unlimited comment extraction."}}]}
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -82,6 +82,86 @@
     rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=9.9">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<style>
+.seo-authority-section {
+  margin-top: 3.5rem;
+  padding-top: 3rem;
+  border-top: 1px solid var(--border-color, #232733);
+  color: var(--text-secondary, #94a3b8);
+}
+.seo-authority-section h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-primary, #f8fafc);
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+.seo-authority-section h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary, #f8fafc);
+  margin: 1.75rem 0 0.75rem;
+  line-height: 1.4;
+}
+.seo-authority-section p {
+  font-size: 0.96rem;
+  line-height: 1.75;
+  margin-bottom: 1.15rem;
+}
+.seo-authority-section ul, .seo-authority-section ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.seo-authority-section li {
+  font-size: 0.94rem;
+  line-height: 1.7;
+  margin-bottom: 0.45rem;
+}
+.seo-callout-box {
+  background: rgba(255, 0, 51, 0.05);
+  border-left: 3px solid var(--accent-red, #ff0033);
+  border-radius: 0 10px 10px 0;
+  padding: 1.15rem 1.4rem;
+  margin: 1.5rem 0;
+}
+.seo-callout-box p {
+  margin: 0;
+  color: var(--text-primary, #f8fafc);
+  font-weight: 500;
+}
+.seo-faq-group {
+  margin-top: 2.5rem;
+}
+.seo-faq-group h3 {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-primary, #f8fafc);
+  margin-bottom: 1.25rem;
+}
+.seo-faq-item {
+  background: var(--bg-surface, #12141a);
+  border: 1px solid var(--border-color, #232733);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.seo-faq-item summary {
+  font-weight: 700;
+  color: var(--text-primary, #f8fafc);
+  font-size: 1rem;
+  outline: none;
+}
+.seo-faq-item p {
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--text-secondary, #94a3b8);
+}
+</style>
+
 </head>
 
 <body data-default-mode="comments">
@@ -1042,6 +1122,63 @@
         </div>
       </div>
     </section>
+  
+<section class="seo-authority-section">
+  <h2>How to Scrape &amp; Analyze YouTube Shorts Comments for Audience Insights</h2>
+  <p>
+    YouTube Shorts has rapidly become YouTube's primary mobile consumption format, generating billions of daily views. However, the Shorts comment section operates fundamentally differently from traditional long-form video comments. Due to rapid swipe-to-next consumption, Shorts comments exhibit <strong>significantly higher velocity, heavy meme density, and concentrated viral debates</strong>.
+  </p>
+
+  <h3>Why YouTube Shorts Comment Analysis is Essential for Creators &amp; Brands</h3>
+  <p>
+    Audience retention on Shorts depends heavily on community feedback. Scraping and analyzing comments from top-performing Shorts reveals:
+  </p>
+  <ul>
+    <li><strong>Content Gap Discovery:</strong> What follow-up questions viewers are asking in the comments, providing instant ideas for Part 2 and Part 3 Shorts.</li>
+    <li><strong>Audience Sentiment Breakdown:</strong> Identifying whether a controversial hook drove positive curiosity or negative backlash.</li>
+    <li><strong>Viral Meme Patterns:</strong> Pinpointing the exact top-voted comment jokes that can be incorporated into future on-screen captions.</li>
+  </ul>
+
+  <h3>Data Points Included in Shorts Comment Exports</h3>
+  <p>
+    When you export YouTube Shorts comments using TubeMetrix, your spreadsheet includes:
+  </p>
+  <ul>
+    <li><strong>Author Details:</strong> Commenter display name, channel link, and creator badge status.</li>
+    <li><strong>Like Counts:</strong> The exact total number of viewer upvotes each comment received (essential for sorting by popularity).</li>
+    <li><strong>Reply Threads:</strong> Nested replies organized cleanly beneath parent comments.</li>
+    <li><strong>Pinned Status:</strong> Identification of creator-pinned comments and author heart reactions.</li>
+  </ul>
+
+  <div class="seo-callout-box">
+    <p>📱 <strong>Mobile URL Compatible:</strong> You can paste standard YouTube URLs (<code>youtube.com/watch?v=...</code>) or direct Shorts mobile links (<code>youtube.com/shorts/...</code>) — TubeMetrix automatically resolves both.</p>
+  </div>
+
+  <div class="seo-faq-group">
+    <h3>Frequently Asked Questions About YouTube Shorts Comment Extraction</h3>
+    <details class="seo-faq-item">
+      <summary>Can I download comments directly from a youtube.com/shorts/ link?</summary>
+      <p>Yes! TubeMetrix fully supports direct YouTube Shorts URLs (e.g. https://www.youtube.com/shorts/XYZ123) without needing to convert them to desktop watch links.</p>
+    </details>
+    <details class="seo-faq-item">
+      <summary>Does the export include reply threads or only top-level comments?</summary>
+      <p>TubeMetrix extracts both top-level parent comments and nested reply chains, displaying the full conversational context in your export.</p>
+    </details>
+    <details class="seo-faq-item">
+      <summary>How can I sort comments by the highest number of likes?</summary>
+      <p>Your exported Excel (.xlsx) and CSV files include a dedicated "Likes" column. You can sort descending in Excel or use TubeMetrix's in-browser table to filter by top-liked comments instantly.</p>
+    </details>
+    <details class="seo-faq-item">
+      <summary>Can I export comments from unlisted YouTube Shorts?</summary>
+      <p>Yes. As long as you have the direct unlisted link and comments have not been disabled by the creator, TubeMetrix can extract the full comment dataset.</p>
+    </details>
+    <details class="seo-faq-item">
+      <summary>Is there a limit on how many comments TubeMetrix can extract?</summary>
+      <p>The free tier supports up to 1,000 comments. For massive viral Shorts with tens of thousands of comments, prepaid credit packs unlock unlimited comment exports with zero volume penalties.</p>
+    </details>
+  </div>
+</section>
+
   </main>
 
   <!-- Footer -->

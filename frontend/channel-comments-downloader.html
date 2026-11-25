@@ -73,7 +73,7 @@
   {"@context":"https://schema.org","@type":"WebApplication","name":"TubeMetrix — YouTube Channel Comments & Stream Downloader","url":"https://tubemetrix.net/channel-comments-downloader","description":"Batch extract live chats and comments across all streams of any YouTube channel by date range with consolidated Excel and CSV reports.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["YouTube Live Chat Replay Downloader","YouTube Comments Bulk Export","Superchat Filter & Export","Custom URL Batch Download","In-Browser Chat Viewer","CSV and Excel Export"]}
   </script>
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How to download YouTube live chat replay?","acceptedAnswer":{"@type":"Answer","text":"Paste your YouTube live stream URL into TubeMetrix Live Chat Downloader. The tool fetches the complete chat replay with timestamps, Superchats, and Memberships. Export to CSV, Excel, or TXT instantly."}},{"@type":"Question","name":"Can I export YouTube comments to Excel or CSV?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix supports one-click export of all YouTube video comments to Excel (.xls), CSV, TXT, and JSON. Use Option D (Video Comments) to download comments from any public YouTube video."}},{"@type":"Question","name":"What are the free limits and credit rates for live chat exports?","acceptedAnswer":{"@type":"Answer","text":"Single Stream mode includes 2 one-time free runs as a Guest and 3 free runs per week when signed in with Google (covering Single Live Chat or Single Video Comments up to 1,000). Custom URL Batch Export and high-volume runs use never-expiring prepaid Credits (1 Credit = 1 Full Stream Audit with Unlimited Super Chats • 1 Credit = 3,000 Live Chats • 1 Credit = 1,000 Video Comments; packs from ₹49 / $2.99; credits never expire)."}},{"@type":"Question","name":"How to filter Superchats from live chat logs?","acceptedAnswer":{"@type":"Answer","text":"After downloading, open the in-browser Chat Viewer and use the Event Type filter to show only Superchats. Set a minimum Superchat amount filter and sort by highest value."}},{"@type":"Question","name":"Does TubeMetrix work with YouTube Shorts comments?","acceptedAnswer":{"@type":"Answer","text":"Yes, TubeMetrix can download comments from YouTube Shorts, regular videos, and live stream replays. Simply paste the YouTube Shorts URL into the Video Comments tab."}}]}
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I search for a channel in TubeMetrix?","acceptedAnswer":{"@type":"Answer","text":"Paste any YouTube channel URL, channel handle (e.g. @Creator), or channel ID into the search bar."}},{"@type":"Question","name":"Can I filter streams by custom start and end dates?","acceptedAnswer":{"@type":"Answer","text":"Yes! Use quick presets (7D, 30D, 90D) or custom calendar date pickers."}},{"@type":"Question","name":"Does the channel tool extract streams unlisted after airing?","acceptedAnswer":{"@type":"Answer","text":"It queries public streams from the Live tab; unlisted streams can be audited using their direct link."}},{"@type":"Question","name":"How long does a 30-day channel stream extraction take?","acceptedAnswer":{"@type":"Answer","text":"TubeMetrix cloud engine extracts up to 3,000 chats in under 15 seconds per stream."}},{"@type":"Question","name":"Can I pause and resume a channel batch run?","acceptedAnswer":{"@type":"Answer","text":"Yes, a safe Pause button completes the active stream and preserves credit progress."}}]}
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -82,6 +82,86 @@
     rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=9.9">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<style>
+.seo-authority-section {
+  margin-top: 3.5rem;
+  padding-top: 3rem;
+  border-top: 1px solid var(--border-color, #232733);
+  color: var(--text-secondary, #94a3b8);
+}
+.seo-authority-section h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-primary, #f8fafc);
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+.seo-authority-section h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary, #f8fafc);
+  margin: 1.75rem 0 0.75rem;
+  line-height: 1.4;
+}
+.seo-authority-section p {
+  font-size: 0.96rem;
+  line-height: 1.75;
+  margin-bottom: 1.15rem;
+}
+.seo-authority-section ul, .seo-authority-section ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.seo-authority-section li {
+  font-size: 0.94rem;
+  line-height: 1.7;
+  margin-bottom: 0.45rem;
+}
+.seo-callout-box {
+  background: rgba(255, 0, 51, 0.05);
+  border-left: 3px solid var(--accent-red, #ff0033);
+  border-radius: 0 10px 10px 0;
+  padding: 1.15rem 1.4rem;
+  margin: 1.5rem 0;
+}
+.seo-callout-box p {
+  margin: 0;
+  color: var(--text-primary, #f8fafc);
+  font-weight: 500;
+}
+.seo-faq-group {
+  margin-top: 2.5rem;
+}
+.seo-faq-group h3 {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-primary, #f8fafc);
+  margin-bottom: 1.25rem;
+}
+.seo-faq-item {
+  background: var(--bg-surface, #12141a);
+  border: 1px solid var(--border-color, #232733);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.seo-faq-item summary {
+  font-weight: 700;
+  color: var(--text-primary, #f8fafc);
+  font-size: 1rem;
+  outline: none;
+}
+.seo-faq-item p {
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--text-secondary, #94a3b8);
+}
+</style>
+
 </head>
 
 <body data-default-mode="channel">
@@ -1042,6 +1122,63 @@
         </div>
       </div>
     </section>
+  
+<section class="seo-authority-section">
+  <h2>How to Archive YouTube Channel Live Streams Across Custom Date Ranges</h2>
+  <p>
+    Prolific live streamers, VTubers, and gaming creators often broadcast 4 to 7 times per week. Over a month or quarter, a channel accumulates hundreds of hours of broadcast history and tens of thousands of Super Chat donations. <strong>TubeMetrix Channel Date Range Mode allows you to audit and extract live chat history from an entire channel</strong> across specific calendar windows without searching for individual URLs.
+  </p>
+
+  <h3>Streamlining Creator Audits by Date Windows</h3>
+  <p>
+    Rather than manually copying links from a creator's Live tab, TubeMetrix lets you input a channel handle or URL and select predefined or custom timeframes:
+  </p>
+  <ul>
+    <li><strong>Last 7 Days (7D):</strong> Quick weekly recap for weekly sponsorship reporting and revenue verification.</li>
+    <li><strong>Last 30 Days (30D):</strong> Monthly creator audit for talent agency accounting and tax filings.</li>
+    <li><strong>Last 90 Days (90D):</strong> Quarterly retrospective analyzing audience sentiment and top supporters.</li>
+    <li><strong>Custom Calendar Range:</strong> Filter by exact start and end dates to capture specific tournament or charity stream campaigns.</li>
+  </ul>
+
+  <h3>Monetization &amp; Super Chat Consolidation Across Entire Channels</h3>
+  <p>
+    Channel-level exports combine data across all discovered broadcasts into a unified report:
+  </p>
+  <ul>
+    <li><strong>Top Supporter Leaderboards:</strong> Identify which community members donated the most Super Chats across the entire month.</li>
+    <li><strong>Revenue Aggregation:</strong> Total gross and net earnings broken down by individual stream broadcast.</li>
+    <li><strong>Member Badge Growth:</strong> Track loyal community members and long-term channel supporters over time.</li>
+  </ul>
+
+  <div class="seo-callout-box">
+    <p>📊 <strong>Agency Standard:</strong> Multi-Channel Networks (MCNs) and talent managers use TubeMetrix channel date-range exports to generate monthly financial and audience engagement decks for brand partners.</p>
+  </div>
+
+  <div class="seo-faq-group">
+    <h3>Frequently Asked Questions About Channel-Wide Stream Downloads</h3>
+    <details class="seo-faq-item">
+      <summary>How do I search for a channel in TubeMetrix?</summary>
+      <p>Simply paste any YouTube channel URL, channel handle (e.g. @CarryisLive), or channel ID into the Channel search bar.</p>
+    </details>
+    <details class="seo-faq-item">
+      <summary>Can I filter streams by custom start and end dates?</summary>
+      <p>Yes. You can use one-click presets (7D, 30D, 90D) or pick custom start and end dates from the calendar date inputs.</p>
+    </details>
+    <details class="seo-faq-item">
+      <summary>Does the channel tool extract streams that were unlisted after airing?</summary>
+      <p>The channel search retrieves all streams publicly listed under the creator's Live tab. Unlisted streams can still be audited individually via Single Stream mode using their direct link.</p>
+    </details>
+    <details class="seo-faq-item">
+      <summary>How long does a 30-day channel stream batch extraction take?</summary>
+      <p>Extraction speed depends on total chat volume, but TubeMetrix's cloud engine typically extracts 3,000 chats in under 15 seconds per stream.</p>
+    </details>
+    <details class="seo-faq-item">
+      <summary>Can I pause and resume a channel batch run?</summary>
+      <p>Yes! TubeMetrix features an intelligent Pause button that safely completes the current stream before pausing, saving your credit progress.</p>
+    </details>
+  </div>
+</section>
+
   </main>
 
   <!-- Footer -->
