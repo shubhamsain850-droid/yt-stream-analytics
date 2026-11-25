@@ -515,13 +515,11 @@
     <!-- Mode D: Video Comments Downloader -->
     <div class="mode-panel active" id="panel-comments">
       <div class="panel-banner-hint">
-        <span class="hint-icon">💭</span>
-        <span class="hint-text"><strong>Video Comments Downloader:</strong> Download viewer comments from uploaded or
-          saved videos with likes, replies, and pinned status.</span>
+        <span class="hint-icon">📱</span>
+        <span class="hint-text"><strong>YouTube Shorts Comments Downloader:</strong> Download viewer comments from YouTube Shorts, vertical clips, and uploaded videos with likes, replies, and pinned status.</span>
       </div>
 
-      <label class="input-label" for="commentsUrlInput">Paste YouTube Video URL or Video ID (Uploaded or Saved
-        Video)</label>
+      <label class="input-label" for="commentsUrlInput">Paste YouTube Shorts URL or Video Link (e.g. youtube.com/shorts/... or youtu.be/...)</label>
       <div class="input-row">
         <div class="input-wrapper">
           <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -530,7 +528,7 @@
             </path>
             <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
           </svg>
-          <input type="text" id="commentsUrlInput" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+          <input type="text" id="commentsUrlInput" placeholder="https://www.youtube.com/shorts/... or watch URL" autocomplete="off">
           <button class="btn-paste" id="pasteCommentsBtn" type="button">Paste</button>
         </div>
 
@@ -549,7 +547,7 @@
         </div>
 
         <button class="btn-primary" id="startCommentsBtn">
-          <span>Download Comments</span>
+          <span>Download Shorts Comments</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>

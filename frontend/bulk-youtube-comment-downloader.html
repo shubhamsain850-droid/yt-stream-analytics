@@ -453,14 +453,12 @@
     <!-- Mode C: Custom URL Batch Input -->
     <div class="mode-panel active" id="panel-multi">
       <div class="panel-banner-hint">
-        <span class="hint-icon">📑</span>
-        <span class="hint-text"><strong>Custom URL Batch Export:</strong> Queue custom YouTube live stream URLs below to
-          download all their live chats together in batch.</span>
+        <span class="hint-icon">⚡</span>
+        <span class="hint-text"><strong>Bulk URL Batch Downloader:</strong> Queue multiple YouTube videos, live streams, or Shorts to download all comments and chat replays in one batch.</span>
       </div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
-        <label class="input-label" for="chatMultiUrlInput" style="margin-bottom: 0;">Paste Stream Link &amp; Click 'Add
-          Stream'</label>
+        <label class="input-label" for="chatMultiUrlInput" style="margin-bottom: 0;">Add YouTube URL &amp; Click 'Add to Queue' (Streams, Videos, or Shorts)</label>
         <span class="batch-limit-pill" id="chatBatchLimitNotice">💎 Credits Required (No Free Quota)</span>
       </div>
       <div class="input-row">
@@ -469,14 +467,14 @@
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
           </svg>
-          <input type="text" id="chatMultiUrlInput" placeholder="Paste YouTube stream URL here..." autocomplete="off">
+          <input type="text" id="chatMultiUrlInput" placeholder="Paste YouTube video, stream, or Shorts link..." autocomplete="off">
         </div>
         <button class="btn-add" id="addChatUrlBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          <span>Add Stream</span>
+          <span>Add to Queue</span>
         </button>
       </div>
 
@@ -504,7 +502,7 @@
 
       <div class="action-row">
         <button class="btn-primary" id="startChatMultiBtn" disabled>
-          <span>Start Batch Chat Extraction</span>
+          <span>Start Bulk Batch Extraction</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
