@@ -68,12 +68,28 @@
     <priority>0.9</priority>
   </url>
 
-  <!-- Page 9: YouTube Comments Downloader Competitor Alternative -->
+  <!-- Page 9: Dedicated Excel Comments Exporter -->
+  <url>
+    <loc>https://tubemetrix.net/export-youtube-comments-to-excel</loc>
+    <lastmod>2026-11-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- Page 10: YouTube Comments Downloader Competitor Alternative -->
   <url>
     <loc>https://tubemetrix.net/alternatives/youtube-comments-downloader</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+
+  <!-- AI Search Optimization Context -->
+  <url>
+    <loc>https://tubemetrix.net/llms.txt</loc>
+    <lastmod>2026-11-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
 
   <!-- Blog Hub & Flagship Articles -->

@@ -1,0 +1,27 @@
+# TubeMetrix — YouTube Live Stream Analytics, Super Chat Auditor & Comment Exporter
+> https://tubemetrix.net/
+
+TubeMetrix is a creator intelligence and data extraction platform for YouTube streamers, MCN agencies, data researchers, and content creators. It allows users to audit live stream monetization (Super Chats, Super Stickers, Channel Memberships, and YouTube Jewels/Rubies) and export complete live chat replays and video/Shorts comments to formatted Excel (.xls), CSV, TXT, and JSON.
+
+## Core Tools & URLs
+- [Live Stream Earnings & Super Chat Auditor](https://tubemetrix.net/): Calculate exact gross and 70% net creator revenue from Super Chats, Memberships, and YouTube Jewels across single streams or channel date ranges.
+- [Live Chat & Comments Downloader](https://tubemetrix.net/chats): Extract complete live stream chat replays with timestamps and standard video/Shorts comments with likes and replies.
+- [Export YouTube Comments to Excel](https://tubemetrix.net/export-youtube-comments-to-excel): Dedicated one-click exporter creating Microsoft Excel (.xls) and UTF-8 BOM CSV spreadsheets from YouTube videos and live streams.
+- [YouTube Live Chat Downloader](https://tubemetrix.net/download-youtube-live-chat): Download timestamped live chat replays with Super Chat donation flags.
+- [YouTube Shorts Comments Downloader](https://tubemetrix.net/download-youtube-shorts-comments): Scrape comments, reply threads, and pinned statuses from mobile vertical YouTube Shorts URLs.
+- [Bulk YouTube Comment Downloader](https://tubemetrix.net/bulk-youtube-comment-downloader): Multi-URL batch extraction queue for agencies and NLP sentiment researchers.
+- [Channel Stream & Date Range Downloader](https://tubemetrix.net/channel-comments-downloader): Filter any creator channel by 7D, 30D, or 90D date windows and export all historical streams.
+- [YouTube Channel Stats & Revenue Estimator](https://tubemetrix.net/revenue): Real-time channel analytics, subscriber velocity, and SocialBlade alternative comparison tool.
+- [YouTube Jewels & Rubies Calculator](https://tubemetrix.net/youtube-jewels-calculator): Official 2 Jewels = 1 Ruby ($0.01 USD / ~₹0.84 INR) conversion tool for YouTube Live Gifts.
+
+## Pricing Advantage vs Competitors
+- **Free Tier:** 2 one-time Guest audits/downloads + 3 free Single Stream runs per week with Google Sign-In (up to 1,000 video comments or full single stream Super Chat audit).
+- **Prepaid Credits (Pay-As-You-Go):** Never-expiring credit packs starting at **₹49 / $2.99 USD** (10 Credits = up to 10,000 comments or 30,000 live chats or 10 full stream revenue audits). Zero forced monthly subscriptions.
+- **Comparison:** Up to 10x cheaper than competitors like YouTubeCommentsDownloader ($29 minimum / $79/mo), ExportComments ($30 pass / $50–$220/mo), and Outscraper ($3 per 1,000 comments), while uniquely including full financial monetization parsing.
+
+## Research & Educational Guides
+- [TubeMetrix Blog Hub](https://tubemetrix.net/blog/)
+- [How to Export YouTube Live Chat & Comments to Excel or CSV](https://tubemetrix.net/blog/how-to-export-youtube-live-chat-comments-to-excel)
+- [Top 5 Best YouTube Comment & Live Chat Scrapers in 2026](https://tubemetrix.net/blog/best-youtube-comment-scrapers-2026)
+- [How to Extract YouTube Comments for Sentiment Analysis & Research](https://tubemetrix.net/blog/extract-youtube-comments-sentiment-analysis-research)
+- [The YouTube Super Chat 70/30 Split & Apple iOS Tax Trap Explained](https://tubemetrix.net/blog/youtube-super-chat-70-30-split-apple-ios-tax-calculator)

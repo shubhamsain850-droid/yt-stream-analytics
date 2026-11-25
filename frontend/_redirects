@@ -6,6 +6,6 @@
 /download/bulk /bulk-youtube-comment-downloader 301
 /download/channel /channel-comments-downloader 301
 /download-live-chat /download-youtube-live-chat 301
-/export-youtube-comments-to-excel /chats 301
+/download/excel /export-youtube-comments-to-excel 301
 
 
