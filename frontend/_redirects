@@ -1,3 +1,11 @@
-/youtube-comments-downloader /chats 301
+/youtube-comments-downloader /alternatives/youtube-comments-downloader 301
 /socialblade-alternative /revenue 301
+/download/live /download-youtube-live-chat 301
+/download/short /download-youtube-shorts-comments 301
+/download/shorts /download-youtube-shorts-comments 301
+/download/bulk /bulk-youtube-comment-downloader 301
+/download/channel /channel-comments-downloader 301
+/download-live-chat /download-youtube-live-chat 301
+/export-youtube-comments-to-excel /chats 301
+
 

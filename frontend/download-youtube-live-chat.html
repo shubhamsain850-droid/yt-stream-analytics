@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Live Chat Downloader — Export Replay & Super Chats — TubeMetrix</title>
+  <meta name="description"
+    content="Download complete YouTube live stream chat replays with timestamps, Superchats, and member badges to CSV, Excel, TXT & JSON with free in-browser viewer.">
+  <meta name="keywords"
+    content="download youtube live chat, export youtube live chat replay, download live stream chat replay, youtube live chat transcript, save youtube live chat with timestamps, export youtube live chat to excel, youtube super chat logs download">
+  <meta name="author" content="TubeMetrix">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://tubemetrix.net/download-youtube-live-chat">
+  <script>
+    if (window.location.hostname.endsWith('.pages.dev')) {
+      window.location.replace('https://tubemetrix.net' + window.location.pathname + window.location.search + window.location.hash);
+    }
+  </script>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=5.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta property="og:image" content="https://tubemetrix.net/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:image" content="https://tubemetrix.net/og-image.png">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tubemetrix.net/download-youtube-live-chat">
+  <meta property="og:title" content="YouTube Live Chat Downloader — Export Replay & Super Chats — TubeMetrix">
+  <meta property="og:description"
+    content="Download complete YouTube live stream chat replays with timestamps, Superchats, and member badges to CSV, Excel, TXT & JSON with free in-browser viewer.">
+  <meta property="og:site_name" content="TubeMetrix">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="YouTube Live Chat Downloader — Export Replay & Super Chats — TubeMetrix">
+  <meta name="twitter:description"
+    content="Download complete YouTube live stream chat replays with timestamps, Superchats, and member badges to CSV, Excel, TXT & JSON with free in-browser viewer.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://tubemetrix.net/#organization",
+        "name": "TubeMetrix",
+        "alternateName": ["TubeMetrix Official", "TubeMetrix.net"],
+        "url": "https://tubemetrix.net/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://tubemetrix.net/icon-512.png",
+          "width": 512,
+          "height": 512
+        },
+        "description": "Official TubeMetrix creator intelligence suite: YouTube live stream earnings auditor, live chat & comments downloader, and channel statistics analytics.",
+        "email": "support@tubemetrix.net"
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://tubemetrix.net/#website",
+        "url": "https://tubemetrix.net/",
+        "name": "TubeMetrix",
+        "publisher": {
+          "@id": "https://tubemetrix.net/#organization"
+        }
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebApplication","name":"TubeMetrix — YouTube Live Chat Downloader","url":"https://tubemetrix.net/download-youtube-live-chat","description":"Download complete YouTube live stream chat replays with timestamps, Superchats, and member badges to CSV, Excel, TXT & JSON.","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["YouTube Live Chat Replay Downloader","YouTube Comments Bulk Export","Superchat Filter & Export","Custom URL Batch Download","In-Browser Chat Viewer","CSV and Excel Export"]}
+  </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How to download YouTube live chat replay?","acceptedAnswer":{"@type":"Answer","text":"Paste your YouTube live stream URL into TubeMetrix Live Chat Downloader. The tool fetches the complete chat replay with timestamps, Superchats, and Memberships. Export to CSV, Excel, or TXT instantly."}},{"@type":"Question","name":"Can I export YouTube comments to Excel or CSV?","acceptedAnswer":{"@type":"Answer","text":"Yes! TubeMetrix supports one-click export of all YouTube video comments to Excel (.xls), CSV, TXT, and JSON. Use Option D (Video Comments) to download comments from any public YouTube video."}},{"@type":"Question","name":"What are the free limits and credit rates for live chat exports?","acceptedAnswer":{"@type":"Answer","text":"Single Stream mode includes 2 one-time free runs as a Guest and 3 free runs per week when signed in with Google (covering Single Live Chat or Single Video Comments up to 1,000). Custom URL Batch Export and high-volume runs use never-expiring prepaid Credits (1 Credit = 1 Full Stream Audit with Unlimited Super Chats • 1 Credit = 3,000 Live Chats • 1 Credit = 1,000 Video Comments; packs from ₹49 / $2.99; credits never expire)."}},{"@type":"Question","name":"How to filter Superchats from live chat logs?","acceptedAnswer":{"@type":"Answer","text":"After downloading, open the in-browser Chat Viewer and use the Event Type filter to show only Superchats. Set a minimum Superchat amount filter and sort by highest value."}},{"@type":"Question","name":"Does TubeMetrix work with YouTube Shorts comments?","acceptedAnswer":{"@type":"Answer","text":"Yes, TubeMetrix can download comments from YouTube Shorts, regular videos, and live stream replays. Simply paste the YouTube Shorts URL into the Video Comments tab."}}]}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=9.9">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body data-default-mode="single">
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <div class="nav-container">
+      <a href="/" class="logo" title="TubeMetrix Home">
+        <div class="logo-icon" title="TubeMetrix">
+          <svg viewBox="0 0 100 100" fill="none" style="width: 100%; height: 100%;">
+            <defs>
+              <linearGradient id="navTmRed" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff1744" />
+                <stop offset="50%" stop-color="#ff0033" />
+                <stop offset="100%" stop-color="#c40026" />
+              </linearGradient>
+              <linearGradient id="navCyanArrow" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#00f2fe" />
+                <stop offset="100%" stop-color="#4facfe" />
+              </linearGradient>
+              <linearGradient id="navSheen" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.28" />
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="96" height="96" rx="26" fill="url(#navTmRed)" />
+            <path d="M 4 28 C 4 14, 14 4, 28 4 L 72 4 C 86 4, 96 14, 96 28 C 96 36, 62 42, 4 36 Z"
+              fill="url(#navSheen)" />
+            <rect x="18" y="22" width="64" height="15" rx="7.5" fill="#ffffff" />
+            <rect x="33.5" y="48" width="9" height="28" rx="4.5" fill="#ffffff" opacity="0.82" />
+            <rect x="45.5" y="40" width="9" height="36" rx="4.5" fill="#ffffff" opacity="0.96" />
+            <rect x="57.5" y="32" width="9" height="44" rx="4.5" fill="url(#navCyanArrow)" />
+            <path d="M 22 74 L 75 24" stroke="url(#navCyanArrow)" stroke-width="5.5" stroke-linecap="round" />
+            <path d="M 57 24 L 75 24 L 75 42" fill="none" stroke="url(#navCyanArrow)" stroke-width="5.5"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <span class="logo-text">Tube<span>Metrix</span></span>
+      </a>
+
+      <!-- Main Page Switcher -->
+      <div class="page-nav-wrapper">
+        <nav class="page-nav" id="mainPageNav">
+          <a href="/" class="nav-tab-link">
+            <span class="nav-tab-icon">💰</span>
+            <span class="nav-text-full">Stream Earnings</span>
+            <span class="nav-text-short">Earnings</span>
+          </a>
+          <a href="/chats" class="nav-tab-link active">
+            <span class="nav-tab-icon">💬</span>
+            <span class="nav-text-full">Live Chat &amp; Comments</span>
+            <span class="nav-text-short">Live Chat</span>
+          </a>
+          <a href="/revenue" class="nav-tab-link">
+            <span class="nav-tab-icon">📊</span>
+            <span class="nav-text-full">Channel Analytics</span>
+            <span class="nav-text-short">Analytics</span>
+          </a>
+        </nav>
+        <div class="scroll-edge-hint" id="pageNavHint" title="Slide for more options" role="button"
+          aria-label="Slide for more options">
+          <div class="glass-cue-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round" class="cue-chevron">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Google Auth & Profile Widget -->
+        <div id="authNavContainer"></div>
+        <!-- Global Language Selector -->
+        <div id="langNavContainer" class="lang-nav-container"></div>
+        <button class="theme-toggle-btn" id="themeToggleBtn" type="button" title="Switch Theme (Light / Dark)">
+          <span class="theme-icon" id="themeIcon">☀️</span>
+          <span class="theme-text" id="themeText">Light</span>
+        </button>
+
+        <!-- Dynamic Base Currency Selector -->
+        <div class="currency-switch">
+          <button class="curr-btn active" data-curr="INR">₹ INR</button>
+          <button class="curr-btn" data-curr="USD">$ USD</button>
+          <button class="curr-btn" data-curr="EUR">€ EUR</button>
+          <select class="curr-select" id="moreCurrencySelect" title="Select more currencies">
+            <option value="" disabled selected>More ▾</option>
+            <option value="GBP">🇬🇧 GBP (£)</option>
+            <option value="CAD">🇨🇦 CAD (C$)</option>
+            <option value="AUD">🇦🇺 AUD (A$)</option>
+            <option value="SGD">🇸🇬 SGD (S$)</option>
+            <option value="AED">🇦🇪 AED (د.إ)</option>
+            <option value="SAR">🇸🇦 SAR (SR)</option>
+            <option value="BRL">🇧🇷 BRL (R$)</option>
+            <option value="JPY">🇯🇵 JPY (¥)</option>
+            <option value="KRW">🇰🇷 KRW (₩)</option>
+            <option value="PHP">🇵🇭 PHP (₱)</option>
+            <option value="PKR">🇵🇰 PKR (Rs)</option>
+            <option value="BDT">🇧🇩 BDT (৳)</option>
+            <option value="RUB">🇷🇺 RUB (₽)</option>
+            <option value="TRY">🇹🇷 TRY (₺)</option>
+            <option value="PLN">🇵🇱 PLN (zł)</option>
+            <option value="MXN">🇲🇽 MXN (Mex$)</option>
+            <option value="IDR">🇮🇩 IDR (Rp)</option>
+            <option value="THB">🇹🇭 THB (฿)</option>
+            <option value="VND">🇻🇳 VND (₫)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Hero Header -->
+    <section class="hero-section">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        ⚡ High-Speed YouTube Live Chat & Replay Downloader
+      </div>
+      <h1 class="hero-title">Download YouTube <span>Live Chat Replay</span> & Super Chats</h1>
+      <p class="hero-sub">
+        Extract thousands of live chat messages, timestamped replays, Superchats, and member badges from any YouTube stream into Excel (.xlsx), CSV, TXT, or JSON.
+      </p>
+    </section>
+
+    <!-- Main Tool Container (Clean, straight, matching Page 1) -->
+    <div class="tool-card">
+      <div class="mode-tabs-wrapper">
+        <div class="mode-tabs" id="toolModeTabs">
+          <button class="tab-btn active" data-mode="single">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Single Stream</span>
+          </button>
+          <button class="tab-btn" data-mode="channel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Multi Live Chat Export</span>
+            <span class="tab-pro-pill" id="channelChatTabProPill">💎 CREDITS</span>
+          </button>
+          <button class="tab-btn" data-mode="multi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            <span>Custom URL Batch Export</span>
+            <span class="tab-counter-badge" id="multiTabBadge">0 Added</span>
+          </button>
+          <button class="tab-btn" data-mode="comments">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+              </path>
+            </svg>
+            <span>Video Comments</span>
+          </button>
+        </div>
+        <div class="scroll-edge-hint" id="modeTabsHint" title="Slide for more modes" role="button"
+          aria-label="Slide for more modes">
+          <div class="glass-cue-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round" class="cue-chevron">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode A: Single Stream Chat -->
+    <div class="mode-panel active" id="panel-single">
+      <div class="panel-banner-hint">
+        <span class="hint-icon">💬</span>
+        <span class="hint-text"><strong>Single Stream Mode:</strong> Enter a YouTube live stream URL or video ID to
+          fetch &amp; export its complete live chat replay with timestamps, Superchats, and Memberships.</span>
+      </div>
+
+      <label class="input-label" for="chatSingleUrlInput">Paste YouTube Live Stream URL or Video ID</label>
+      <div class="input-row">
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z">
+            </path>
+            <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+          </svg>
+          <input type="text" id="chatSingleUrlInput" placeholder="https://www.youtube.com/watch?v=..."
+            autocomplete="off">
+          <button class="btn-paste" id="pasteChatSingleBtn" type="button">Paste</button>
+        </div>
+        <button class="btn-primary" id="startChatSingleBtn">
+          <span>Fetch Live Chat</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mode B: Channel Live Streams & Date Range -->
+    <div class="mode-panel" id="panel-channel">
+      <div class="panel-banner-hint">
+        <span class="hint-icon">📁</span>
+        <span class="hint-text"><strong>Multi Live Chat Export (Channel):</strong> Batch extract chat replays from all
+          or date-filtered live streams of any YouTube channel in one go.</span>
+      </div>
+
+      <!-- Credits Feature Lock Banner -->
+      <div class="pro-panel-lock-banner" id="channelChatProLock">
+        <div class="pro-lock-content">
+          <div class="pro-lock-icon-wrap">
+            <span class="pro-lock-crown">💎</span>
+            <span class="pro-lock-badge">PAY-AS-YOU-GO CREDITS</span>
+          </div>
+          <h3 class="pro-lock-title">Unlock Bulk Channel &amp; Date Range Chat Downloader</h3>
+          <p class="pro-lock-desc">
+            Download complete live chat logs, Superchats, and Member messages across any channel date window using
+            never-expiring prepaid credits (1 Credit = 1 Full Stream Audit • 3,000 Live Chats • 1,000 Comments • zero subscriptions).
+          </p>
+          <div class="pro-lock-perks">
+            <span class="pro-perk-item">✓ 1 Credit = 3k Chats / 1k Comments / 1 Stream</span>
+            <span class="pro-perk-item">✓ Highlighted Superchats &amp; Memberships</span>
+            <span class="pro-perk-item">✓ 14-Day Cloud ZIP Backups</span>
+            <span class="pro-perk-item">✓ Full JSON / CSV / Excel Batch Export</span>
+          </div>
+          <div class="pro-lock-actions">
+            <button class="btn-unlock-pro" type="button" id="unlockChatChannelProBtn">
+              <span data-tm-price-target="banner-credits">💎 Buy Credits (From ₹49 / $2.99 • 10 CR)</span>
+            </button>
+            <button class="btn-lock-free-switch" type="button" id="switchChatSingleStreamBtn">
+              Try Free Single Stream →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="channel-form-controls panel-pro-locked" id="channelChatFormControls">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label class="input-label" for="chatChannelUrlInput">YouTube Channel URL, Handle or Stream Tab</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <input type="text" id="chatChannelUrlInput"
+                placeholder="Enter YouTube channel URL, @handle, or streams link..." autocomplete="off">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="input-label" for="chatFromDateInput">From Date</label>
+            <input type="date" id="chatFromDateInput" class="date-input">
+          </div>
+
+          <div class="form-group">
+            <label class="input-label" for="chatToDateInput">To Date</label>
+            <input type="date" id="chatToDateInput" class="date-input">
+          </div>
+        </div>
+
+        <div class="presets-row">
+          <span class="preset-label">Quick Stream Presets:</span>
+          <button class="preset-chip" data-preset="7d">Last 7 Days</button>
+          <button class="preset-chip" data-preset="30d">Last 30 Days</button>
+          <button class="preset-chip" data-preset="90d">Last 3 Months</button>
+          <button class="preset-chip active" data-preset="all">🔥 All Streams (Entire Channel)</button>
+        </div>
+
+        <div class="action-row">
+          <button class="btn-primary" id="startChatChannelBtn">
+            <span>Fetch Channel Streams &amp; Download Chats</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div> <!-- /channelChatFormControls -->
+    </div>
+
+    <!-- Mode C: Custom URL Batch Input -->
+    <div class="mode-panel" id="panel-multi">
+      <div class="panel-banner-hint">
+        <span class="hint-icon">📑</span>
+        <span class="hint-text"><strong>Custom URL Batch Export:</strong> Queue custom YouTube live stream URLs below to
+          download all their live chats together in batch.</span>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+        <label class="input-label" for="chatMultiUrlInput" style="margin-bottom: 0;">Paste Stream Link &amp; Click 'Add
+          Stream'</label>
+        <span class="batch-limit-pill" id="chatBatchLimitNotice">💎 Credits Required (No Free Quota)</span>
+      </div>
+      <div class="input-row">
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          <input type="text" id="chatMultiUrlInput" placeholder="Paste YouTube stream URL here..." autocomplete="off">
+        </div>
+        <button class="btn-add" id="addChatUrlBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Add Stream</span>
+        </button>
+      </div>
+
+      <!-- URL Queue List & Live Counter -->
+      <div class="url-queue-header">
+        <div class="queue-counter">
+          <span class="count-badge" id="chatQueueCount">0 Added</span>
+          <span class="count-text" id="chatBatchQueueLimitText">Streams in Batch (0 Added • 0 Credits Base)</span>
+        </div>
+        <button class="btn-clear" id="clearAllChatUrlsBtn" type="button" style="display: none;">Clear All</button>
+      </div>
+
+      <div class="url-queue-list" id="chatUrlQueueList">
+        <div class="empty-queue-hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>No streams added yet. Paste a YouTube URL above and click <strong>"Add Stream"</strong> (Requires Credits • No Free Quota).</span>
+        </div>
+      </div>
+
+      <div class="tm-preflight-cost-bar" id="chatBatchCostBar" style="display: none;"></div>
+
+      <div class="action-row">
+        <button class="btn-primary" id="startChatMultiBtn" disabled>
+          <span>Start Batch Chat Extraction</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mode D: Video Comments Downloader -->
+    <div class="mode-panel" id="panel-comments">
+      <div class="panel-banner-hint">
+        <span class="hint-icon">💭</span>
+        <span class="hint-text"><strong>Video Comments Downloader:</strong> Download viewer comments from uploaded or
+          saved videos with likes, replies, and pinned status.</span>
+      </div>
+
+      <label class="input-label" for="commentsUrlInput">Paste YouTube Video URL or Video ID (Uploaded or Saved
+        Video)</label>
+      <div class="input-row">
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z">
+            </path>
+            <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+          </svg>
+          <input type="text" id="commentsUrlInput" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+          <button class="btn-paste" id="pasteCommentsBtn" type="button">Paste</button>
+        </div>
+
+        <div class="limit-select-wrapper">
+          <label for="commentsLimitSelect" class="limit-label">Limit:</label>
+          <select id="commentsLimitSelect" class="limit-select">
+            <option value="100">100 Comments (Fast)</option>
+            <option value="500">500 Comments</option>
+            <option value="1000" selected>1,000 Comments (Free Tier / 1 CR)</option>
+            <option value="2000">2,000 Comments (2 Credits)</option>
+            <option value="5000">5,000 Comments (5 Credits)</option>
+            <option value="10000">10,000 Comments (10 Credits)</option>
+            <option value="25000">25,000 Comments (25 Credits)</option>
+            <option value="50000">50,000 Comments (50 Credits • Max Cap)</option>
+          </select>
+        </div>
+
+        <button class="btn-primary" id="startCommentsBtn">
+          <span>Download Comments</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+      <div class="tm-preflight-cost-bar" id="commentsCostPreviewBar" style="display: none;"></div>
+    </div>
+    </div>
+
+    <!-- Saved Pause / Locked Chat Resume Banner -->
+    <div class="tm-resume-banner" id="chatResumeBanner" style="display: none;"></div>
+
+    <!-- Live Processing Card -->
+    <div class="status-card" id="processingCard" style="display: none;">
+      <div class="status-header">
+        <div class="status-title-group">
+          <div class="spinner-dot"></div>
+          <div class="status-title" id="statusTitle">Extracting Data...</div>
+        </div>
+        <div class="status-header-right">
+          <span class="tm-elapsed-pill" id="processingElapsedBadge" style="display: none;">⏱ 0:00</span>
+          <span class="percentage-badge" id="progressPercent">0%</span>
+        </div>
+      </div>
+
+      <div class="progress-track">
+        <div class="progress-bar-fill" id="progressBarFill" style="width: 0%;"></div>
+      </div>
+
+      <!-- Live Credit Meter & Pause Control -->
+      <div class="tm-live-credit-bar" id="chatLiveCreditBar" style="display: none;">
+        <div class="tm-live-credit-left">
+          <span class="tm-credit-pill" id="chatLiveCreditPill">💎 Credits: <strong>0 CR</strong></span>
+          <span class="tm-live-meter-note" id="chatLiveMeterNote">Stream-by-stream metering • Stops safely at 0 CR</span>
+        </div>
+        <button type="button" class="btn-pause-run" id="pauseChatBatchBtn">⏸ Pause &amp; Save</button>
+      </div>
+
+      <div class="ticker-box">
+        <div class="ticker-dot"></div>
+        <span class="ticker-text" id="statusTicker">Connecting to YouTube live chat engine...</span>
+      </div>
+
+      <!-- Stream Batch Status Metrics (Visible during Multi-Stream / Channel runs) -->
+      <div class="metrics-grid" id="chatStreamMetricsGrid" style="display: none; margin-bottom: 12px;">
+        <div class="metric-chip total clickable" data-filter="all" title="Click to view all streams">
+          <div class="metric-icon">📊</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countChatTotalStreams">0</span>
+            <span class="metric-label">Total Streams</span>
+            <span class="metric-hint">Click to inspect</span>
+          </div>
+        </div>
+
+        <div class="metric-chip success clickable" data-filter="processed" title="Click to view processed streams">
+          <div class="metric-icon">✅</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countChatProcessed">0</span>
+            <span class="metric-label">Processed</span>
+            <span class="metric-hint">Click to inspect</span>
+          </div>
+        </div>
+
+        <div class="metric-chip failed clickable" data-filter="failed" title="Click to view failed streams & reasons">
+          <div class="metric-icon">❌</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countChatFailed">0</span>
+            <span class="metric-label">Failed</span>
+            <span class="metric-hint">Click to inspect</span>
+          </div>
+        </div>
+
+        <div class="metric-chip nochat clickable" data-filter="no_chat" title="Click to view streams with chat disabled">
+          <div class="metric-icon">⚠️</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countChatNoChat">0</span>
+            <span class="metric-label">Chat Unavailable</span>
+            <span class="metric-hint">Click to inspect</span>
+          </div>
+        </div>
+
+        <div class="metric-chip membersonly clickable" data-filter="members_only" title="Click to view Members-Only / Pvt streams">
+          <div class="metric-icon">🔒</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countChatMembersOnly">0</span>
+            <span class="metric-label">Members / Pvt Stream</span>
+            <span class="metric-hint">Click to inspect</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Stream Audit Breakdown (Chats Downloader Page) -->
+      <div class="stream-audit-box" id="chatStreamAuditBox" style="display: none; margin-bottom: 14px;">
+        <div class="stream-audit-header">
+          <div class="stream-audit-title">
+            <span>📋 Stream Audit Breakdown</span>
+            <span class="audit-status-badge processed" id="chatAuditCheckedBadge">0 Checked</span>
+          </div>
+          <button type="button" class="stream-audit-toggle-btn" id="toggleChatAuditTableBtn">
+            <span id="chatAuditToggleLabel">Hide List</span> ▾
+          </button>
+        </div>
+
+        <div class="stream-audit-filter-pills" id="chatAuditFilterPills">
+          <button type="button" class="audit-pill active" data-filter="all">All (<span id="chatPillCountAll">0</span>)</button>
+          <button type="button" class="audit-pill pill-processed" data-filter="processed">✅ Processed (<span id="chatPillCountProcessed">0</span>)</button>
+          <button type="button" class="audit-pill pill-members" data-filter="members_only">🔒 Members / Pvt (<span id="chatPillCountMembers">0</span>)</button>
+          <button type="button" class="audit-pill pill-nochat" data-filter="no_chat">⚠️ Chat Unavailable (<span id="chatPillCountNoChat">0</span>)</button>
+          <button type="button" class="audit-pill pill-failed" data-filter="failed">❌ Failed (<span id="chatPillCountFailed">0</span>)</button>
+        </div>
+
+        <div class="stream-audit-table-wrap" id="chatStreamAuditTableWrap">
+          <table class="stream-audit-table">
+            <thead>
+              <tr>
+                <th style="width: 45px;">#</th>
+                <th>Stream Title</th>
+                <th style="width: 105px;">Date</th>
+                <th style="width: 155px;">Status</th>
+                <th style="width: 200px;">Details / Reason</th>
+              </tr>
+            </thead>
+            <tbody id="chatStreamAuditTbody">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No streams checked yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="metrics-grid" id="chatMessageMetricsGrid">
+        <div class="metric-chip total">
+          <div class="metric-icon">💬</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countExtracted">0</span>
+            <span class="metric-label" id="labelExtracted">Extracted Messages</span>
+          </div>
+        </div>
+
+        <div class="metric-chip success">
+          <div class="metric-icon">👥</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countUnique">0</span>
+            <span class="metric-label">Unique Authors</span>
+          </div>
+        </div>
+
+        <div class="metric-chip failed">
+          <div class="metric-icon">⭐</div>
+          <div class="metric-info">
+            <span class="metric-value" id="countEvents">0</span>
+            <span class="metric-label">Highlighted Events</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action on Completion -->
+      <div class="progress-actions" id="progressActions" style="display: none; margin-top: 16px; text-align: center;">
+        <button class="btn-view-results" id="quickViewBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span>👁️ View Results (Open Inspection Window)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         RESULTS SECTION 1: LIVE CHAT FEED & LOGS
+         ══════════════════════════════════════════ -->
+    <section class="results-section" id="resultsChatSection" style="display: none;">
+      <!-- Out-of-Credits Pause / Locked Messages Banner -->
+      <div class="tm-limit-banner" id="chatCreditLimitBanner" style="display: none;"></div>
+
+      <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 14px;">YouTube Live Chat Replay &amp; Super Chat Summary</h2>
+      <div class="kpi-banner">
+        <div class="kpi-card highlight">
+          <span class="kpi-badge">Total Chat Messages</span>
+          <div class="kpi-amount" id="kpiChatTotal">0</div>
+          <span class="kpi-sub" id="kpiChatStreamInfo">1 Stream Audited</span>
+        </div>
+
+        <div class="kpi-card donors-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Unique Chatters</span>
+            <span class="pill-badge pill-blue">Audience</span>
+          </div>
+          <div class="kpi-value" id="kpiChatUnique">0</div>
+          <span class="kpi-note" id="kpiChatTopPercent">Active community viewers</span>
+        </div>
+
+        <div class="kpi-card sc-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Super Chats &amp; Stickers</span>
+            <span class="pill-badge pill-red">Donations</span>
+          </div>
+          <div class="kpi-value" id="kpiChatSuperchat">0</div>
+          <span class="kpi-note">Paid highlight messages</span>
+        </div>
+
+        <div class="kpi-card member-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Memberships &amp; Gifts</span>
+            <span class="pill-badge pill-purple">Sponsors</span>
+          </div>
+          <div class="kpi-value" id="kpiChatMemberships">0</div>
+          <span class="kpi-note">Joins, renewals &amp; gifts</span>
+        </div>
+
+        <div class="kpi-card jewels-card">
+          <div class="kpi-header">
+            <span class="kpi-title">YouTube Jewels</span>
+            <span class="pill-badge pill-amber">Gifts</span>
+          </div>
+          <div class="kpi-value" id="kpiChatJewels">0</div>
+          <span class="kpi-note">Indian Jewels gifts recorded</span>
+        </div>
+      </div>
+
+      <!-- Top Chatters Leaderboard Card -->
+      <div class="leaderboard-card" id="leaderboardCard">
+        <div class="leaderboard-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.2rem;">🏆</span>
+            <h3 class="leaderboard-title">Top Active Chatters Leaderboard</h3>
+          </div>
+          <span class="leaderboard-sub">Ranked by total messages sent in stream</span>
+        </div>
+        <div class="leaderboard-chips-grid" id="leaderboardChips">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Sub-Navigation Bar & Export Dropdown -->
+      <div class="results-toolbar">
+        <div class="results-tabs" id="chatFilterTabs">
+          <button class="res-tab-btn active" data-filter="all">
+            <span>All Messages</span>
+            <span class="tab-pill" id="badgeAllChats">0</span>
+          </button>
+          <button class="res-tab-btn" data-filter="SUPERCHAT">
+            <span>⭐ Super Chats</span>
+            <span class="tab-pill" id="badgeScOnly">0</span>
+          </button>
+          <button class="res-tab-btn" data-filter="MEMBERSHIP">
+            <span>💎 Memberships</span>
+            <span class="tab-pill" id="badgeMemOnly">0</span>
+          </button>
+          <button class="res-tab-btn" data-filter="JEWELS">
+            <span>🎁 Jewels Gifts</span>
+            <span class="tab-pill" id="badgeJewelOnly">0</span>
+          </button>
+          <button class="res-tab-btn" data-filter="MODERATOR">
+            <span>🛡️ Mods &amp; Members</span>
+            <span class="tab-pill" id="badgeModsOnly">0</span>
+          </button>
+        </div>
+
+        <div class="export-group">
+          <button class="btn-view-results" id="openChatViewModalBtn" type="button"
+            title="View all chat messages in interactive inspection window without downloading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <span>👁️ View Results</span>
+          </button>
+          <button class="btn-export excel" id="exportChatExcelBtn" title="Export Formatted Excel Spreadsheet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="8" y1="13" x2="16" y2="13"></line>
+              <line x1="8" y1="17" x2="16" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>Excel (.xls)</span>
+          </button>
+          <button class="btn-export notepad" id="exportChatTxtBtn" title="Export Arranged Formatted Notepad Text">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <line x1="10" y1="9" x2="8" y2="9"></line>
+            </svg>
+            <span>Notepad (.txt)</span>
+          </button>
+          <button class="btn-export" id="exportChatCsvBtn" title="Export Raw CSV Data">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>CSV</span>
+          </button>
+          <button class="btn-export secondary" id="exportChatJsonBtn" title="Export Full JSON Dataset">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            <span>JSON</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search & Filter Controls -->
+      <div class="filter-bar">
+        <div class="search-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="chatSearchInput" placeholder="Filter by username, message text, or event type...">
+        </div>
+        <div class="sort-select-wrapper">
+          <label>Sort:</label>
+          <select id="chatSortSelect">
+            <option value="time-asc">Chronological (Oldest First)</option>
+            <option value="time-desc">Newest First</option>
+            <option value="author-asc">Author Name (A-Z)</option>
+            <option value="events-first">Highlighted Events First</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Live Chat Table Feed -->
+      <div class="table-card">
+        <div class="table-responsive">
+          <table class="data-table" id="chatFeedTable">
+            <thead>
+              <tr>
+                <th style="width: 70px;"># Count</th>
+                <th style="width: 105px;">Time</th>
+                <th style="width: 200px;">Author / Chatter</th>
+                <th style="width: 160px;">Event Type</th>
+                <th>Message Content</th>
+                <th style="width: 110px;">Stream</th>
+              </tr>
+            </thead>
+            <tbody id="chatFeedTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+        <div id="chatFeedPagination" class="table-pagination-bar" style="display: none;"></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         RESULTS SECTION 2: VIDEO COMMENTS TABLE
+         ══════════════════════════════════════════ -->
+    <section class="results-section" id="resultsCommentsSection" style="display: none;">
+      <div class="tm-limit-banner" id="commentsCreditLimitBanner" style="display: none;"></div>
+      <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 14px;">YouTube Video Comments &amp; Viewer Engagement Summary</h2>
+      <div class="kpi-banner">
+        <div class="kpi-card highlight">
+          <span class="kpi-badge">Total Comments Extracted</span>
+          <div class="kpi-amount" id="kpiCommTotal">0</div>
+          <span class="kpi-sub" id="kpiCommVideoTitle">YouTube Video</span>
+        </div>
+
+        <div class="kpi-card donors-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Unique Commenters</span>
+            <span class="pill-badge pill-blue">Audience</span>
+          </div>
+          <div class="kpi-value" id="kpiCommUnique">0</div>
+          <span class="kpi-note">Individual viewers</span>
+        </div>
+
+        <div class="kpi-card jewels-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Total Comment Likes</span>
+            <span class="pill-badge pill-amber">Engagement</span>
+          </div>
+          <div class="kpi-value" id="kpiCommTotalLikes">0</div>
+          <span class="kpi-note">Total viewer upvotes</span>
+        </div>
+
+        <div class="kpi-card member-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Most Liked Comment</span>
+            <span class="pill-badge pill-purple">Top Rated</span>
+          </div>
+          <div class="kpi-value" id="kpiCommTopLikes">0 Likes</div>
+          <span class="kpi-note" id="kpiCommTopAuthor">Top Community Voice</span>
+        </div>
+      </div>
+
+      <div class="results-toolbar">
+        <div class="toolbar-title-group">
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary);">Video Comments Feed</h3>
+        </div>
+
+        <div class="export-group">
+          <button class="btn-view-results" id="openCommViewModalBtn" type="button"
+            title="View all comments in interactive inspection window without downloading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <span>👁️ View Results</span>
+          </button>
+          <button class="btn-export excel" id="exportCommExcelBtn" title="Export Comments Excel Spreadsheet">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="8" y1="13" x2="16" y2="13"></line>
+              <line x1="8" y1="17" x2="16" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>Excel (.xls)</span>
+          </button>
+          <button class="btn-export notepad" id="exportCommTxtBtn" title="Export Comments as Text">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <line x1="10" y1="9" x2="8" y2="9"></line>
+            </svg>
+            <span>Notepad (.txt)</span>
+          </button>
+          <button class="btn-export" id="exportCommCsvBtn" title="Export Comments CSV">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>CSV</span>
+          </button>
+          <button class="btn-export secondary" id="exportCommJsonBtn" title="Export Comments JSON">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            <span>JSON</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="search-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="commSearchInput" placeholder="Filter by author or comment text...">
+        </div>
+        <div class="sort-select-wrapper">
+          <label>Sort:</label>
+          <select id="commSortSelect">
+            <option value="likes-desc">Most Liked First</option>
+            <option value="newest-first">Newest First</option>
+            <option value="author-asc">Author Name (A-Z)</option>
+            <option value="replies-desc">Most Replies First</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-responsive">
+          <table class="data-table" id="commentsTable">
+            <thead>
+              <tr>
+                <th style="width: 70px;"># Count</th>
+                <th style="width: 220px;">Author</th>
+                <th style="width: 140px;">Published Date</th>
+                <th style="width: 100px;">Likes</th>
+                <th style="width: 100px;">Replies</th>
+                <th>Comment Text</th>
+                <th style="width: 100px;">Badges</th>
+              </tr>
+            </thead>
+            <tbody id="commentsTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+        <div id="commentsPagination" class="table-pagination-bar" style="display: none;"></div>
+      </div>
+    </section>
+
+    <!-- Feature Highlights & Transparent Credits Strip -->
+    <section class="info-section">
+      <div class="info-grid">
+        <div class="info-box">
+          <div class="info-icon">💬</div>
+          <h4>Live Chat Replay &amp; Superchats</h4>
+          <p>Download complete live chat replays with timestamps, Superchat amounts, Memberships &amp; interactive in-browser filtering.</p>
+        </div>
+        <div class="info-box">
+          <div class="info-icon">💭</div>
+          <h4>Video &amp; Shorts Comments</h4>
+          <p>Extract top comments, replies &amp; pinned creators across any YouTube video or Short — <strong>1 Credit = Up to 1,000 Comments &amp; Replies (Free tier up to 1,000 comments)</strong>.</p>
+        </div>
+        <div class="info-box">
+          <div class="info-icon">☁️</div>
+          <h4>4-Format Export &amp; Cloud Backups</h4>
+          <p>One-click Excel, CSV, TXT &amp; JSON downloads, plus automatic 14-day encrypted Cloud ZIP Backups for Credit buyers.</p>
+        </div>
+      </div>
+
+      <div class="tm-free-strip" style="margin-top: 28px;">
+        <div class="tm-free-strip-left">
+          <span class="tm-free-strip-badge">PAY-AS-YOU-GO CREDITS • ZERO SUBSCRIPTIONS</span>
+          <div class="tm-free-strip-text">
+            <strong>2 Free Single Streams (One-Time Guest)</strong> • <strong>3 Free Single Streams / week (Google Sign-In)</strong> with complete chat replay & superchat history. Bulk batches &amp; high-volume exports run on never-expiring Credits.
+          </div>
+        </div>
+        <button class="tm-free-strip-btn" type="button" onclick="window.TubeMetrixAuth && window.TubeMetrixAuth.openCreditsModal()">View Credit Packs</button>
+      </div>
+    </section>
+
+    <!-- FAQ Section for SEO -->
+    <section class="info-section" style="margin-top: 48px;">
+      <div style="max-width: 860px; margin: 0 auto; padding: 0 16px;">
+        <h2
+          style="font-size: 1.35rem; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; text-align: center;">
+          Frequently Asked Questions</h2>
+        <div class="faq-accordion">
+          <details
+            style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary
+              style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+              How to download YouTube live chat replay? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Paste your
+              YouTube live stream URL or Video ID into the Single Live Chat Mode tab. TubeMetrix fetches the complete
+              chat replay with timestamps, Superchats, Memberships, and regular messages — then export to CSV, Excel, or
+              TXT.</p>
+          </details>
+          <details
+            style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary
+              style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+              Can I export YouTube comments to Excel or CSV? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Yes! Use
+              Option D (Video Comments) to fetch all comments from any YouTube video. Export to Excel (.xls), CSV, TXT,
+              or JSON with one click. Works with regular videos, Shorts, and live stream replays.</p>
+          </details>
+          <details
+            style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary
+              style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+              What are the free limits and credit rates for live chat exports? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Single Stream
+              mode includes 2 one-time free runs as a Guest and 3 free runs per week after Google Sign-In (for single
+              chat replays or up to 1,000 video comments). Custom URL Batch Export and Multi Live Chat Export (Date
+              Range) use never-expiring prepaid Credits (1 Credit = 1 Full Stream Audit with Unlimited Super Chats • 1 Credit = 3,000 Live Chats • 1 Credit = 1,000 Video Comments; packs from ₹49 / $2.99; credits never expire).</p>
+          </details>
+          <details
+            style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary
+              style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+              How to filter Superchats from live chat logs? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">After
+              downloading, open the in-browser Chat Viewer and use the Event Type filter to show only Superchats. Set a
+              minimum Superchat amount filter (e.g. ₹100+, ₹1000+) and sort by highest value to find your top
+              supporters.</p>
+          </details>
+          <details
+            style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px;">
+            <summary
+              style="font-weight: 600; color: var(--text-primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+              Does TubeMetrix work with YouTube Shorts comments? <span class="faq-icon">+</span></summary>
+            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Yes!
+              TubeMetrix can download comments from YouTube Shorts, regular long-form videos, and live stream replays.
+              Just paste the YouTube Shorts URL or video ID into the Video Comments (Option D) tab.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand-col">
+        <div class="logo-text" style="font-size: 1.15rem; font-weight: 800;">Tube<span
+            style="color: var(--accent-red, #ff0033);">Metrix</span></div>
+        <p class="footer-desc">Professional YouTube creator analytics, live stream Super Chat auditor, comments
+          downloader &amp; channel revenue intelligence.</p>
+      </div>
+      <div class="footer-links-group">
+        <div class="footer-link-col">
+          <span class="footer-col-title">Tools &amp; Calculators</span>
+          <a href="/" class="footer-link">Live Stream Earnings Calculator</a>
+          <a href="/chats" class="footer-link">Live Chat &amp; Comments Downloader</a>
+          <a href="/revenue" class="footer-link">Channel Statistics &amp; Analytics</a>
+          <a href="/youtube-jewels-calculator" class="footer-link">YouTube Jewels &amp; Rubies Calculator</a>
+        </div>
+        <div class="footer-link-col">
+          <span class="footer-col-title">Dedicated Exporters</span>
+          <a href="/download-youtube-live-chat" class="footer-link">Live Chat Replay Downloader</a>
+          <a href="/download-youtube-shorts-comments" class="footer-link">Shorts Comments Downloader</a>
+          <a href="/bulk-youtube-comment-downloader" class="footer-link">Bulk Batch Comments Export</a>
+          <a href="/channel-comments-downloader" class="footer-link">Channel Stream Date Range</a>
+          <a href="/alternatives/youtube-comments-downloader" class="footer-link">YouTubeCommentsDownloader Alternative</a>
+        </div>
+        <div class="footer-link-col">
+          <span class="footer-col-title">Creator Utilities</span>
+          <a href="https://ytcuttr.com/" target="_blank" rel="noopener" class="footer-link">✂️ YTCuttr — YouTube Video Cutter</a>
+          <a href="https://ytcuttr.com/youtube-shorts-downloader" target="_blank" rel="noopener" class="footer-link">⚡ YouTube Shorts Downloader</a>
+          <a href="https://ytcuttr.com/youtube-audio-cutter" target="_blank" rel="noopener" class="footer-link">🎵 YouTube Audio Cutter</a>
+          <a href="https://streamslicer.pages.dev/" target="_blank" rel="noopener" class="footer-link">🎬 StreamSlicer (Twitch &amp; Kick Cutter)</a>
+        </div>
+        <div class="footer-link-col">
+          <span class="footer-col-title">Resources</span>
+          <a href="/sitemap.xml" class="footer-link">XML Sitemap</a>
+          <a href="/privacy" class="footer-link">Privacy Policy</a>
+          <a href="/terms" class="footer-link">Terms of Service</a>
+          <a href="mailto:support@tubemetrix.net" class="footer-link">Contact Support</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom-bar">
+      <p>© 2026 TubeMetrix. All YouTube data sourced publicly. Made for Creators, MCNs &amp; Channel Managers.</p>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════════
+       INTERACTIVE VIEW RESULTS WINDOW (POPUP MODAL)
+       Direct Online Inspection Window - No Download Needed!
+       ══════════════════════════════════════════ -->
+  <div class="view-modal-backdrop" id="viewResultsModal" style="display: none;">
+    <div class="view-modal-overlay" id="viewModalOverlay"></div>
+    <div class="view-modal-window" role="dialog" aria-modal="true" aria-labelledby="vmTitle">
+      <!-- Modal Header -->
+      <div class="vm-header">
+        <div class="vm-header-left">
+          <span class="vm-badge" id="vmTypeBadge">🔴 Live Stream Chats</span>
+          <h2 class="vm-title" id="vmTitle">Live Chat &amp; Comments Viewer</h2>
+          <span class="vm-counter" id="vmCounter">0 Messages</span>
+        </div>
+        <div class="vm-header-actions">
+          <button class="btn-vm-close" id="vmCloseBtn" type="button" aria-label="Close"
+            title="Close Window (Esc)">✕</button>
+        </div>
+      </div>
+
+      <!-- Clean Minimalist Filter Toolbar -->
+      <div class="vm-toolbar-clean">
+        <!-- Prominent Search Bar (Username or Message) -->
+        <div class="vm-search-box-clean">
+          <svg class="vm-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="vmSearchInput" placeholder="Search by username or message text..." autocomplete="off">
+          <button class="vm-search-clear" id="vmSearchClearBtn" type="button" title="Clear search"
+            style="display: none;">✕</button>
+        </div>
+
+        <!-- Quick Filter Chips & View Mode Toggle -->
+        <div class="vm-pills-bar" id="vmQuickBar">
+          <div class="vm-pills">
+            <button class="vm-pill active" data-event-filter="all">All (<span id="vmPillAll">0</span>)</button>
+            <button class="vm-pill" data-event-filter="SUPERCHAT">⭐ Super Chats (<span id="vmPillSc">0</span>)</button>
+            <button class="vm-pill" data-event-filter="MEMBERSHIP">💎 Memberships (<span
+                id="vmPillMem">0</span>)</button>
+            <button class="vm-pill" data-event-filter="JEWELS">🎁 Jewels (<span id="vmPillJewels">0</span>)</button>
+            <button class="vm-pill" data-event-filter="CHAT">💬 Chats (<span id="vmPillNormal">0</span>)</button>
+          </div>
+          <div class="vm-view-toggle">
+            <button class="vm-toggle-btn active" id="vmToggleTableBtn" type="button" title="Table Grid View">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="3" y1="15" x2="21" y2="15"></line>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
+              </svg>
+              <span>Table</span>
+            </button>
+            <button class="vm-toggle-btn" id="vmToggleFeedBtn" type="button" title="Live Chat Replay Feed View">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>Live Feed</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Body (100% Touch Scrollable on Mobile) -->
+      <div class="vm-body" id="vmBody">
+        <!-- Table Mode -->
+        <div class="vm-table-container" id="vmTableContainer">
+          <table class="data-table vm-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th style="width: 120px;">Stream</th>
+                <th style="width: 95px;">Time</th>
+                <th style="width: 180px;">User</th>
+                <th style="width: 150px;">Event</th>
+                <th>Message Content</th>
+              </tr>
+            </thead>
+            <tbody id="vmTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Feed Mode -->
+        <div class="live-chat-feed-box vm-feed-container" id="vmFeedContainer" style="display: none;">
+          <div class="chat-feed-stream" id="vmFeedStream">
+            <!-- Dynamically populated live chat bubbles -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="vm-footer">
+        <div class="vm-footer-left">
+          <span id="vmFooterStatus">Showing 0 messages</span>
+        </div>
+        <div class="vm-footer-right">
+          <button class="btn-export excel" id="vmExportExcelBtn" title="Export current filtered view to Excel">
+            <span>Excel (.xls)</span>
+          </button>
+          <button class="btn-export" id="vmExportCsvBtn" title="Export current filtered view to CSV">
+            <span>CSV</span>
+          </button>
+          <button class="btn-vm-close-bar" id="vmCloseFooterBtn" type="button">✕ Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js?v=5.3"></script>
+  <script src="cloud-backup.js?v=1.0"></script>
+  <script src="chats.js?v=10.1"></script>
+  <script src="maintenance.js?v=4.0"></script>
+  <script src="translator.js?v=1.0"></script>
+</body>
+
+</html>

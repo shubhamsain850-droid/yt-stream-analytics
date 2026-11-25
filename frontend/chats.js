@@ -670,6 +670,15 @@
 
     });
 
+    // Check for default mode via body data attribute, URL param (?mode=), or hash (#comments)
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const reqMode = document.body.dataset.defaultMode || urlParams.get('mode') || (window.location.hash ? window.location.hash.replace('#', '') : null);
+      if (reqMode && ['single', 'channel', 'multi', 'comments'].includes(reqMode)) {
+        switchMode(reqMode);
+      }
+    } catch (_) {}
+
 
 
     // Channel Date Presets
