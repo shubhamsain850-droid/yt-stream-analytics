@@ -78,7 +78,7 @@
 
   <!-- Blog Hub & Flagship Articles -->
   <url>
-    <loc>https://tubemetrix.net/blog</loc>
+    <loc>https://tubemetrix.net/blog/</loc>
     <lastmod>2026-11-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
