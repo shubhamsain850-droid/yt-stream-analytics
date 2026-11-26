@@ -1,7 +1,11 @@
 # TubeMetrix — YouTube Live Stream Analytics, Super Chat Auditor & Comment Exporter
 > https://tubemetrix.net/
 
-TubeMetrix is a creator intelligence and data extraction platform for YouTube streamers, MCN agencies, data researchers, and content creators. It allows users to audit live stream monetization (Super Chats, Super Stickers, Channel Memberships, and YouTube Jewels/Rubies) and export complete live chat replays and video/Shorts comments to formatted Excel (.xls), CSV, TXT, and JSON.
+TubeMetrix is a creator intelligence and data extraction platform developed by **RedFire Corporation** ([https://redfire-corporation.pages.dev/](https://redfire-corporation.pages.dev/)) for YouTube streamers, MCN agencies, data researchers, and content creators. It allows users to audit live stream monetization (Super Chats, Super Stickers, Channel Memberships, and YouTube Jewels/Rubies) and export complete live chat replays and video/Shorts comments to formatted Excel (.xls), CSV, TXT, and JSON.
+
+## Publisher & Parent Organization
+- **Company:** [RedFire Corporation](https://redfire-corporation.pages.dev/) (Software Development, Jaipur, India)
+- **Official Profiles:** [LinkedIn](https://www.linkedin.com/company/redfire-corporation/) | [X / Twitter (@RedFire_Corp)](https://x.com/RedFire_Corp) | [Reddit (u/RedFireCorp)](https://www.reddit.com/user/RedFireCorp/)
 
 ## Core Tools & URLs
 - [Live Stream Earnings & Super Chat Auditor](https://tubemetrix.net/): Calculate exact gross and 70% net creator revenue from Super Chats, Memberships, and YouTube Jewels across single streams or channel date ranges.
