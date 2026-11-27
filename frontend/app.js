@@ -326,7 +326,18 @@ document.addEventListener('DOMContentLoaded', () => {
       updateEarningsLiveCreditBar(true);
       return;
     }
-    if (!currentEarningsCheckpoint || !e?.detail?.user) {
+    const prevUid = e?.detail?.prevUserId || null;
+    const nextUid = e?.detail?.user?.id || null;
+    const switchedOrSignedOut = (prevUid && prevUid !== nextUid);
+    if (switchedOrSignedOut) {
+      earningsCheckpointEpoch++;
+      currentEarningsCheckpoint = null;
+      state.results = null;
+      if (elements.resultsSection) elements.resultsSection.style.display = 'none';
+      if (elements.processingCard) elements.processingCard.style.display = 'none';
+      renderEarningsCloudBadge('idle');
+    }
+    if (!currentEarningsCheckpoint || !e?.detail?.user || switchedOrSignedOut) {
       if (window.TubeMetrixAuth?.whenReady) {
         restoreSavedEarningsCheckpoint();
       }
@@ -897,7 +908,8 @@ function setupChannelMode() {
           from_date: fromDate,
           to_date: toDate,
           max_results: null
-        })
+        }),
+        signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(45000) : undefined
       });
 
       const resJson = await resp.json();
@@ -905,7 +917,7 @@ function setupChannelMode() {
         let streams = resJson.streams;
         if (fromDate || toDate) {
           streams = streams.filter(s => {
-            if (!s.date || s.date === 'Recent') return true;
+            if (!s.date || !/^\d{4}-\d{2}-\d{2}$/.test(s.date)) return false;
             if (fromDate && s.date < fromDate) return false;
             if (toDate && s.date > toDate) return false;
             return true;
@@ -1505,7 +1517,7 @@ function stopProgressSimulation() {
 
 // ── 6. High-Performance Processing Engine (Safe Concurrency Pool & Live Streaming UI) ──
 // ── 6. Main Stream Processing & Multi-Stream Worker Engine (Level A Metered + Pause/Resume) ──
-const CONCURRENCY_LIMIT = 3;
+const CONCURRENCY_LIMIT = 2;
 const EARNINGS_PAUSE_CKPT_KEY = 'earnings_pause_v1';
 let pauseEarningsRequested = false;
 let currentEarningsCheckpoint = null;
@@ -2034,7 +2046,8 @@ async function startProcessing(urls, label = null, options = {}) {
           resp = await fetch(`${API_BASE}/analyze-stream`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: url })
+            body: JSON.stringify({ url: url }),
+            signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(85000) : undefined
           });
           if (!resp.ok && attempt === 0 && [429, 502, 503, 504].includes(resp.status) && !state.pauseRequested) {
             await new Promise(r => setTimeout(r, 1200));
@@ -2062,7 +2075,7 @@ async function startProcessing(urls, label = null, options = {}) {
         resultsAccumulator.streams.push({
           vid: p.stream_id,
           title: resData.title || `Live Stream [${p.stream_id}]`,
-          date: p.upload_date || new Date().toISOString().split('T')[0],
+          date: p.upload_date || resData.upload_date || 'N/A',
           superchatsInr: p.totals.superchat_inr,
           jewelsInr: p.totals.jewels_inr,
           jewelsCount: p.totals.jewels_count,
@@ -2075,7 +2088,7 @@ async function startProcessing(urls, label = null, options = {}) {
           vid: p.stream_id || vid,
           url,
           title: resData.title || `Live Stream [${vid}]`,
-          date: p.upload_date || '',
+          date: p.upload_date || resData.upload_date || '',
           status: 'processed',
           info: `Gross: ₹${Math.round(p.totals.gross_inr || 0).toLocaleString()} (${p.totals.superchat_count || 0} Superchats, ${p.totals.memberships_count || 0} Memberships)`
         });
@@ -2336,7 +2349,7 @@ async function startProcessing(urls, label = null, options = {}) {
   elements.progressPercent.textContent = '100%';
 
   if (state.metrics.success > 0) {
-    elements.statusTicker.textContent = `Audit Complete! Successfully parsed ${state.metrics.success} stream(s) via 3 Safe Workers.`;
+    elements.statusTicker.textContent = `Audit Complete! Successfully parsed ${state.metrics.success} stream(s) via ${numWorkers} Safe Worker${numWorkers === 1 ? '' : 's'}.`;
     elements.statusTitle.textContent = `Audit Finished: ${state.metrics.success} of ${totalPlanned} Streams Completed (100%)`;
     renderAllResults(resultsAccumulator);
     renderTiersBar();

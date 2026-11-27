@@ -466,14 +466,20 @@
     return { ok: resp.ok, status: resp.status, data };
   }
 
+  let prevBroadcastUserId = null;
+
   function applyServerState(payload) {
     if (!payload || typeof payload !== 'object') return;
+    const prevUid = currentUser?.id || null;
     if ('user' in payload) {
       currentUser = payload.user || null;
       if (currentUser) {
         pendingGuestExhaustedPrompt = false;
       }
     }
+    const nextUid = currentUser?.id || null;
+    const userChanged = prevUid !== nextUid || prevBroadcastUserId !== nextUid;
+    prevBroadcastUserId = nextUid;
     if (payload.quota && typeof payload.quota === 'object') {
       quotaState = {
         ...quotaState,
@@ -505,6 +511,8 @@
         new CustomEvent('tubemetrix:auth-updated', {
           detail: {
             user: currentUser ? { ...currentUser } : null,
+            prevUserId: prevUid,
+            userChanged,
             quota: { ...quotaState },
             creditsBalance: currentUser ? Math.max(0, Number(currentUser.creditsBalance || 0)) : 0,
           },
@@ -840,6 +848,9 @@
 
   async function signOutUser() {
     await clearAllCheckpoints();
+    try {
+      sessionStorage.removeItem('tm_pending_cloud_restore_v1');
+    } catch { }
     try {
       const res = await apiRequest('/api/auth/logout', { method: 'POST', body: '{}' });
       if (res.ok) {

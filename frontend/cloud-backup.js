@@ -249,10 +249,20 @@
   function resetCacheOnAuthChange() {
     const uid = window.TubeMetrixAuth?.getUser?.()?.id || null;
     if (uid !== cachedUserId) {
+      for (const timer of pendingTimersById.values()) {
+        clearTimeout(timer);
+      }
+      pendingTimersById.clear();
+      latestPendingByBackupId.clear();
       cachedUserId = uid;
       cachedBackups = [];
       cachedPremium = isEligible();
       listFetchPromise = null;
+      if (!uid) {
+        try {
+          sessionStorage.removeItem(PENDING_RESTORE_KEY);
+        } catch { }
+      }
     }
   }
 
@@ -300,6 +310,8 @@
 
   async function executeSingleUpload(snapshot) {
     if (!isEligible()) return null;
+    const ownerUid = window.TubeMetrixAuth?.getUser?.()?.id || null;
+    if (!ownerUid) return null;
     const form = new FormData();
     const meta = {
       id: snapshot.id,
@@ -334,9 +346,12 @@
     });
     const data = await res.json().catch(() => null);
     if (res.ok && data?.backup) {
-      const idx = cachedBackups.findIndex((b) => b.id === data.backup.id);
-      if (idx >= 0) cachedBackups[idx] = data.backup;
-      else cachedBackups.unshift(data.backup);
+      const activeUid = window.TubeMetrixAuth?.getUser?.()?.id || null;
+      if (activeUid === ownerUid && cachedUserId === ownerUid) {
+        const idx = cachedBackups.findIndex((b) => b.id === data.backup.id);
+        if (idx >= 0) cachedBackups[idx] = data.backup;
+        else cachedBackups.unshift(data.backup);
+      }
       return data.backup;
     }
     return null;
@@ -499,11 +514,12 @@
 
   async function triggerBackupAction(backup, action) {
     if (!backup) return;
+    const activeUid = window.TubeMetrixAuth?.getUser?.()?.id || null;
     const isCorrectPage = isOnToolPage(backup.toolKind);
     if (!isCorrectPage || typeof window.__tmRestoreCloudBackup !== 'function') {
       sessionStorage.setItem(
         PENDING_RESTORE_KEY,
-        JSON.stringify({ id: backup.id, action, backup })
+        JSON.stringify({ id: backup.id, action, backup, userId: activeUid })
       );
       window.location.href = getToolPagePath(backup.toolKind);
       return;
@@ -531,6 +547,11 @@
     try {
       parsed = JSON.parse(raw);
     } catch {
+      sessionStorage.removeItem(PENDING_RESTORE_KEY);
+      return false;
+    }
+    const activeUid = window.TubeMetrixAuth?.getUser?.()?.id || null;
+    if (parsed?.userId && activeUid !== parsed.userId) {
       sessionStorage.removeItem(PENDING_RESTORE_KEY);
       return false;
     }

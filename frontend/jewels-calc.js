@@ -389,7 +389,8 @@
       const resp = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: `https://www.youtube.com/watch?v=${vid}` })
+        body: JSON.stringify({ url: `https://www.youtube.com/watch?v=${vid}` }),
+        signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(85000) : undefined
       });
 
       clearInterval(tickerInterval);
@@ -411,7 +412,7 @@
       }
 
       let finalTitle = resData.title || `Live Stream [${vid}]`;
-      let finalChannel = resData.channel || 'YouTube Creator';
+      let finalChannel = resData.channel || resData.data?.channel || 'YouTube Creator';
 
       // Fast oEmbed lookup to get the real YouTube title and creator name if backend returned fallback
       if (!finalTitle || finalTitle.startsWith('Live Stream [')) {

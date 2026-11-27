@@ -491,7 +491,8 @@
       const resp = await fetch(`${API_BASE}/search-channels`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: searchTarget, max_results: 12 })
+        body: JSON.stringify({ query: searchTarget, max_results: 12 }),
+        signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(15000) : undefined
       });
 
       if (resp.ok) {
@@ -630,7 +631,8 @@
       const resp = await fetch(`${API_BASE}/search-channels`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: searchTarget, max_results: 12 })
+        body: JSON.stringify({ query: searchTarget, max_results: 12 }),
+        signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(15000) : undefined
       });
 
       if (resp.ok) {
@@ -967,7 +969,8 @@
       const resp = await fetch(`${API_BASE}/channel-analytics`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channel: cleanQ })
+        body: JSON.stringify({ channel: cleanQ }),
+        signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(25000) : undefined
       });
 
       if (resp.ok) {
@@ -1002,7 +1005,8 @@
             const retryResp = await fetch(`${API_BASE}/channel-analytics`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ channel: target })
+              body: JSON.stringify({ channel: target }),
+              signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(25000) : undefined
             });
 
             if (retryResp.ok) {

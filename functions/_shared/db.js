@@ -606,10 +606,18 @@ export async function revokeCreditPurchase(
   if (!target) return null;
 
   const ledgerKeys = [];
-  if (paymentId) ledgerKeys.push(`purchase:${paymentId}`);
-  if (sessionId) ledgerKeys.push(`purchase:${sessionId}`);
-  if (paymentRow?.payment_id) ledgerKeys.push(`purchase:${paymentRow.payment_id}`);
-  if (paymentRow?.session_id) ledgerKeys.push(`purchase:${paymentRow.session_id}`);
+  if (paymentId) {
+    ledgerKeys.push(`pay:${paymentId}`, `purchase:${paymentId}`);
+  }
+  if (sessionId) {
+    ledgerKeys.push(`sess:${sessionId}`, `purchase:${sessionId}`);
+  }
+  if (paymentRow?.payment_id) {
+    ledgerKeys.push(`pay:${paymentRow.payment_id}`, `purchase:${paymentRow.payment_id}`);
+  }
+  if (paymentRow?.session_id) {
+    ledgerKeys.push(`sess:${paymentRow.session_id}`, `purchase:${paymentRow.session_id}`);
+  }
 
   let grantedLedgerDelta = 0;
   for (const refKey of ledgerKeys) {

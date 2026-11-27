@@ -36,7 +36,7 @@
 
           body: JSON.stringify(payload),
 
-          signal: AbortSignal.timeout(55000),
+          signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(65000) : undefined,
 
         });
 
@@ -3792,7 +3792,9 @@
 
           max_results: null
 
-        })
+        }),
+
+        signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(45000) : undefined
 
       });
 
@@ -3815,7 +3817,7 @@
       let streams = cData.streams;
       if (fromDate || toDate) {
         streams = streams.filter(s => {
-          if (!s.date || s.date === 'Recent') return true;
+          if (!s.date || !/^\d{4}-\d{2}-\d{2}$/.test(s.date)) return false;
           if (fromDate && s.date < fromDate) return false;
           if (toDate && s.date > toDate) return false;
           return true;
@@ -7359,7 +7361,8 @@
 
         if (act.videoOffsetTimeMsec && !t) {
 
-          const secs = Math.floor(parseInt(act.videoOffsetTimeMsec, 10) / 1000);
+          const rawSecs = Math.trunc(parseInt(act.videoOffsetTimeMsec, 10) / 1000);
+          const secs = Math.abs(rawSecs);
 
           const s = secs % 60;
 
@@ -8206,7 +8209,22 @@
 
       }
 
-      if (!currentChatCheckpoint || (!e?.detail?.user && !currentChatCheckpoint?.allowGuest)) {
+      const prevUid = e?.detail?.prevUserId || null;
+      const nextUid = e?.detail?.user?.id || null;
+      const switchedOrSignedOut = (prevUid && prevUid !== nextUid);
+
+      if (switchedOrSignedOut) {
+        chatCheckpointEpoch++;
+        currentChatCheckpoint = null;
+        state.liveChatData = null;
+        state.commentsData = null;
+        if (el.resultsChatSection) el.resultsChatSection.style.display = 'none';
+        if (el.resultsCommentsSection) el.resultsCommentsSection.style.display = 'none';
+        renderChatCloudBadge('chats', 'idle');
+        renderChatCloudBadge('comments', 'idle');
+      }
+
+      if (!currentChatCheckpoint || (!e?.detail?.user && !currentChatCheckpoint?.allowGuest) || switchedOrSignedOut) {
 
         if (window.TubeMetrixAuth?.whenReady) {
 
