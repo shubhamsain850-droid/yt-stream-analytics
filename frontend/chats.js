@@ -36,7 +36,7 @@
 
           body: JSON.stringify(payload),
 
-          signal: AbortSignal.timeout(35000),
+          signal: AbortSignal.timeout(55000),
 
         });
 
@@ -7383,6 +7383,8 @@
 
 
 
+      if (obj.addLiveChatTickerItemAction || obj.addBannerToLiveChatCommand) return;
+
       if (obj.addChatItemAction && obj.addChatItemAction.item) {
 
         processItem(obj.addChatItemAction.item, timeOffset);
@@ -7685,17 +7687,30 @@
 
         const text = extractText(r.text);
 
+        let author = extractText(r.authorName);
+        if (!author && r.giftImageA11yLabel && String(r.giftImageA11yLabel).includes(' sent a gift')) {
+          author = String(r.giftImageA11yLabel).split(' sent a gift')[0].trim();
+        }
+        author = author || 'Gift Supporter';
+
+        const id = r.id || `jewel_${author}_${timeOffset}_${messages.length + 1}`;
+        if (seenIds.has(id)) return;
+        seenIds.add(id);
+
+        const matchLegacy = text.match(/comboed x(\d+) (.+?) for (\d+) Jewels/);
+        const jAmt = matchLegacy ? parseInt(matchLegacy[3], 10) : 0;
+
         jewelCount++;
-
-
+        userMsgCounts[author] = (userMsgCounts[author] || 0) + 1;
+        uniqueChatters.add(author);
 
         messages.push({
 
           idx: messages.length + 1,
 
-          id: `jewel_${messages.length + 1}`,
+          id,
 
-          time: timeOffset, author: 'Gift Supporter',
+          time: timeOffset, author,
 
           author_id: '',
 
@@ -7703,9 +7718,9 @@
 
           event_type: 'JEWELS',
 
-          badge_label: '💎 YouTube Jewels',
+          badge_label: jAmt > 0 ? `💎 ${jAmt} Jewels` : `💎 ${text || 'YouTube Jewels'}`,
 
-          amount: 0, currency: '', details: text,
+          amount: jAmt, currency: jAmt > 0 ? 'JEWELS' : '', details: text,
 
           message: text, stream_id: vid
 

@@ -32,7 +32,27 @@ const DEFAULT_CURRENCY_RATES = {
   "MXN": 4.30,
   "IDR": 0.0055,
   "THB": 2.45,
-  "VND": 0.0034
+  "VND": 0.0034,
+  "CHF": 98.50,
+  "SEK": 8.15,
+  "NOK": 7.95,
+  "DKK": 12.60,
+  "ZAR": 4.80,
+  "MYR": 19.60,
+  "CLP": 0.090,
+  "COP": 0.020,
+  "ARS": 0.086,
+  "PEN": 23.20,
+  "CNY": 12.00,
+  "HUF": 0.23,
+  "CZK": 3.70,
+  "ILS": 23.50,
+  "UAH": 2.10,
+  "NGN": 0.052,
+  "RON": 18.90,
+  "KES": 0.67,
+  "EGP": 1.75,
+  "QAR": 23.85
 };
 
 const CURRENCY_METADATA = {
@@ -60,33 +80,66 @@ const CURRENCY_METADATA = {
   "MXN": { name: "Mexican Peso", symbol: "Mex$", flag: "🇲🇽", decimals: 2 },
   "IDR": { name: "Indonesian Rupiah", symbol: "Rp", flag: "🇮🇩", decimals: 0 },
   "THB": { name: "Thai Baht", symbol: "฿", flag: "🇹🇭", decimals: 2 },
-  "VND": { name: "Vietnamese Dong", symbol: "₫", flag: "🇻🇳", decimals: 0 }
+  "VND": { name: "Vietnamese Dong", symbol: "₫", flag: "🇻🇳", decimals: 0 },
+  "CHF": { name: "Swiss Franc", symbol: "CHF ", flag: "🇨🇭", decimals: 2 },
+  "SEK": { name: "Swedish Krona", symbol: "SEK ", flag: "🇸🇪", decimals: 2 },
+  "NOK": { name: "Norwegian Krone", symbol: "NOK ", flag: "🇳🇴", decimals: 2 },
+  "DKK": { name: "Danish Krone", symbol: "DKK ", flag: "🇩🇰", decimals: 2 },
+  "ZAR": { name: "South African Rand", symbol: "ZAR ", flag: "🇿🇦", decimals: 2 },
+  "MYR": { name: "Malaysian Ringgit", symbol: "RM", flag: "🇲🇾", decimals: 2 },
+  "CLP": { name: "Chilean Peso", symbol: "CLP ", flag: "🇨🇱", decimals: 0 },
+  "COP": { name: "Colombian Peso", symbol: "COP ", flag: "🇨🇴", decimals: 0 },
+  "ARS": { name: "Argentine Peso", symbol: "ARS ", flag: "🇦🇷", decimals: 2 },
+  "PEN": { name: "Peruvian Sol", symbol: "S/", flag: "🇵🇪", decimals: 2 },
+  "CNY": { name: "Chinese Yuan", symbol: "CN¥", flag: "🇨🇳", decimals: 2 },
+  "HUF": { name: "Hungarian Forint", symbol: "Ft", flag: "🇭🇺", decimals: 0 },
+  "CZK": { name: "Czech Koruna", symbol: "CZK ", flag: "🇨🇿", decimals: 2 },
+  "ILS": { name: "Israeli Shekel", symbol: "₪", flag: "🇮🇱", decimals: 2 },
+  "UAH": { name: "Ukrainian Hryvnia", symbol: "₴", flag: "🇺🇦", decimals: 2 },
+  "NGN": { name: "Nigerian Naira", symbol: "₦", flag: "🇳🇬", decimals: 2 },
+  "RON": { name: "Romanian Leu", symbol: "RON ", flag: "🇷🇴", decimals: 2 },
+  "KES": { name: "Kenyan Shilling", symbol: "KES ", flag: "🇰🇪", decimals: 2 },
+  "EGP": { name: "Egyptian Pound", symbol: "EGP ", flag: "🇪🇬", decimals: 2 },
+  "QAR": { name: "Qatari Riyal", symbol: "QAR ", flag: "🇶🇦", decimals: 2 }
 };
 
-// Sorted by length descending to match compound prefixes (CA$, US$, A$) before generic ($)
+// Sorted by length descending to match compound prefixes (CA$, US$, A$, MX$) before generic ($)
 const SYMBOL_MAP = [
-  { s: 'Mex$', c: 'MXN' },
-  { s: 'US$', c: 'USD' }, { s: 'CA$', c: 'CAD' }, { s: 'C$', c: 'CAD' },
-  { s: 'AU$', c: 'AUD' }, { s: 'A$', c: 'AUD' },
-  { s: 'NZ$', c: 'NZD' }, { s: 'HK$', c: 'HKD' }, { s: 'NT$', c: 'TWD' },
-  { s: 'SG$', c: 'SGD' }, { s: 'S$', c: 'SGD' },
-  { s: 'R$', c: 'BRL' },
-  { s: 'Rs.', c: 'PKR' }, { s: 'PKR', c: 'PKR' },
-  { s: 'BDT', c: 'BDT' }, { s: '৳', c: 'BDT' },
-  { s: 'AED', c: 'AED' }, { s: 'SAR', c: 'SAR' },
-  { s: 'PHP', c: 'PHP' }, { s: '₱', c: 'PHP' },
-  { s: 'JP¥', c: 'JPY' }, { s: 'JPY', c: 'JPY' }, { s: '¥', c: 'JPY' },
-  { s: 'KRW', c: 'KRW' }, { s: '₩', c: 'KRW' },
-  { s: 'EUR', c: 'EUR' }, { s: '€', c: 'EUR' },
-  { s: 'GBP', c: 'GBP' }, { s: '£', c: 'GBP' },
-  { s: 'INR', c: 'INR' }, { s: '₹', c: 'INR' },  { s: 'Rs', c: 'INR' },
-  { s: '$', c: 'USD' },   { s: 'USD', c: 'USD' },
-  { s: 'zł', c: 'PLN' },  { s: 'PLN', c: 'PLN' },
-  { s: '₺', c: 'TRY' },   { s: 'TRY', c: 'TRY' },
-  { s: '₽', c: 'RUB' },   { s: 'RUB', c: 'RUB' },
-  { s: 'IDR', c: 'IDR' }, { s: 'Rp', c: 'IDR' },
-  { s: 'THB', c: 'THB' }, { s: '฿', c: 'THB' },
-  { s: 'VND', c: 'VND' }, { s: '₫', c: 'VND' }
+  { s: 'Mex$', c: 'MXN' }, { s: 'MX$', c: 'MXN' }, { s: 'MXN', c: 'MXN' },
+  { s: 'COL$', c: 'COP' }, { s: 'COP', c: 'COP' },
+  { s: 'CL$', c: 'CLP' },  { s: 'CLP', c: 'CLP' },
+  { s: 'AR$', c: 'ARS' },  { s: 'ARS', c: 'ARS' },
+  { s: 'US$', c: 'USD' },  { s: 'CA$', c: 'CAD' }, { s: 'C$', c: 'CAD' },
+  { s: 'AU$', c: 'AUD' },  { s: 'A$', c: 'AUD' },
+  { s: 'NZ$', c: 'NZD' },  { s: 'HK$', c: 'HKD' }, { s: 'NT$', c: 'TWD' },
+  { s: 'SG$', c: 'SGD' },  { s: 'S$', c: 'SGD' },
+  { s: 'CN¥', c: 'CNY' },  { s: 'CNY', c: 'CNY' },
+  { s: 'R$', c: 'BRL' },   { s: 'BRL', c: 'BRL' },
+  { s: 'PKR', c: 'PKR' },
+  { s: 'BDT', c: 'BDT' },  { s: '৳', c: 'BDT' },
+  { s: 'AED', c: 'AED' },  { s: 'SAR', c: 'SAR' }, { s: 'QAR', c: 'QAR' },
+  { s: 'CHF', c: 'CHF' },  { s: 'SEK', c: 'SEK' }, { s: 'NOK', c: 'NOK' }, { s: 'DKK', c: 'DKK' },
+  { s: 'ZAR', c: 'ZAR' },  { s: 'MYR', c: 'MYR' }, { s: 'RM', c: 'MYR' },
+  { s: 'PEN', c: 'PEN' },  { s: 'S/', c: 'PEN' },
+  { s: 'HUF', c: 'HUF' },  { s: 'Ft', c: 'HUF' },
+  { s: 'CZK', c: 'CZK' },  { s: 'Kč', c: 'CZK' },
+  { s: 'ILS', c: 'ILS' },  { s: '₪', c: 'ILS' },
+  { s: 'UAH', c: 'UAH' },  { s: '₴', c: 'UAH' },
+  { s: 'NGN', c: 'NGN' },  { s: '₦', c: 'NGN' },
+  { s: 'RON', c: 'RON' },  { s: 'KES', c: 'KES' }, { s: 'EGP', c: 'EGP' },
+  { s: 'PHP', c: 'PHP' },  { s: '₱', c: 'PHP' },
+  { s: 'JP¥', c: 'JPY' },  { s: 'JPY', c: 'JPY' }, { s: '¥', c: 'JPY' },
+  { s: 'KRW', c: 'KRW' },  { s: '₩', c: 'KRW' },
+  { s: 'EUR', c: 'EUR' },  { s: '€', c: 'EUR' },
+  { s: 'GBP', c: 'GBP' },  { s: '£', c: 'GBP' },
+  { s: 'INR', c: 'INR' },  { s: '₹', c: 'INR' },  { s: 'Rs.', c: 'INR' }, { s: 'Rs', c: 'INR' },
+  { s: '$', c: 'USD' },    { s: 'USD', c: 'USD' },
+  { s: 'zł', c: 'PLN' },   { s: 'PLN', c: 'PLN' },
+  { s: '₺', c: 'TRY' },    { s: 'TRY', c: 'TRY' },
+  { s: '₽', c: 'RUB' },    { s: 'RUB', c: 'RUB' },
+  { s: 'IDR', c: 'IDR' },  { s: 'Rp', c: 'IDR' },
+  { s: 'THB', c: 'THB' },  { s: '฿', c: 'THB' },
+  { s: 'VND', c: 'VND' },  { s: '₫', c: 'VND' }
 ].sort((a, b) => b.s.length - a.s.length);
 
 // ── Application State ──
@@ -1083,28 +1136,23 @@ function parseClientSideJson(lines, vid) {
     const line = lines[i].trim();
     if (!line) continue;
 
-    // Fast check for Superchats & Super Stickers
-    if (line.includes('purchaseAmountText')) {
+    // Fast check for Superchats & Super Stickers (skip ticker overlays)
+    if (line.includes('purchaseAmountText') && !line.includes('addLiveChatTickerItemAction')) {
       try {
         const obj = JSON.parse(line);
         walkJson(obj, (item) => {
           if (item.purchaseAmountText) {
-            const scId = item.id;
-            if (scId && seenIds.has(scId)) return;
-            if (scId) seenIds.add(scId);
-
             const author = extractText(item.authorName) || "Unknown";
             const amtStr = extractText(item.purchaseAmountText) || "0";
+            const msg = item.message ? extractText(item.message) : "[Super Sticker]";
+            const ts = extractText(item.timestampText);
+            const scId = item.id || `fp_sc:${author}:${amtStr}:${ts}:${msg}`;
+            if (seenIds.has(scId)) return;
+            seenIds.add(scId);
+
             const parsedAmt = parseAmountStr(amtStr);
             const rate = state.exchangeRates[parsedAmt.currency] || DEFAULT_CURRENCY_RATES[parsedAmt.currency] || 1.0;
             const amtInr = parsedAmt.amount * rate;
-
-            let msg = "";
-            if (item.message) {
-              msg = extractText(item.message);
-            } else {
-              msg = "[Super Sticker]";
-            }
 
             superchats.push({
               author,
@@ -1113,7 +1161,7 @@ function parseClientSideJson(lines, vid) {
               amount_inr: amtInr,
               message: msg,
               streamId: vid,
-              timestamp: extractText(item.timestampText)
+              timestamp: ts
             });
             totalScInr += amtInr;
             uniqueDonors.add(author);
@@ -1211,34 +1259,46 @@ function parseClientSideJson(lines, vid) {
       } catch (e) {}
     }
 
-    // Fast check for YouTube Jewels
+    // Fast check for YouTube Jewels (legacy comboed & 2026 sent-gift formats)
     if (line.includes('giftMessageViewModel')) {
       try {
         const obj = JSON.parse(line);
         walkJson(obj, (item) => {
-          const content = extractText(item.text);
-          if (content) {
-            const match = content.match(/comboed x(\d+) (.+?) for (\d+) Jewels/);
-            if (match) {
-              const qty = parseInt(match[1]);
-              const gname = match[2].trim();
-              const jAmt = parseInt(match[3]);
-              const author = extractText(item.authorName) || "Unknown";
-              const inrVal = jAmt * INR_PER_JEWEL;
-
-              jewels.push({
-                giftName: gname,
-                author,
-                quantity: qty,
-                totalJewels: jAmt,
-                inrValue: inrVal,
-                streamId: vid
-              });
-              totalJewelsCount += jAmt;
-              totalJewelsInr += inrVal;
-              uniqueDonors.add(author);
-            }
+          if (!item.giftMessageViewModel && !(item.text && item.giftImage)) return;
+          const vm = item.giftMessageViewModel || item;
+          const content = extractText(vm.text);
+          if (!content) return;
+          let qty = 1, gname = '', jAmt = 0;
+          const matchLegacy = content.match(/comboed x(\d+) (.+?) for (\d+) Jewels/);
+          const matchSent = content.match(/(?:sent|gifted)\s+(?:x(\d+)\s+)?(.+?)(?:\s+for\s+(\d+)\s+Jewels)?$/i);
+          if (matchLegacy) {
+            qty = parseInt(matchLegacy[1]);
+            gname = matchLegacy[2].trim();
+            jAmt = parseInt(matchLegacy[3]);
+          } else if (matchSent) {
+            if (matchSent[1]) qty = parseInt(matchSent[1]);
+            gname = matchSent[2].trim();
+            if (matchSent[3]) jAmt = parseInt(matchSent[3]);
+          } else {
+            return;
           }
+          const author = extractText(vm.authorName) || "Unknown";
+          const jId = vm.id || `fp_jwl:${author}:${gname}:${qty}:${jAmt}:${i}`;
+          if (seenIds.has(jId)) return;
+          seenIds.add(jId);
+          const inrVal = jAmt * INR_PER_JEWEL;
+
+          jewels.push({
+            giftName: gname,
+            author,
+            quantity: qty,
+            totalJewels: jAmt,
+            inrValue: inrVal,
+            streamId: vid
+          });
+          totalJewelsCount += jAmt;
+          totalJewelsInr += inrVal;
+          uniqueDonors.add(author);
         });
       } catch (e) {}
     }
@@ -1264,6 +1324,7 @@ function parseClientSideJson(lines, vid) {
 
 function walkJson(obj, callback) {
   if (typeof obj !== 'object' || obj === null) return;
+  if (obj.addLiveChatTickerItemAction || obj.addBannerToLiveChatCommand) return;
   callback(obj);
   if (Array.isArray(obj)) {
     for (let i = 0; i < obj.length; i++) walkJson(obj[i], callback);
@@ -1277,19 +1338,24 @@ function walkJson(obj, callback) {
 function parseAmountStr(text) {
   if (!text) return { amount: 0, currency: "INR" };
 
-  const cleanText = text.replace(/\u00a0/g, ' ').trim();
+  let cleanText = text.replace(/\u00a0/g, ' ').trim();
   let detectedCurrency = "INR";
+  let matchedSym = "";
 
   for (let i = 0; i < SYMBOL_MAP.length; i++) {
     const item = SYMBOL_MAP[i];
     if (cleanText.includes(item.s)) {
       detectedCurrency = item.c;
+      matchedSym = item.s;
       break;
     }
   }
+  if (matchedSym) {
+    cleanText = cleanText.replace(matchedSym, ' ');
+  }
 
   // Handle comma as decimal or thousand separator safely
-  let clean = cleanText.replace(/[^0-9.,]/g, '').trim();
+  let clean = cleanText.replace(/[^0-9.,]/g, '').replace(/^[.,]+|[.,]+$/g, '');
   if (clean.includes(',') && clean.includes('.')) {
     if (clean.lastIndexOf(',') > clean.lastIndexOf('.')) {
       clean = clean.replace(/\./g, '').replace(/,/g, '.');
@@ -1302,6 +1368,12 @@ function parseAmountStr(text) {
       clean = parts[0] + '.' + parts[1];
     } else {
       clean = clean.replace(/,/g, '');
+    }
+  } else if (clean.includes('.') && !clean.includes(',')) {
+    const parts = clean.split('.');
+    const zeroDec = new Set(['JPY', 'KRW', 'IDR', 'VND', 'CLP', 'COP', 'HUF', 'TWD']);
+    if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3 && zeroDec.has(detectedCurrency))) {
+      clean = clean.replace(/\./g, '');
     }
   }
 

@@ -508,7 +508,7 @@
     // ──────────────────────────────────────────────────────────
     // CASE A: Stream received YouTube Jewels (> 0 Jewels)
     // ──────────────────────────────────────────────────────────
-    if (totalJewels > 0) {
+    if (totalJewels > 0 || jewelsList.length > 0) {
       if (formatBadge) {
         formatBadge.style.display = 'inline-block';
         formatBadge.className = 'pill-badge pill-purple';
@@ -807,7 +807,7 @@
       `----------------------------------------`
     ];
 
-    if (totalJewels > 0) {
+    if (totalJewels > 0 || jewelsList.length > 0) {
       lines.push(
         `💎 Total Jewels Received: ${totalJewels.toLocaleString()} Jewels`,
         `🔴 Rubies Earned (2:1)  : ${rubies.toLocaleString()} Rubies`,
