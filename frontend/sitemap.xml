@@ -7,7 +7,7 @@
   <!-- Page 1: YouTube Live Stream Earnings & Super Chat Auditor -->
   <url>
     <loc>https://tubemetrix.net/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -15,7 +15,7 @@
   <!-- Page 2: YouTube Live Chat & Comments Downloader -->
   <url>
     <loc>https://tubemetrix.net/chats</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -23,7 +23,7 @@
   <!-- Page 3: YouTube Channel Statistics & Analytics -->
   <url>
     <loc>https://tubemetrix.net/revenue</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -31,7 +31,7 @@
   <!-- Page 4: YouTube Jewels & Rubies Calculator -->
   <url>
     <loc>https://tubemetrix.net/youtube-jewels-calculator</loc>
-    <lastmod>2026-11-25</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -39,7 +39,7 @@
   <!-- Page 5: Dedicated Live Chat Downloader -->
   <url>
     <loc>https://tubemetrix.net/download-youtube-live-chat</loc>
-    <lastmod>2026-11-25</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -47,7 +47,7 @@
   <!-- Page 6: Dedicated Shorts Comments Downloader -->
   <url>
     <loc>https://tubemetrix.net/download-youtube-shorts-comments</loc>
-    <lastmod>2026-11-25</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -55,7 +55,7 @@
   <!-- Page 7: Dedicated Bulk Comments Downloader -->
   <url>
     <loc>https://tubemetrix.net/bulk-youtube-comment-downloader</loc>
-    <lastmod>2026-11-25</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -63,7 +63,7 @@
   <!-- Page 8: Dedicated Channel Stream Comments Downloader -->
   <url>
     <loc>https://tubemetrix.net/channel-comments-downloader</loc>
-    <lastmod>2026-11-25</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -71,7 +71,7 @@
   <!-- Page 9: Dedicated Excel Comments Exporter -->
   <url>
     <loc>https://tubemetrix.net/export-youtube-comments-to-excel</loc>
-    <lastmod>2026-11-26</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
   </url>
@@ -84,53 +84,45 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- AI Search Optimization Context -->
-  <url>
-    <loc>https://tubemetrix.net/llms.txt</loc>
-    <lastmod>2026-11-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
   <!-- Blog Hub & Flagship Articles -->
   <url>
     <loc>https://tubemetrix.net/blog/</loc>
-    <lastmod>2026-11-25</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://tubemetrix.net/blog/how-to-export-youtube-live-chat-comments-to-excel</loc>
-    <lastmod>2026-11-25</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://tubemetrix.net/blog/best-youtube-comment-scrapers-2026</loc>
-    <lastmod>2026-11-25</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://tubemetrix.net/blog/extract-youtube-comments-sentiment-analysis-research</loc>
-    <lastmod>2026-11-25</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://tubemetrix.net/blog/analyze-youtube-shorts-comments-viral-ideas</loc>
-    <lastmod>2026-11-25</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://tubemetrix.net/blog/youtube-super-chat-70-30-split-apple-ios-tax-calculator</loc>
-    <lastmod>2026-11-25</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -138,14 +130,14 @@
   <!-- Legal Pages -->
   <url>
     <loc>https://tubemetrix.net/privacy</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
 
   <url>
     <loc>https://tubemetrix.net/terms</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
